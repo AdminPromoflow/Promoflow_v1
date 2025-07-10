@@ -8,7 +8,6 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
 <header class="header_nav">
 
   <!-- ===== CONTENEDOR DEL HEADER (usa Flexbox para distribución) ===== -->
-  <div class="container_header_nav">
 
     <!-- ===== TÍTULO DEL SITIO (lado izquierdo) ===== -->
     <div class="title_nav">
@@ -21,7 +20,6 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
       <img src="../../view/login/header/img/logo.png" alt="">
     </div>
 
-  </div>
 
 </header>
 
