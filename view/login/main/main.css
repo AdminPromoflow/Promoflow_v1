@@ -1,0 +1,26 @@
+body{
+  background-color: #fffd;
+  max-height: 100vh;
+  padding:1rem;
+  margin: 0;
+  min-width: 300px;
+}
+.header_nav_login{
+  background: linear-gradient(90deg, rgba(49,70,95,1) 27%, rgba(141,151,163,1) 72%, rgba(252,251,252,1) 100%);
+  padding: 1rem;
+  border-radius: 5px;
+  display: flex;
+  justify-content:space-between;
+}
+.title_login{
+  color: #fffd;
+}
+.logo_nav_login{
+  width: 80px;
+  height: 80px;
+}
+.logo_nav_login img{
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(1px 1px 0 black);
+}
