@@ -5,6 +5,6 @@
     <title></title>
   </head>
   <body>
-    <h1>holan9</h1>
+    <?php include "../login/login.php" ?>
   </body>
 </html>
