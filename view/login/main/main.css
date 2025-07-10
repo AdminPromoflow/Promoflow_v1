@@ -1,7 +1,7 @@
 .login_main{
   background-color:#2F4560;
   margin: 0;
-  padding: 0;
+  padding:  0 1rem;
   border-radius: 5px;
   box-sizing: border-box;
   display: flex;
@@ -31,7 +31,6 @@
 .logo_section h3{
   box-sizing: border-box;
   color: #fffd;
-  font-size: clamp(1rem, 1.2vw, 1.6rem);
   box-sizing: border-box;
   font-weight: 500;
   text-align: center;
@@ -43,6 +42,7 @@
   filter: drop-shadow(1px 1px 0 black);
   box-sizing: border-box;
   align-content: center;
+  overflow: hidden;
 }
 .logo_section img{
   width: 100%;
@@ -62,12 +62,10 @@
   gap:10px;
 }
 .form_section h2{
-  font-size: clamp(2rem, 2.3vw, 3rem);
   color: #212E3E;
   box-sizing: border-box;
 }
 .form_section p{
-  font-size: clamp(1rem, 1.3vw, 1.5rem);
   color: #212E3E;
   text-align: center;
   box-sizing: border-box;
@@ -76,7 +74,6 @@
 label {
   display: block;
   margin-bottom: 1rem;
-  font-size: clamp(1rem, 1.2vw, 1.6rem);
   color: #000;
   width: 80%;
   box-sizing: border-box;
@@ -90,7 +87,8 @@ input[type="password"] {
   border: 1px solid #aaa;
   border-radius: 6px;
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
-  font-size: clamp(.8rem, 1vw, 1.3rem);
+  
+
   margin-top: 0.3rem;
 }
 
@@ -113,6 +111,8 @@ button:hover {
 }
 @container main (min-width: 768px) {
   .login_main{
+    padding: 0;
+    min-height: 570px;
 
   }
   .login_container{
