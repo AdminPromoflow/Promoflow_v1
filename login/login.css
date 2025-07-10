@@ -1,0 +1,10 @@
+*{
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+.body_login{
+background-color:red;
+}

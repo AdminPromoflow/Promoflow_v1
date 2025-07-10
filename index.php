@@ -5,6 +5,6 @@
     <title></title>
   </head>
   <body>
-    <?php include "../login/login.php" ?>
+    <?php include "../../login/login.php" ?>
   </body>
 </html>
