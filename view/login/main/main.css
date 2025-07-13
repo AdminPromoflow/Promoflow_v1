@@ -1,56 +1,69 @@
-.login_main{
-  background-color:#2F4560;
-  margin: 0;
-  padding:  0 1rem;
-  border-radius: 5px;
-  box-sizing: border-box;
-  display: flex;
-  container-type: inline-size;
-  container-name: main;
-  box-shadow: 0 0 5px black;
-  height: calc(100vh - 80px - 3rem)
-}
-.login_container{
-  background-color: ;
-  border-radius:5px 5px 0 0 ;
-  margin: .5rem;
-  box-sizing: border-box;
+/* Contenedor principal del login */
+.login_main {
+  background-color: #2F4560; /* Fondo azul oscuro */
   margin: auto;
-  display: flex;
-  flex-direction: column;
+  padding: .5rem; /* Espaciado horizontal */
+  border-radius: 5px; /* Bordes redondeados */
+  box-sizing: border-box;
+  display: flex; /* Layout flexible */
+  container-type: inline-size; /* Para contenedores responsivos */
+  container-name: main;
+  box-shadow: 0 0 5px black; /* Sombra alrededor del contenedor */
+  height: calc(100vh - 80px - 3rem); /* Altura calculada en base al viewport */
 }
-.logo_section{
+
+/* Contenedor interno que agrupa el logo y el formulario */
+.login_container {
+  background-color: ; /* ← ¡PENDIENTE! Aquí falta un valor */
+  border-radius: 5px 5px 0 0;
+  margin:  auto; /* Margen automático para centrar */
   box-sizing: border-box;
-  background-color: #205698;
+  display: flex;
+  flex-direction: column; /* En móvil, apila en columna */
+
+}
+
+/* Sección del logo */
+.logo_section {
   box-sizing: border-box;
+  background-color: #205698; /* Fondo azul más claro */
   padding: 1rem 2rem;
   border-radius: 5px;
-  display: none;
-  max-width: 390px;
+  display: none; /* Oculto por defecto (en móvil) */
+  max-width: 390px; /* Máximo ancho */
+  max-height: 500px;
+
 }
-.logo_section h3{
+
+/* Título dentro de la sección del logo */
+.logo_section h3 {
   box-sizing: border-box;
-  color: #fffd;
-  box-sizing: border-box;
+  color: #fffd; /* Blanco semi-transparente */
   font-weight: 500;
   text-align: center;
 }
-.logo_seccion_img{
+
+/* Imagen del logo */
+.logo_seccion_img {
   margin: auto;
   width: 300px;
   height: 300px;
-  filter: drop-shadow(1px 1px 0 black);
+  filter: drop-shadow(1px 1px 0 black); /* Sombra tipo recorte */
   box-sizing: border-box;
   align-content: center;
   overflow: hidden;
 }
-.logo_section img{
+
+/* Imagen del logo ajustada al contenedor */
+.logo_section img {
   width: 100%;
   height: 100%;
 }
-.form_section{
-  background-color: #E0E5EA;
-  border-radius:  5px;
+
+/* Contenedor del formulario */
+.form_section {
+  background-color: #E0E5EA; /* Fondo gris claro */
+  border-radius: 5px;
   padding: 2rem;
   max-width: 390px;
 
@@ -59,18 +72,23 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap:10px;
+  gap: 10px; /* Espacio entre elementos */
 }
-.form_section h2{
-  color: #212E3E;
+
+/* Título dentro del formulario */
+.form_section h2 {
+  color: #212E3E; /* Azul oscuro */
   box-sizing: border-box;
 }
-.form_section p{
+
+/* Texto descriptivo dentro del formulario */
+.form_section p {
   color: #212E3E;
   text-align: center;
   box-sizing: border-box;
 }
 
+/* Estilos generales para etiquetas <label> */
 label {
   display: block;
   margin-bottom: 1rem;
@@ -79,6 +97,7 @@ label {
   box-sizing: border-box;
 }
 
+/* Campos de entrada de texto y contraseña */
 input[type="text"],
 input[type="password"] {
   width: 100%;
@@ -87,18 +106,17 @@ input[type="password"] {
   border: 1px solid #aaa;
   border-radius: 6px;
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
-  
-
   margin-top: 0.3rem;
 }
 
+/* Botón de envío */
 button {
   display: block;
   margin-top: 1rem;
   padding: 0.6rem 1.5rem;
   font-size: clamp(1.2rem, 1.4vw, 1.8rem);
   color: #fff;
-  background-color: #2F4560;
+  background-color: #2F4560; /* Igual que el fondo principal */
   border: none;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.5);
@@ -106,29 +124,38 @@ button {
   box-sizing: border-box;
 }
 
+/* Efecto hover del botón */
 button:hover {
-  background-color: #205698;
+  background-color: #205698; /* Cambio de color al pasar el cursor */
 }
-@container main (min-width: 768px) {
-  .login_main{
-    padding: 0;
-    min-height: 570px;
 
+/* Estilos responsivos dentro de container 'main' */
+@container main (min-width: 768px) {
+  .login_main {
+    padding: 0;
+    min-height: 570px; /* Altura mínima en pantallas grandes */
   }
-  .login_container{
+
+  .login_container {
     display: flex;
-    flex-direction: row;
+    flex-direction: row; /* En pantallas grandes, lado a lado */
     padding: 10px;
+    margin: auto;
   }
-  .form_section{
-    border-radius: 5px 0 0 5px;
+
+  .form_section {
+    border-radius: 5px 0 0 5px; /* Bordes solo a la izquierda */
     max-width: 350px;
     max-height: 500px;
+    margin: 0;
+
   }
 
-  .logo_section{
-    display: block;
+  .logo_section {
+    display: block; /* Se muestra solo en pantallas grandes */
     max-height: initial;
+    max-width: 350px;
+    max-height: 500px;
+    margin: 0;
   }
-
 }

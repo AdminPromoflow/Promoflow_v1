@@ -6,7 +6,7 @@
      font-size: 16px; /* base */
      overflow-x: hidden;
    }
-   .body_login{
+   .body_directory{
      font-family: 'Poppins', sans-serif;
      width: 100vw;
      max-height: 100vh;
@@ -30,4 +30,8 @@
    }
 label input button{
   font-size: clamp(.8rem, 1vw, 1.3rem);
+}
+a{
+  all: unset;
+ cursor: pointer;
 }

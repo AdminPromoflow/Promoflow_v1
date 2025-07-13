@@ -22,7 +22,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
       <div class="logo_section">
         <h3>Your product management interface is ready for you.</h3>
       <div class="logo_seccion_img">
-        <img src="../../view/login/header/img/logo.png" alt="Logo">
+        <a href="../../view/directory/index.php"><img src="../../view/login/header/img/logo.png" alt="Logo"></a>
       </div>
       </div>
 
