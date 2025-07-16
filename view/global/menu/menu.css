@@ -1,25 +1,21 @@
 /* ===== HEADER PRINCIPAL ===== */
 .header_menu {
+  position: sticky;
+  top: 0px;
   margin-bottom: 1rem;
   background: linear-gradient(90deg,
     rgba(49, 70, 95, 1) 27%,
     rgba(141, 151, 163, 1) 72%,
     rgba(252, 251, 252, 1) 100%);
   box-shadow: 0 0 5px black;
-  padding: 0;
+  padding: 0 1rem;
   border-radius: 5px;
-
   z-index: 1;
-
+  box-sizing: border-box;
   display: flex;
-  justify-content: space-between;
   flex-direction: row;
   flex-wrap: wrap;
-
-  container-type: inline-size;
-  container-name: header;
 }
-
 /* ===== LOGO ===== */
 .logo_img {
   width: 100px;
@@ -36,7 +32,6 @@
 .title_menu {
   display: flex;
   flex-direction: column;
-  margin: auto;
   gap: 10px;
 }
 .title_menu h1 {
@@ -155,11 +150,16 @@
 /* ===== MEDIA QUERIES O CONTAINER===== */
 
 @media (min-width: 768px) {
-  .movil_menu:hover{
+  .movil_menu:hover {
     width: 50%;
     height: 500px;
   }
+
   .movil_menu:hover ul {
     width: 90%;
+  }
+
+  .header_menu {
+    padding: 0 3rem;
   }
 }
