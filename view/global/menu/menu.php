@@ -19,18 +19,18 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
 
 </header>
 <div class="movil_menu">
-  <h2>Memu</h2>
-  <div class="menu_img">
+  <input type="checkbox" id="toggle-menu" hidden>
+  <label for="toggle-menu" class="menu_img">
     <img src="../../view/global/menu/img/menu.png" alt="">
-  </div>
-  <!-- Ruta relativa al logo. La imagen debe estar en: /view/login/header/img/logo.png -->
+  </label>
+  <h2>Menu</h2>
   <ul>
-    <li> <a href="#"></a>User manager</li>
-    <li> <a href="#"></a>W3P</li>
-    <li> <a href="#"></a>Amazon</li>
-    <li> <a href="#"></a>Lanyard</li>
-    <li> <a href="#"></a>Promoflow</li>
-    <li> <a href="#"></a>Logout</li>
+    <li><a href="#">User manager</a></li>
+    <li><a href="#">W3P</a></li>
+    <li><a href="#">Amazon</a></li>
+    <li><a href="#">Lanyard</a></li>
+    <li><a href="#">Promoflow</a></li>
+    <li><a href="#">Logout</a></li>
   </ul>
 </div>
 </html>
