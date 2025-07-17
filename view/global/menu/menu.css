@@ -71,7 +71,60 @@
   align-items: center;
   flex-direction: column;
 }
-
+.movil_menu li:nth-child(1){
+  background: linear-gradient(
+  to right,
+  rgba(47, 69, 96, 0) 0%,
+  rgba(47, 69, 96, 0.97) 20%,
+  rgba(47, 69, 96, 0.97) 80%,
+  rgba(47, 69, 96, 0) 100%
+);
+}
+.movil_menu li:nth-child(2){
+  background: linear-gradient(
+    to right,
+    rgba(141, 155, 160, 0) 0%,
+    rgba(141, 155, 160, 0.7) 20%,
+    rgba(141, 155, 160, 0.7) 80%,
+    rgba(141, 155, 160, 0) 100%
+  );
+}
+.movil_menu li:nth-child(3){
+  background: linear-gradient(
+  to right,
+  rgba(47, 69, 96, 0) 0%,
+  rgba(47, 69, 96, 0.97) 20%,
+  rgba(47, 69, 96, 0.97) 80%,
+  rgba(47, 69, 96, 0) 100%
+);
+}
+.movil_menu li:nth-child(4){
+  background: linear-gradient(
+    to right,
+    rgba(141, 155, 160, 0) 0%,
+    rgba(141, 155, 160, 0.7) 20%,
+    rgba(141, 155, 160, 0.7) 80%,
+    rgba(141, 155, 160, 0) 100%
+  );
+}
+.movil_menu li:nth-child(5){
+  background: linear-gradient(
+    to right,
+    rgba(47, 69, 96, 0) 0%,
+    rgba(47, 69, 96, 0.97) 20%,
+    rgba(47, 69, 96, 0.97) 80%,
+    rgba(47, 69, 96, 0) 100%
+  );
+}
+.movil_menu li:nth-child(6){
+  background: linear-gradient(
+    to right,
+    rgba(141, 155, 160, 0) 0%,
+    rgba(141, 155, 160, 0.7) 20%,
+    rgba(141, 155, 160, 0.7) 80%,
+    rgba(141, 155, 160, 0) 100%
+  );
+}
 .movil_menu li {
   transition: .3s all;
 }
@@ -118,34 +171,24 @@
 }
 .movil_menu:hover li {
   display: block; /* <-- faltaba punto y coma */
-  border-bottom: 1px solid black;
 }
+/* .movil_menu:hover li:nth-child(1) {
+  border-top: 1px solid black;
+
+} */
 .movil_menu:hover a {
   display: block;
 }
 .movil_menu:hover a:hover{
   font-size: 20px;
   padding: 1.1rem 0;
-  background: linear-gradient(
-    to right,
-    rgba(141, 155, 160, 0) 0%,
-    rgba(141, 155, 160, 0.7) 20%,
-    rgba(141, 155, 160, 0.7) 80%,
-    rgba(141, 155, 160, 0) 100%
-  );
+}
 /* ===== ANIMACION SUAVE===== */
 
-.movil_menu li,
+.movil_menu ,
 .movil_menu a,
 .movil_menu h2 {
   transition: 0.3s all;
-}
-#toggle-menu:checked + .boton {
-  background-color: red;
-}
-
-#toggle-menu:checked ~ .menu {
-  display: block;
 }
 /* ===== MEDIA QUERIES O CONTAINER===== */
 
@@ -154,11 +197,9 @@
     width: 50%;
     height: 500px;
   }
-
   .movil_menu:hover ul {
     width: 90%;
   }
-
   .header_menu {
     padding: 0 3rem;
   }

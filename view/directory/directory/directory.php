@@ -8,7 +8,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
   <section class="container_directory">
     <div class="directory_header">
       <div class="directory_logo">
-        <img src="../../view/global/menu/img/logo.png" alt="Logo">
+        <img src="../../view/directory/directory/img/logo.png" alt="Logo">
       </div>
       <h1>DASHBOARD</h1>
     </div>
