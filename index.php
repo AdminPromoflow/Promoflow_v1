@@ -1,12 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Promoflown</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
   </head>
+
   <body>
     <script type="text/javascript">
-    window.open("views/login/index.php", "_self");
+     window.location.href = 'view/login/index.php';
     </script>
   </body>
 </html>
