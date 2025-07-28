@@ -1,0 +1,83 @@
+body{
+  position: relative;
+  margin: 0;
+  padding: 0;
+  background-color: #E0E5EA;
+  font-family: 'Montserrat', sans-serif;
+  font-family: 'Roboto', sans-serif;
+}
+.bodyLogin{
+  position: relative;
+  height: 80vh;
+  width: 98%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2F4560;
+  margin: 20px 0;
+  border-radius: 5px;
+  padding: 1.5vw 0;
+
+  overflow-y: scroll;
+
+}
+.navigateTable{
+  position: relative;
+  padding-top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px;
+  width: 80%;
+  background-color: #536476;
+  border-radius: 5px;
+  max-width: 400px;
+
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+}
+.navigateTable img{
+  height: 30px;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 0px grey);
+  transition: .4s;
+}
+.navigateTable img:hover{
+  filter: drop-shadow(0px 0px 1px #2F4560);
+}
+.navigateTable img:active{
+  filter: drop-shadow(0px 0px 0px #2F4560);
+}
+.navigateTable img:first-child{
+  transform: rotateY(180deg);
+}
+.textNavigatorTable{
+  width: 60%;
+}
+.textNavigatorTable h3{
+  margin: 0;
+  padding: 4px;
+  font-weight: 600;
+  font-size: calc(.7em + .7vw);
+  color: rgba(255, 255, 255, .7);
+  text-align: center;
+}
+.titleBodyLogin{
+  position: relative;
+  color: black;
+  text-align: center;
+  font-weight: 600;
+  font-size: calc(1.5em + 1.5vw);
+  padding: 15px;
+  margin: 4vw 0 0 0 ;
+}
+.bodyLogin h2{
+  position: relative;
+  color: white;
+  text-align: center;
+  font-weight: 300;
+  font-size: calc(.6em + .6vw);
+  padding: 15px;
+  margin: 0 0 2vw 0;
+}

@@ -1,0 +1,72 @@
+.bodyLogin{
+  position: relative;
+  padding: 4vw 0;
+  width: 98%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2F4560;
+  margin: 20px 0;
+  border-radius: 5px;
+  padding: 1.5vw 0;
+}
+.titleBodyLogin{
+  position: relative;
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  font-size: calc(1.5em + 1.5vw);
+  padding: 15px;
+  margin: 4vw 0 0 0 ;
+}
+.customerBox{
+  position: relative;
+  width: 70%;
+  min-width: 280px;
+  height: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 10px;
+  margin: calc(0.3em + 0.3vw);
+  background-color: #1D324D;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+}
+.customerBox:nth-child(odd){
+  background-color: #192B42;
+ }
+.imgCustomer{
+  position: relative;
+  width: 80px;
+  height: 50px;
+
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+  border-right: 2px solid #334761;
+}
+.nameCustomer{
+  position: relative;
+  width: calc(50% - 40px);
+  height: 50px;
+  border-right: 2px solid #334761;
+}
+.emailCustomer{
+  position: relative;
+  width: calc(50% - 40px);
+  height: 50px;
+}
+.circleImgCustomer{
+  position: relative;
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  background-color: green;
+}
+.customerBox p{
+  position: relative;
+  color: white;
+  text-align: center;
+}

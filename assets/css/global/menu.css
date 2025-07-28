@@ -1,0 +1,196 @@
+/* Styles for the menuLogin container */
+.menuLogin {
+  position: relative;
+  height: 100px;
+  width: 98%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgb(49, 70, 95);
+  background: linear-gradient(90deg, rgba(49, 70, 95, 1) 27%, rgba(141, 151, 163, 1) 72%, rgba(252, 251, 252, 1) 100%);
+  margin: 20px 0;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Styles for the logo image inside menuLogin */
+.menuLogin img {
+  position: absolute;
+  margin-right: 30px;
+  height: 55%;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  filter: drop-shadow(2px 2px 3px rgb(50, 50, 50));
+}
+
+/* Styles for the heading inside menuLogin */
+.menuLogin h1 {
+  font-size: 3em;
+  margin-left: 30px;
+  font-weight: 400;
+  text-shadow: 2px 2px 5px rgb(50, 50, 50);
+}
+
+/* Styles for the containerMenu */
+.containerMenu {
+  position: relative;
+  width: 48%;
+}
+
+/* Styles for images inside containerMenu */
+.containerMenu img {
+  position: absolute;
+  height: 60%;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+/* Styles for the menuContainer */
+.menuContainer {
+  position: fixed;
+  display: none;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(47, 69, 96, 0.97);
+  height: 100%;
+  max-width: 320px;
+  z-index: 10;
+  width: 98%;
+  border-radius: 5px;
+}
+
+/* Styles for images inside menuContainer */
+.menuContainer img {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  height: 30px;
+  z-index: 11;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 2px black);
+  transition: 0.4s;
+}
+
+/* Hover effect for images inside menuContainer */
+.menuContainer img:hover {
+  filter: drop-shadow(0px 0px 4px black);
+}
+
+/* Active effect for images inside menuContainer */
+.menuContainer img:active {
+  filter: drop-shadow(0px 0px 2px black);
+}
+
+/* Additional styles for the second containerMenu */
+.containerMenu:nth-child(2) img {
+  right: 5px;
+  height: 30%;
+  transition: 0.5s;
+}
+
+/* Hover effect for images in the second containerMenu */
+.containerMenu:nth-child(2) img:hover {
+  filter: drop-shadow(0px 0px 1px black);
+}
+
+/* Active effect for images in the second containerMenu */
+.containerMenu:nth-child(2) img:active {
+  filter: drop-shadow(0px 0px 0px black);
+}
+
+/* Styles for the logo image with class "logoImg" */
+.logoImg {
+  position: absolute;
+  left: 20px;
+  height: 40%!important;
+}
+
+/* Styles for a relative positioning container */
+.relative {
+  position: relative;
+}
+
+/* Styles for the itemContainer */
+.itemContainer {
+  position: relative;
+  padding: 10px;
+  margin-top: 70px;
+  height: 70vh;
+  overflow-y: scroll;
+}
+
+/* Styles for itemsMenu */
+.itemsMenu {
+  padding: 5px;
+  background-color: gold;
+  cursor: pointer;
+  margin: 3px 0;
+}
+
+/* Styles for itemsLogout */
+.itemsLogout {
+  padding: 5px;
+  cursor: pointer;
+  margin: 3px 0;
+  background-color: rgba(33, 46, 63, 1);
+}
+
+/* Styles for h3 elements inside itemsLogout */
+.itemsLogout h3 {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  color: white;
+  font-weight: 300;
+  color: rgba(240, 250, 240, 1);
+}
+
+/* Hover effect for itemsLogout */
+.itemsLogout:hover {
+  background-color: rgba(33, 46, 63, 0.7);
+}
+
+/* Active effect for itemsLogout */
+.itemsLogout:active {
+  background-color: rgba(33, 46, 63, 1);
+}
+
+/* Styles for odd and even elements within itemsMenu */
+.itemsMenu:nth-child(odd) {
+  background-color: rgba(33, 46, 63, 1);
+}
+
+.itemsMenu:nth-child(even) {
+  background-color: rgba(109, 114, 126, 1);
+}
+
+/* Hover effect for odd and even elements within itemsMenu */
+.itemsMenu:nth-child(odd):hover {
+  background-color: rgba(33, 46, 63, 0.7);
+}
+
+.itemsMenu:nth-child(even):hover {
+  background-color: rgba(109, 114, 126, 0.7);
+}
+
+/* Active effect for odd and even elements within itemsMenu */
+.itemsMenu:nth-child(odd):active {
+  background-color: rgba(33, 46, 63, 1);
+}
+
+.itemsMenu:nth-child(even):active {
+  background-color: rgba(109, 114, 126, 1);
+}
+
+/* Styles for h3 elements inside itemsMenu */
+.itemsMenu h3 {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  color: white;
+  font-weight: 300;
+  color: rgba(240, 250, 240, 1);
+}

@@ -1,0 +1,17 @@
+{
+    "customer" : {
+        "id" : "HOTEST",
+        "name" : "printing.com",
+        "address1" : "",
+        "address2" : "Eighth Street",
+        "address3" : "Second Avenue",
+        "address4" : "Manchester",
+        "address5" : "",
+        "postcode" : "M17 1FG",
+        "countrycode" : "GB",
+        "category" : "417",
+        "workgroup" : "W12",
+        "payment_terms_code":"CASH",
+        "payment_terms_description":"Cash"
+    }
+}
