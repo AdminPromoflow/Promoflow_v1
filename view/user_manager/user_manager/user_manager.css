@@ -1,0 +1,197 @@
+/* Contenedor principal que divide el espacio en dos columnas: usuarios y detalles */
+.container_user_manager {
+  display: grid;
+  grid-template-columns: 3fr 1fr; /* Parte izquierda más ancha */
+  padding: 1rem;
+  margin: auto;
+  color: #333;
+  background-color: #2F4560;
+  border-radius: 5px;
+  gap: 1rem; /* Espacio entre columnas */
+}
+
+/* Contenedor de los datos de usuario (izquierda) */
+.container_user {
+  background-color: #fffd;
+  border-radius: 5px;
+  box-shadow: 0 0 10px #0002;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+/* Cabecera de la lista de usuarios */
+.header_user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Título de la cabecera */
+.header_user h3 {
+  margin: 0;
+  color: #1a2b3c;
+  text-align: center;
+  position: relative;
+}
+
+/* Contenedor para la caja de búsqueda */
+.box_user_manager {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Estilo del input de búsqueda */
+.box_user_manager input {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* Icono de lupa en el input */
+.header_user_img {
+  width: 30px;
+  height: 30px;
+  background-image: url("../../../view/user_manager/user_manager/img/lupa.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* Grid que contiene los datos de usuarios */
+.user_data_grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr; /* 3 columnas con proporciones */
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* Encabezado del grid de usuarios */
+.grid_header {
+  background-color: #2F4560;
+  color: #fffd;
+  font-weight: bold;
+  text-align: left;
+  padding: 1rem;
+}
+
+/* Cada ítem dentro del grid */
+.grid_item {
+  padding: 1rem;
+  background-color: #2F4560;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Efecto hover sobre el ítem del grid */
+.grid_item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Contenedor para mostrar imagen y nombre del usuario */
+.user_info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Imagen del usuario tipo avatar */
+.user_image {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #aaa;
+}
+
+/* Contenedor derecho: información detallada del usuario */
+.container_user_information {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Título de la sección de información detallada */
+.container_user_information h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #2c3e50;
+}
+
+/* Imagen grande del usuario */
+.container_user_information_img {
+  height: 100px;
+  min-width: 100px;
+  margin: 1rem auto;
+  background-color: red;
+  padding: 1rem;
+}
+
+/* Nombre del usuario en detalles */
+.user_name {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: #34495e;
+}
+
+/* Tarjetas de información (correo, teléfono, etc.) */
+.info_card {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+/* Icono dentro de la tarjeta */
+.icon {
+  font-size: 1.8rem;
+  margin-right: 1rem;
+}
+
+/* Texto dentro de la tarjeta */
+
+.text h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #2980b9;
+}
+
+/* Subtexto o descripción */
+.text p {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Estilos responsivos para dispositivos pequeños */
+@media (max-width: 768px) {
+  .container_user_manager {
+    grid-template-columns: 1fr; /* Cambia a una sola columna */
+  }
+  .user_data_grid {
+    grid-template-columns: 1fr; /* Grid en una sola columna */
+  }
+  .box_user_manager {
+    flex-direction: column; /* Input de búsqueda en columna */
+  }
+  .header_user {
+    flex-direction: column; /* Cabecera en columna */
+  }
+  .info_card{
+    flex-direction: column;
+  }
+}
