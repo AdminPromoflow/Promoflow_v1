@@ -18,7 +18,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
     </div>
 
     <div class="directory_options">
-      <a href="../../">
+      <a href="../../view/user_manager/index.php">
         <div class="option_card">
           <div class="option_img">
             <img src="../../view/directory/directory/img/W3P.png" alt="W3P">
