@@ -47,7 +47,6 @@
 .box_user_manager input {
   padding: 0.5rem;
   border-radius: 5px;
-  border: 1px solid #ccc;
 }
 
 /* Icono de lupa en el input */
@@ -176,7 +175,6 @@
   font-size: 0.9rem;
   color: #555;
 }
-
 /* Estilos responsivos para dispositivos pequeños */
 @media (max-width: 768px) {
   .container_user_manager {
