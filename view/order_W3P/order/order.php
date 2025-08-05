@@ -1,9 +1,9 @@
 
 <?php
-$cssTime = filemtime('../../view/order/order/order.css'); // ejemplo: '../Home/5.Video/video.css'
-$jsTime = filemtime('../../view/order/order/order.js');   // ejemplo: '../Home/5.Video/video.js'
+$cssTime = filemtime('../../view/order_W3P/order/order.css'); // ejemplo: '../Home/5.Video/video.css'
+$jsTime = filemtime('../../view/order_W3P/order/order.js');   // ejemplo: '../Home/5.Video/video.js'
 ?>
-<link rel="stylesheet" href="../../view/order/order/order.css?v=<?= $cssTime ?>">
+<link rel="stylesheet" href="../../view/order_W3P/order/order.css?v=<?= $cssTime ?>">
 
 <!-- Contenedor principal de la sección de órdenes -->
 <section class="container_order">
@@ -101,6 +101,6 @@ $jsTime = filemtime('../../view/order/order/order.js');   // ejemplo: '../Home/5
   </div>
 
 </section>
-  <script src="../../view/order/order/order.js" type="text/javascript">
+  <script src="../../view/order_W3P/order/order.js" type="text/javascript">
 
   </script>

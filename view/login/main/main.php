@@ -1,7 +1,7 @@
 
 <?php
 $cssTime = filemtime('../../view/login/main/main.css'); // ejemplo: '../Home/5.Video/video.css'
-$jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
+$jsTime = filemtime('../../view/login/main/main.js');   // ejemplo: '../Home/5.Video/video.js'
 ?>
 <link rel="stylesheet" href="../../view/login/main/main.css?v=<?= $cssTime ?>">
   <main class="login_main">
@@ -11,13 +11,13 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
         <p>Please provide your email and password to access the system</p>
 
         <label> Email
-          <input type="text" placeholder="Example@gmail.com">
+          <input id="email" type="text" placeholder="Example@gmail.com">
         </label>
         <label>Password
-          <input type="password" placeholder="********************************">
+          <input id="password" type="password" placeholder="********************************">
         </label>
 
-        <button type="submit">Access</button>
+        <button id="btn_login" type="submit">Access</button>
       </div>
       <div class="logo_section">
         <h3>Your product management interface is ready for you.</h3>
@@ -32,3 +32,4 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
   </main>
 
 </html>
+<script src="../../view/login/main/main.js?v=<?= $jsTime ?>" type="text/javascript"></script>

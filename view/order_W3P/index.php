@@ -14,11 +14,11 @@
 
   <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
 
-  <link rel="stylesheet" href="../../view/order/style.css?v=<?php echo filemtime("../../view/order/style.css"); ?>">
+  <link rel="stylesheet" href="../../view/order_W3P/style.css?v=<?php echo filemtime("../../view/order/style.css"); ?>">
 </head>
 
 <body class="body_directory">
   <?php include "../../view/global/menu/menu.php"; ?>
-  <?php include "../../view/order/order/order.php"; ?>
+  <?php include "../../view/order_W3P/order/order.php"; ?>
 </body>
 </html>
