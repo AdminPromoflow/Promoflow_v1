@@ -1,5 +1,5 @@
 <?php
-file_put_contents('log.txt',"funciona5");
+file_put_contents('log.txt',"funciona6");
 exit;
 class Model_Order
 {

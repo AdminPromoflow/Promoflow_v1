@@ -1,7 +1,7 @@
 <?php
 
 require_once '../config/database.php';
-require_once '../../../models/orders.php';
+require_once '../../model/lanyards4you/order.php';
 
 class Order
 
