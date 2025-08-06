@@ -47,9 +47,10 @@ class Order
         $result = $modelOrder->createOrder();
 
         file_put_contents('log2.txt', $result ? "status: success" : "status: error");
+        file_put_contents('log2.txt',"funciona24");
+        exit;
     }
-    file_put_contents('log2.txt',"funciona23");
-    exit;
+
     public function setOrder($data)
     {
         $this->orderData = $data;
