@@ -19,166 +19,216 @@ class Model_Order
     public function setOrders(array $data)
     {
         $this->Orders = [
-            'id_order' => $data['id_order'] ?? null,
-            'data_time' => $data['data_time'] ?? null,
-            'shipping_days' => $data['shipping_days'] ?? null,
+            'id_order' => $data['idOrder'] ?? null,      // JSON: idOrder
+            'data_time' => $data['date_time'] ?? null,   // JSON: date_time
+            'shipping_days' => $data['shippingDays'] ?? null,
             'status' => $data['status'] ?? null,
             'subtotal' => $data['subtotal'] ?? null,
             'tax' => $data['tax'] ?? null,
             'shipping_price' => $data['shipping_price'] ?? null,
             'total' => $data['total'] ?? null,
-            'id_customer' => $data['id_customer'] ?? null,
-            'id_customers' => $data['id_customers'] ?? null
+            'id_customer' => $data['idUser'] ?? null,     // JSON: idUser
+            'id_customers' => $data['idUser'] ?? null     // JSON: idUser
         ];
     }
 
-    public function setJobs(array $data)
-    {
-        $this->Jobs = [
-            'id_jobs' => $data['id_jobs'] ?? null,
-            'name' => $data['name'] ?? null,
-            'description' => $data['description'] ?? null,
-            'price_per_unit' => $data['price_per_unit'] ?? null,
-            'amount' => $data['amount'] ?? null,
-            'total' => $data['total'] ?? null,
-            'link_pdf' => $data['link_pdf'] ?? null,
-            'notes' => $data['notes'] ?? null,
-            'new_colour' => $data['new_colour'] ?? null,
-            'id_order' => $data['id_order'] ?? null,
-            'id_extras' => $data['id_extras'] ?? null,
-            'id_clip' => $data['id_clip'] ?? null,
-            'id_price_amount' => $data['id_price_amount'] ?? null
-        ];
-    }
 
-    public function setImage(array $data)
-    {
-        $this->Image = [
-            'id_jobs' => $data['id_jobs'] ?? null,
-            'times_image' => $data['times_image'] ?? null,
-            'image_size' => $data['image_size'] ?? null,
-            'space_between_image' => $data['space_between_image'] ?? null,
-            'image_rotation' => $data['image_rotation'] ?? null,
-            'space_along_lanyard' => $data['space_along_lanyard'] ?? null,
-            'link_image' => $data['link_image'] ?? null,
-            'image_position' => $data['image_position'] ?? null
-        ];
-    }
 
-    public function setText(array $data)
-    {
-        $this->Text = [
-            'id_jobs' => $data['id_jobs'] ?? null,
-            'content_text' => $data['content_text'] ?? null,
-            'time_text' => $data['time_text'] ?? null,
-            'space_between_text' => $data['space_between_text'] ?? null,
-            'space_along_lanyard' => $data['space_along_lanyard'] ?? null,
-            'colour_text' => $data['colour_text'] ?? null,
-            'font_family_text' => $data['font_family_text'] ?? null,
-            'size_text' => $data['size_text'] ?? null,
-            'bold_text' => $data['bold_text'] ?? null,
-            'italic_text' => $data['italic_text'] ?? null,
-            'underline_text' => $data['underline_text'] ?? null,
-            'text_position' => $data['text_position'] ?? null
-        ];
-    }
+public function setJobs(array $data)
+{
+$this->Jobs = [
+    'id_jobs' => $data['idJobs'] ?? null,           // JSON: idJobs
+    'name' => $data['name'] ?? null,
+    'description' => $data['description'] ?? null,
+    'price_per_unit' => $data['price_per_unit'] ?? null,
+    'amount' => $data['amount'] ?? null,
+    'total' => $data['total'] ?? null,
+    'link_pdf' => $data['link_pdf'] ?? null,
+    'notes' => $data['notes'] ?? null,
+    'new_colour' => $data['newColour'] ?? null,     // JSON: newColour
+    'id_order' => $data['idOrder'] ?? null,         // JSON: idOrder
+    'id_extras' => $data['idExtras'] ?? null,
+    'id_clip' => $data['idClip'] ?? null,
+    'id_price_amount' => $data['idPriceAmount'] ?? null
+];
+}
 
-    public function setArtwork(array $data)
-    {
-        $this->Artwork = [
-            'id_jobs' => $data['id_jobs'] ?? null,
-            'link_right_image' => $data['link_right_image'] ?? null,
-            'link_left_image' => $data['link_left_image'] ?? null
-        ];
-    }
 
-    public function setAddresses(array $data)
-    {
-        $this->Addresses = [
-            'id_adddress' => $data['id_adddress'] ?? null,
-            'first_name' => $data['first_name'] ?? null,
-            'last_name' => $data['last_name'] ?? null,
-            'company_name' => $data['company_name'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'country' => $data['country'] ?? null,
-            'state' => $data['state'] ?? null,
-            'town_city' => $data['town_city'] ?? null,
-            'street_address_1' => $data['street_address_1'] ?? null,
-            'street_address_2' => $data['street_address_2'] ?? null,
-            'postcode' => $data['postcode'] ?? null,
-            'email_address' => $data['email_address'] ?? null,
-            'id_customer' => $data['id_customer'] ?? null,
-            'id_customers' => $data['id_customers'] ?? null
-        ];
-    }
+public function setImage(array $data)
+{
+  $this->Image = [
+      'id_jobs' => $data['idJobs'] ?? null,
+      'times_image' => $data['timesImage'] ?? null,
+      'image_size' => $data['imageSize'] ?? null,
+      'space_between_image' => $data['spaceBetweenImage'] ?? null,
+      'image_rotation' => $data['imageRotation'] ?? null,
+      'space_along_lanyard' => $data['spaceAlongLanyard'] ?? null,
+      'link_image' => $data['linkImage'] ?? null,
+      'image_position' => $data['imagePosition'] ?? null
+  ];
+}
+
+
+public function setText(array $data)
+{
+$this->Text = [
+    'id_jobs' => $data['idJobs'] ?? null,
+    'content_text' => $data['contentText'] ?? null,
+    'time_text' => $data['timesText'] ?? null,
+    'space_between_text' => $data['spaceBetweenText'] ?? null,
+    'space_along_lanyard' => $data['spaceAlongLanyard'] ?? null,
+    'colour_text' => $data['colourText'] ?? null,
+    'font_family_text' => $data['fontFamilyText'] ?? null,
+    'size_text' => $data['sizeText'] ?? null,
+    'bold_text' => $data['boldText'] ?? null,
+    'italic_text' => $data['italicText'] ?? null,
+    'underline_text' => $data['underlineText'] ?? null,
+    'text_position' => $data['textPosition'] ?? null
+];
+}
+
+
+public function setArtwork(array $data)
+{
+  $this->Artwork = [
+      'id_jobs' => $data['idJobs'] ?? null,
+      'link_right_image' => $data['linkRightImage'] ?? null,
+      'link_left_image' => $data['linkLeftImage'] ?? null
+  ];
+}
+
+
+public function setAddresses(array $data)
+{
+$this->Addresses = [
+    'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
+    'first_name' => $data['first_name'] ?? null,
+    'last_name' => $data['last_name'] ?? null,
+    'company_name' => $data['company_name'] ?? null,
+    'phone' => $data['phone'] ?? null,
+    'country' => $data['country'] ?? null,
+    'state' => $data['state'] ?? null,
+    'town_city' => $data['town_city'] ?? null,
+    'street_address_1' => $data['street_address_1'] ?? null,
+    'street_address_2' => $data['street_address_2'] ?? null,
+    'postcode' => $data['postcode'] ?? null,
+    'email_address' => $data['email_address'] ?? null,
+    'id_customer' => $data['idUser'] ?? null,      // JSON: idUser
+    'id_customers' => $data['idUser'] ?? null       // JSON: idUser
+];
+}
+
 
     public function setUsers(array $data)
-    {
-        $this->Users = [
-            'id_customers' => $data['id_customers'] ?? null,
-            'name' => $data['name'] ?? null,
-            'email' => $data['email'] ?? null
-        ];
-    }
-    public function saveOrder()
-    {
-        try {
-            $conn = $this->connection->getConnection();
+{
+    $this->Users = [
+        'id_customers' => $data['idUser'] ?? null,  // JSON: idUser
+        'name' => $data['name'] ?? null,
+        'email' => $data['email'] ?? null
+    ];
+}
+public function saveOrder()
+{
+    try {
+        $conn = $this->connection->getConnection();
+        $conn->beginTransaction();
 
-            $stmtUser = $conn->prepare("SELECT id_customers FROM Customers WHERE email = :email LIMIT 1");
-            $stmtUser->bindParam(':email', $this->Users['email'], PDO::PARAM_STR);
-            $stmtUser->execute();
-            $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        // 1. Insertar en Customers
+        $stmt = $conn->prepare("INSERT INTO Customers (
+            id_customers, name, email
+        ) VALUES (
+            :id_customers, :name, :email
+        )");
 
-            if (!$user) {
-                throw new Exception("Usuario no encontrado con el email: " . $this->Users['email']);
-            }
+        $stmt->execute([
+            ':id_customers' => $this->Users['id_customers'],
+            ':name' => $this->Users['name'],
+            ':email' => $this->Users['email']
+        ]);
 
-            $idUser = $user['id_customers'];
+        $idUser = $this->Users['id_customers'];
 
+        // 2. Insertar en Addresses (una o múltiples direcciones)
+        $addresses = is_array($this->Addresses[0] ?? null) ? $this->Addresses : [$this->Addresses];
+
+        foreach ($addresses as $address) {
             $stmt = $conn->prepare("INSERT INTO Addresses (
-                first_name, last_name, company_name, phone, country,
-                state, town_city, street_address_1, street_address_2, postcode, email_address, id_customers
+                id_adddress, first_name, last_name, company_name, phone, country,
+                state, town_city, street_address_1, street_address_2,
+                postcode, email_address, id_customer, id_customers
             ) VALUES (
-                :first_name, :last_name, :company_name, :phone, :country,
-                :state, :town_city, :street_address_1, :street_address_2, :postcode, :email_address, :id_customers
+                :id_adddress, :first_name, :last_name, :company_name, :phone, :country,
+                :state, :town_city, :street_address_1, :street_address_2,
+                :postcode, :email_address, :id_customer, :id_customers
             )");
 
             $stmt->execute([
-                ':first_name' => $this->Addresses['first_name'],
-                ':last_name' => $this->Addresses['last_name'],
-                ':company_name' => $this->Addresses['company_name'],
-                ':phone' => $this->Addresses['phone'],
-                ':country' => $this->Addresses['country'],
-                ':state' => $this->Addresses['state'],
-                ':town_city' => $this->Addresses['town_city'],
-                ':street_address_1' => $this->Addresses['street_address_1'],
-                ':street_address_2' => $this->Addresses['street_address_2'],
-                ':postcode' => $this->Addresses['postcode'],
-                ':email_address' => $this->Addresses['email_address'],
+                ':id_adddress' => $address['id_adddress'],
+                ':first_name' => $address['first_name'],
+                ':last_name' => $address['last_name'],
+                ':company_name' => $address['company_name'],
+                ':phone' => $address['phone'],
+                ':country' => $address['country'],
+                ':state' => $address['state'],
+                ':town_city' => $address['town_city'],
+                ':street_address_1' => $address['street_address_1'],
+                ':street_address_2' => $address['street_address_2'],
+                ':postcode' => $address['postcode'],
+                ':email_address' => $address['email_address'],
+                ':id_customer' => $idUser,
                 ':id_customers' => $idUser
             ]);
+        }
 
-            $stmt = $conn->prepare("INSERT INTO Orders (
-                id_order, data_time, shipping_days, status, subtotal, tax,
-                shipping_price, total, id_customer, id_customers
-            ) VALUES (
-                :id_order, :data_time, :shipping_days, :status, :subtotal, :tax,
-                :shipping_price, :total, :id_customer, :id_customers
-            )");
+        // 3. Insertar en Orders
+        $stmt = $conn->prepare("INSERT INTO Orders (
+            id_order, data_time, shipping_days, status, subtotal, tax,
+            shipping_price, total, id_customer, id_customers
+        ) VALUES (
+            :id_order, :data_time, :shipping_days, :status, :subtotal, :tax,
+            :shipping_price, :total, :id_customer, :id_customers
+        )");
 
-            $stmt->execute($this->Orders);
+        $stmt->execute([
+            ':id_order' => $this->Orders['id_order'],
+            ':data_time' => $this->Orders['data_time'],
+            ':shipping_days' => $this->Orders['shipping_days'],
+            ':status' => $this->Orders['status'],
+            ':subtotal' => $this->Orders['subtotal'],
+            ':tax' => $this->Orders['tax'],
+            ':shipping_price' => $this->Orders['shipping_price'],
+            ':total' => $this->Orders['total'],
+            ':id_customer' => $idUser,
+            ':id_customers' => $idUser
+        ]);
 
-            $stmt = $conn->prepare("INSERT INTO Jobs (
-                id_jobs, name, description, price_per_unit, amount, total,
-                link_pdf, notes, new_colour, id_order, id_extras, id_clip, id_price_amount
-            ) VALUES (
-                :id_jobs, :name, :description, :price_per_unit, :amount, :total,
-                :link_pdf, :notes, :new_colour, :id_order, :id_extras, :id_clip, :id_price_amount
-            )");
+        // 4. Insertar en Jobs
+        $stmt = $conn->prepare("INSERT INTO Jobs (
+            id_jobs, name, description, price_per_unit, amount, total,
+            link_pdf, notes, new_colour, id_order, id_extras, id_clip, id_price_amount
+        ) VALUES (
+            :id_jobs, :name, :description, :price_per_unit, :amount, :total,
+            :link_pdf, :notes, :new_colour, :id_order, :id_extras, :id_clip, :id_price_amount
+        )");
 
-            $stmt->execute($this->Jobs);
+        $stmt->execute([
+            ':id_jobs' => $this->Jobs['id_jobs'],
+            ':name' => $this->Jobs['name'],
+            ':description' => $this->Jobs['description'],
+            ':price_per_unit' => $this->Jobs['price_per_unit'],
+            ':amount' => $this->Jobs['amount'],
+            ':total' => $this->Jobs['total'],
+            ':link_pdf' => $this->Jobs['link_pdf'],
+            ':notes' => $this->Jobs['notes'],
+            ':new_colour' => $this->Jobs['new_colour'],
+            ':id_order' => $this->Jobs['id_order'],
+            ':id_extras' => $this->Jobs['id_extras'],
+            ':id_clip' => $this->Jobs['id_clip'],
+            ':id_price_amount' => $this->Jobs['id_price_amount']
+        ]);
 
+        // 5. Insertar en Image (si existe)
+        if (!empty($this->Image)) {
             $stmt = $conn->prepare("INSERT INTO Image (
                 id_jobs, times_image, image_size, space_between_image, image_rotation,
                 space_along_lanyard, link_image, image_position
@@ -187,8 +237,20 @@ class Model_Order
                 :space_along_lanyard, :link_image, :image_position
             )");
 
-            $stmt->execute($this->Image);
+            $stmt->execute([
+                ':id_jobs' => $this->Image['id_jobs'],
+                ':times_image' => $this->Image['times_image'],
+                ':image_size' => $this->Image['image_size'],
+                ':space_between_image' => $this->Image['space_between_image'],
+                ':image_rotation' => $this->Image['image_rotation'],
+                ':space_along_lanyard' => $this->Image['space_along_lanyard'],
+                ':link_image' => $this->Image['link_image'],
+                ':image_position' => $this->Image['image_position']
+            ]);
+        }
 
+        // 6. Insertar en Text (si existe)
+        if (!empty($this->Text)) {
             $stmt = $conn->prepare("INSERT INTO Text (
                 id_jobs, content_text, time_text, space_between_text, space_along_lanyard,
                 colour_text, font_family_text, size_text, bold_text, italic_text,
@@ -199,24 +261,50 @@ class Model_Order
                 :underline_text, :text_position
             )");
 
-            $stmt->execute($this->Text);
+            $stmt->execute([
+                ':id_jobs' => $this->Text['id_jobs'],
+                ':content_text' => $this->Text['content_text'],
+                ':time_text' => $this->Text['time_text'],
+                ':space_between_text' => $this->Text['space_between_text'],
+                ':space_along_lanyard' => $this->Text['space_along_lanyard'],
+                ':colour_text' => $this->Text['colour_text'],
+                ':font_family_text' => $this->Text['font_family_text'],
+                ':size_text' => $this->Text['size_text'],
+                ':bold_text' => $this->Text['bold_text'],
+                ':italic_text' => $this->Text['italic_text'],
+                ':underline_text' => $this->Text['underline_text'],
+                ':text_position' => $this->Text['text_position']
+            ]);
+        }
 
+        // 7. Insertar en Artwork (si existe)
+        if (!empty($this->Artwork)) {
             $stmt = $conn->prepare("INSERT INTO Artwork (
                 id_jobs, link_right_image, link_left_image
             ) VALUES (
                 :id_jobs, :link_right_image, :link_left_image
             )");
 
-            $stmt->execute($this->Artwork);
-
-            $this->connection->closeConnection();
-            return true;
-
-        } catch (Exception $e) {
-            error_log("Error en saveOrder: " . $e->getMessage());
-            return false;
+            $stmt->execute([
+                ':id_jobs' => $this->Artwork['id_jobs'],
+                ':link_right_image' => $this->Artwork['link_right_image'],
+                ':link_left_image' => $this->Artwork['link_left_image']
+            ]);
         }
+
+        $conn->commit();
+        $this->connection->closeConnection();
+        return true;
+
+    } catch (Exception $e) {
+        if (isset($conn) && $conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        error_log("Error en saveOrder: " . $e->getMessage());
+        return false;
     }
+}
+
 }
 
 ?>
