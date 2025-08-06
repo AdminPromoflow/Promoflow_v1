@@ -1,6 +1,5 @@
 <?php
-file_put_contents('log.txt',"funciona7");
-exit;
+
 // class Model_Order
 // {
 //     private $Orders = [];
