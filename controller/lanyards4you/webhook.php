@@ -26,12 +26,12 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     echo json_encode(['error' => 'Invalid JSON']);
     exit;
 }
+file_put_contents('log.txt', json_encode($data, JSON_PRETTY_PRINT));
 
 $order = new Order();
 $order->setOrder($data);
 $order->saveLanyardForYou();
 
-file_put_contents('log.txt', json_encode($data, JSON_PRETTY_PRINT));
 
 http_response_code(200);
 echo json_encode(['status' => 'OK', 'message' => 'Order processed']);
