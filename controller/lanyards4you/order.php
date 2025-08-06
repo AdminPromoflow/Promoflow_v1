@@ -16,8 +16,8 @@ class Order
         if (!empty($this->orderData['order'])) {
             $modelOrder->setOrders($this->orderData['order']);
         }
-        file_put_contents('log2.txt',"funciona14");
-        exit;
+        // file_put_contents('log2.txt',"funciona14");
+        // exit;
 
         if (!empty($this->orderData['job'])) {
             $modelOrder->setJobs($this->orderData['job']);
