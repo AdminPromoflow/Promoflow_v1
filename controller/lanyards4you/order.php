@@ -44,11 +44,9 @@ class Order
             $modelOrder->setUsers($this->orderData['user']);
         }
 
-        $result = $modelOrder->createOrder();
+        $result = $modelOrder->saveOrder();
 
         file_put_contents('log2.txt', $result ? "status: success" : "status: error");
-        file_put_contents('log2.txt',"funciona24");
-        exit;
     }
 
     public function setOrder($data)
