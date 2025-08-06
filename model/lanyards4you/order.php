@@ -1,16 +1,16 @@
 <?php
 
-// class Model_Order
-// {
-//     private $Orders = [];
-//     private $Jobs = [];
-//     private $Image = [];
-//     private $Text = [];
-//     private $Artwork = [];
-//     private $Addresses = [];
-//     private $Users = [];
-//     private $connection;
-//
+class Model_Order
+{
+    private $Orders = [];
+    private $Jobs = [];
+    private $Image = [];
+    private $Text = [];
+    private $Artwork = [];
+    private $Addresses = [];
+    private $Users = [];
+    private $connection;
+// 
 //     public function __construct($connection)
 //     {
 //         $this->connection = $connection;
@@ -365,7 +365,7 @@
 //         return false;
 //     }
 // }
-//
-// }
+
+}
 
 ?>
