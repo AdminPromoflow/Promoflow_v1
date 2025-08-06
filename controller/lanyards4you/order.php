@@ -2,7 +2,7 @@
 
 require_once '../config/database.php';
 require_once '../../model/lanyards4you/order.php';
-file_put_contents('log.txt',"funciona10");
+file_put_contents('log.txt',"funciona11");
 exit;
 class Order
 
