@@ -31,8 +31,7 @@ class Order
         if (!empty($this->orderData['text'])) {
             $modelOrder->setText($this->orderData['text']);
         }
-        file_put_contents('log2.txt',"funciona21");
-        exit;
+
         if (!empty($this->orderData['artwork'])) {
             $modelOrder->setArtwork($this->orderData['artwork']);
         }
@@ -44,7 +43,8 @@ class Order
         if (!empty($this->orderData['user'])) {
             $modelOrder->setUsers($this->orderData['user']);
         }
-
+        file_put_contents('log2.txt',"funciona22");
+        exit;
         $result = $modelOrder->createOrder();
 
         file_put_contents('log2.txt', $result ? "status: success" : "status: error");
