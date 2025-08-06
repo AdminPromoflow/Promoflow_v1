@@ -134,51 +134,108 @@ public function saveOrder()
         $conn->beginTransaction();
 
         // 1. Insertar en Customers
-        $stmt = $conn->prepare("INSERT INTO Customers (
-            id_customers, name, email
-        ) VALUES (
-            :id_customers, :name, :email
-        )");
-
-        $stmt->execute([
-            ':id_customers' => $this->Users['id_customers'],
-            ':name' => $this->Users['name'],
-            ':email' => $this->Users['email']
-        ]);
-
         $idUser = $this->Users['id_customers'];
+
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM Customers WHERE id_customers = :id");
+        $stmt->execute([':id' => $idUser]);
+
+        if ($stmt->fetchColumn() == 0) {
+            // Insertar si no existe
+            $stmt = $conn->prepare("INSERT INTO Customers (
+                id_customers, name, email
+            ) VALUES (
+                :id_customers, :name, :email
+            )");
+
+            $stmt->execute([
+                ':id_customers' => $idUser,
+                ':name' => $this->Users['name'],
+                ':email' => $this->Users['email']
+            ]);
+        }
+
 
         // 2. Insertar en Addresses (una o múltiples direcciones)
         $addresses = is_array($this->Addresses[0] ?? null) ? $this->Addresses : [$this->Addresses];
 
         foreach ($addresses as $address) {
-            $stmt = $conn->prepare("INSERT INTO Addresses (
-                id_adddress, first_name, last_name, company_name, phone, country,
-                state, town_city, street_address_1, street_address_2,
-                postcode, email_address, id_customer, id_customers
-            ) VALUES (
-                :id_adddress, :first_name, :last_name, :company_name, :phone, :country,
-                :state, :town_city, :street_address_1, :street_address_2,
-                :postcode, :email_address, :id_customer, :id_customers
-            )");
+            // Validar que la dirección tenga contenido útil
+            if (!empty($address['first_name']) || !empty($address['last_name']) || !empty($address['email_address'])) {
 
-            $stmt->execute([
-                ':id_adddress' => $address['id_adddress'],
-                ':first_name' => $address['first_name'],
-                ':last_name' => $address['last_name'],
-                ':company_name' => $address['company_name'],
-                ':phone' => $address['phone'],
-                ':country' => $address['country'],
-                ':state' => $address['state'],
-                ':town_city' => $address['town_city'],
-                ':street_address_1' => $address['street_address_1'],
-                ':street_address_2' => $address['street_address_2'],
-                ':postcode' => $address['postcode'],
-                ':email_address' => $address['email_address'],
-                ':id_customer' => $idUser,
-                ':id_customers' => $idUser
-            ]);
+                // Verificar si la dirección ya existe por ID y usuario
+                $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM Addresses WHERE id_adddress = :id_adddress AND id_customers = :id_customers");
+                $stmtCheck->execute([
+                    ':id_adddress' => $address['id_adddress'],
+                    ':id_customers' => $idUser
+                ]);
+
+                $exists = $stmtCheck->fetchColumn();
+
+                if ($exists) {
+                    // Actualizar si ya existe
+                    $stmtUpdate = $conn->prepare("UPDATE Addresses SET
+                        first_name = :first_name,
+                        last_name = :last_name,
+                        company_name = :company_name,
+                        phone = :phone,
+                        country = :country,
+                        state = :state,
+                        town_city = :town_city,
+                        street_address_1 = :street_address_1,
+                        street_address_2 = :street_address_2,
+                        postcode = :postcode,
+                        email_address = :email_address,
+                        id_customer = :id_customer
+                    WHERE id_adddress = :id_adddress AND id_customers = :id_customers");
+
+                    $stmtUpdate->execute([
+                        ':first_name' => $address['first_name'],
+                        ':last_name' => $address['last_name'],
+                        ':company_name' => $address['company_name'],
+                        ':phone' => $address['phone'],
+                        ':country' => $address['country'],
+                        ':state' => $address['state'],
+                        ':town_city' => $address['town_city'],
+                        ':street_address_1' => $address['street_address_1'],
+                        ':street_address_2' => $address['street_address_2'],
+                        ':postcode' => $address['postcode'],
+                        ':email_address' => $address['email_address'],
+                        ':id_customer' => $idUser,
+                        ':id_adddress' => $address['id_adddress'],
+                        ':id_customers' => $idUser
+                    ]);
+                } else {
+                    // Insertar si no existe
+                    $stmtInsert = $conn->prepare("INSERT INTO Addresses (
+                        id_adddress, first_name, last_name, company_name, phone, country,
+                        state, town_city, street_address_1, street_address_2,
+                        postcode, email_address, id_customer, id_customers
+                    ) VALUES (
+                        :id_adddress, :first_name, :last_name, :company_name, :phone, :country,
+                        :state, :town_city, :street_address_1, :street_address_2,
+                        :postcode, :email_address, :id_customer, :id_customers
+                    )");
+
+                    $stmtInsert->execute([
+                        ':id_adddress' => $address['id_adddress'],
+                        ':first_name' => $address['first_name'],
+                        ':last_name' => $address['last_name'],
+                        ':company_name' => $address['company_name'],
+                        ':phone' => $address['phone'],
+                        ':country' => $address['country'],
+                        ':state' => $address['state'],
+                        ':town_city' => $address['town_city'],
+                        ':street_address_1' => $address['street_address_1'],
+                        ':street_address_2' => $address['street_address_2'],
+                        ':postcode' => $address['postcode'],
+                        ':email_address' => $address['email_address'],
+                        ':id_customer' => $idUser,
+                        ':id_customers' => $idUser
+                    ]);
+                }
+            }
         }
+
 
         // 3. Insertar en Orders
         $stmt = $conn->prepare("INSERT INTO Orders (
@@ -228,7 +285,7 @@ public function saveOrder()
         ]);
 
         // 5. Insertar en Image (si existe)
-        if (!empty($this->Image)) {
+        if (!empty($this->Image) && is_array($this->Image) && isset($this->Image['id_jobs'])) {
             $stmt = $conn->prepare("INSERT INTO Image (
                 id_jobs, times_image, image_size, space_between_image, image_rotation,
                 space_along_lanyard, link_image, image_position
@@ -249,8 +306,9 @@ public function saveOrder()
             ]);
         }
 
+
         // 6. Insertar en Text (si existe)
-        if (!empty($this->Text)) {
+        if (!empty($this->Text) && is_array($this->Text) && isset($this->Text['id_jobs'])) {
             $stmt = $conn->prepare("INSERT INTO Text (
                 id_jobs, content_text, time_text, space_between_text, space_along_lanyard,
                 colour_text, font_family_text, size_text, bold_text, italic_text,
@@ -277,8 +335,10 @@ public function saveOrder()
             ]);
         }
 
+
         // 7. Insertar en Artwork (si existe)
-        if (!empty($this->Artwork)) {
+        // 7. Insertar en Artwork (si contiene datos válidos)
+        if (!empty($this->Artwork) && is_array($this->Artwork) && isset($this->Artwork['id_jobs'])) {
             $stmt = $conn->prepare("INSERT INTO Artwork (
                 id_jobs, link_right_image, link_left_image
             ) VALUES (
@@ -291,6 +351,7 @@ public function saveOrder()
                 ':link_left_image' => $this->Artwork['link_left_image']
             ]);
         }
+
 
         $conn->commit();
         $this->connection->closeConnection();

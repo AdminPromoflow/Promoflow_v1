@@ -11,12 +11,12 @@ class Order
         $connection = new Database();
         $modelOrder = new Model_Order($connection);
 
-        if (!empty($this->orderData['orders'])) {
-            $modelOrder->setOrders($this->orderData['orders']);
+        if (!empty($this->orderData['order'])) {
+            $modelOrder->setOrders($this->orderData['order']);
         }
 
-        if (!empty($this->orderData['jobs'])) {
-            $modelOrder->setJobs($this->orderData['jobs']);
+        if (!empty($this->orderData['job'])) {
+            $modelOrder->setJobs($this->orderData['job']);
         }
 
         if (!empty($this->orderData['image'])) {
@@ -35,13 +35,13 @@ class Order
             $modelOrder->setAddresses($this->orderData['addresses']);
         }
 
-        if (!empty($this->orderData['users'])) {
-            $modelOrder->setUsers($this->orderData['users']);
+        if (!empty($this->orderData['user'])) {
+            $modelOrder->setUsers($this->orderData['user']);
         }
 
         $result = $modelOrder->createOrder();
 
-        file_put_contents('log.txt', $result ? "status: success" : "status: error");
+        file_put_contents('log2.txt', $result ? "status: success" : "status: error");
     }
 
     public function setOrder($data)

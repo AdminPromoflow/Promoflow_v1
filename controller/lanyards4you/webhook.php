@@ -1,5 +1,5 @@
 <?php
-// include "../../controller/lanyards4you/order.php";
+include "../../controller/lanyards4you/order.php";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -28,9 +28,9 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 }
 file_put_contents('log.txt', json_encode($data, JSON_PRETTY_PRINT));
 
-// $order = new Order();
-// $order->setOrder($data);
-// $order->saveLanyardForYou();
+ $order = new Order();
+ $order->setOrder($data);
+ $order->saveLanyardForYou();
 
 
 http_response_code(200);
