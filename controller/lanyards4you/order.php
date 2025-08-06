@@ -16,6 +16,8 @@ class Order
         if (!empty($this->orderData['order'])) {
             $modelOrder->setOrders($this->orderData['order']);
         }
+        file_put_contents('log2.txt',"funciona14");
+        exit;
 
         if (!empty($this->orderData['job'])) {
             $modelOrder->setJobs($this->orderData['job']);
@@ -40,8 +42,7 @@ class Order
         if (!empty($this->orderData['user'])) {
             $modelOrder->setUsers($this->orderData['user']);
         }
-        file_put_contents('log.txt',"funciona13");
-        exit;
+
         $result = $modelOrder->createOrder();
 
         file_put_contents('log2.txt', $result ? "status: success" : "status: error");
