@@ -10,14 +10,15 @@ class Order
 
     public function saveLanyardForYou()
     {
+      file_put_contents('log2.txt',"funciona16");
+      exit;
         $connection = new Database();
         $modelOrder = new Model_Order($connection);
 
         if (!empty($this->orderData['order'])) {
             $modelOrder->setOrders($this->orderData['order']);
         }
-        // file_put_contents('log2.txt',"funciona14");
-        // exit;
+
 
         if (!empty($this->orderData['job'])) {
             $modelOrder->setJobs($this->orderData['job']);
