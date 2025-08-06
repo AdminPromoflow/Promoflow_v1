@@ -17,13 +17,13 @@ class Order
         if (!empty($this->orderData['order'])) {
             $modelOrder->setOrders($this->orderData['order']);
         }
-        file_put_contents('log2.txt',"funciona18");
-        exit;
+
 
         if (!empty($this->orderData['job'])) {
             $modelOrder->setJobs($this->orderData['job']);
         }
-
+        file_put_contents('log2.txt',"funciona19");
+        exit;
         if (!empty($this->orderData['image'])) {
             $modelOrder->setImage($this->orderData['image']);
         }
