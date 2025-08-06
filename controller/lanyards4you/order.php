@@ -1,10 +1,7 @@
 <?php
 
 require_once '../config/database.php';
-file_put_contents('log.txt',"funciona3");
-exit;
-require_once '../../models/orders.php';
-
+require_once '../../../models/orders.php';
 
 class Order
 
