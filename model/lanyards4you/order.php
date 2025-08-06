@@ -10,123 +10,123 @@ class Model_Order
     private $Addresses = [];
     private $Users = [];
     private $connection;
-// 
-//     public function __construct($connection)
-//     {
-//         $this->connection = $connection;
-//     }
-//
-//     public function setOrders(array $data)
-//     {
-//         $this->Orders = [
-//             'id_order' => $data['idOrder'] ?? null,      // JSON: idOrder
-//             'data_time' => $data['date_time'] ?? null,   // JSON: date_time
-//             'shipping_days' => $data['shippingDays'] ?? null,
-//             'status' => $data['status'] ?? null,
-//             'subtotal' => $data['subtotal'] ?? null,
-//             'tax' => $data['tax'] ?? null,
-//             'shipping_price' => $data['shipping_price'] ?? null,
-//             'total' => $data['total'] ?? null,
-//             'id_customer' => $data['idUser'] ?? null,     // JSON: idUser
-//             'id_customers' => $data['idUser'] ?? null     // JSON: idUser
-//         ];
-//     }
-//
-//
-//
-// public function setJobs(array $data)
-// {
-// $this->Jobs = [
-//     'id_jobs' => $data['idJobs'] ?? null,           // JSON: idJobs
-//     'name' => $data['name'] ?? null,
-//     'description' => $data['description'] ?? null,
-//     'price_per_unit' => $data['price_per_unit'] ?? null,
-//     'amount' => $data['amount'] ?? null,
-//     'total' => $data['total'] ?? null,
-//     'link_pdf' => $data['link_pdf'] ?? null,
-//     'notes' => $data['notes'] ?? null,
-//     'new_colour' => $data['newColour'] ?? null,     // JSON: newColour
-//     'id_order' => $data['idOrder'] ?? null,         // JSON: idOrder
-//     'id_extras' => $data['idExtras'] ?? null,
-//     'id_clip' => $data['idClip'] ?? null,
-//     'id_price_amount' => $data['idPriceAmount'] ?? null
-// ];
-// }
-//
-//
-// public function setImage(array $data)
-// {
-//   $this->Image = [
-//       'id_jobs' => $data['idJobs'] ?? null,
-//       'times_image' => $data['timesImage'] ?? null,
-//       'image_size' => $data['imageSize'] ?? null,
-//       'space_between_image' => $data['spaceBetweenImage'] ?? null,
-//       'image_rotation' => $data['imageRotation'] ?? null,
-//       'space_along_lanyard' => $data['spaceAlongLanyard'] ?? null,
-//       'link_image' => $data['linkImage'] ?? null,
-//       'image_position' => $data['imagePosition'] ?? null
-//   ];
-// }
-//
-//
-// public function setText(array $data)
-// {
-// $this->Text = [
-//     'id_jobs' => $data['idJobs'] ?? null,
-//     'content_text' => $data['contentText'] ?? null,
-//     'time_text' => $data['timesText'] ?? null,
-//     'space_between_text' => $data['spaceBetweenText'] ?? null,
-//     'space_along_lanyard' => $data['spaceAlongLanyard'] ?? null,
-//     'colour_text' => $data['colourText'] ?? null,
-//     'font_family_text' => $data['fontFamilyText'] ?? null,
-//     'size_text' => $data['sizeText'] ?? null,
-//     'bold_text' => $data['boldText'] ?? null,
-//     'italic_text' => $data['italicText'] ?? null,
-//     'underline_text' => $data['underlineText'] ?? null,
-//     'text_position' => $data['textPosition'] ?? null
-// ];
-// }
-//
-//
-// public function setArtwork(array $data)
-// {
-//   $this->Artwork = [
-//       'id_jobs' => $data['idJobs'] ?? null,
-//       'link_right_image' => $data['linkRightImage'] ?? null,
-//       'link_left_image' => $data['linkLeftImage'] ?? null
-//   ];
-// }
-//
-//
-// public function setAddresses(array $data)
-// {
-// $this->Addresses = [
-//     'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
-//     'first_name' => $data['first_name'] ?? null,
-//     'last_name' => $data['last_name'] ?? null,
-//     'company_name' => $data['company_name'] ?? null,
-//     'phone' => $data['phone'] ?? null,
-//     'country' => $data['country'] ?? null,
-//     'state' => $data['state'] ?? null,
-//     'town_city' => $data['town_city'] ?? null,
-//     'street_address_1' => $data['street_address_1'] ?? null,
-//     'street_address_2' => $data['street_address_2'] ?? null,
-//     'postcode' => $data['postcode'] ?? null,
-//     'email_address' => $data['email_address'] ?? null,
-//     'id_customer' => $data['idUser'] ?? null,      // JSON: idUser
-//     'id_customers' => $data['idUser'] ?? null       // JSON: idUser
-// ];
-// }
-//
-//
-//     public function setUsers(array $data)
-// {
-//     $this->Users = [
-//         'id_customers' => $data['idUser'] ?? null,  // JSON: idUser
-//         'name' => $data['name'] ?? null,
-//         'email' => $data['email'] ?? null
-//     ];
-// }
+
+    public function __construct($connection)
+    {
+        $this->connection = $connection;
+    }
+
+    public function setOrders(array $data)
+    {
+        $this->Orders = [
+            'id_order' => $data['idOrder'] ?? null,      // JSON: idOrder
+            'data_time' => $data['date_time'] ?? null,   // JSON: date_time
+            'shipping_days' => $data['shippingDays'] ?? null,
+            'status' => $data['status'] ?? null,
+            'subtotal' => $data['subtotal'] ?? null,
+            'tax' => $data['tax'] ?? null,
+            'shipping_price' => $data['shipping_price'] ?? null,
+            'total' => $data['total'] ?? null,
+            'id_customer' => $data['idUser'] ?? null,     // JSON: idUser
+            'id_customers' => $data['idUser'] ?? null     // JSON: idUser
+        ];
+    }
+
+
+
+public function setJobs(array $data)
+{
+$this->Jobs = [
+    'id_jobs' => $data['idJobs'] ?? null,           // JSON: idJobs
+    'name' => $data['name'] ?? null,
+    'description' => $data['description'] ?? null,
+    'price_per_unit' => $data['price_per_unit'] ?? null,
+    'amount' => $data['amount'] ?? null,
+    'total' => $data['total'] ?? null,
+    'link_pdf' => $data['link_pdf'] ?? null,
+    'notes' => $data['notes'] ?? null,
+    'new_colour' => $data['newColour'] ?? null,     // JSON: newColour
+    'id_order' => $data['idOrder'] ?? null,         // JSON: idOrder
+    'id_extras' => $data['idExtras'] ?? null,
+    'id_clip' => $data['idClip'] ?? null,
+    'id_price_amount' => $data['idPriceAmount'] ?? null
+];
+}
+
+
+public function setImage(array $data)
+{
+  $this->Image = [
+      'id_jobs' => $data['idJobs'] ?? null,
+      'times_image' => $data['timesImage'] ?? null,
+      'image_size' => $data['imageSize'] ?? null,
+      'space_between_image' => $data['spaceBetweenImage'] ?? null,
+      'image_rotation' => $data['imageRotation'] ?? null,
+      'space_along_lanyard' => $data['spaceAlongLanyard'] ?? null,
+      'link_image' => $data['linkImage'] ?? null,
+      'image_position' => $data['imagePosition'] ?? null
+  ];
+}
+
+
+public function setText(array $data)
+{
+$this->Text = [
+    'id_jobs' => $data['idJobs'] ?? null,
+    'content_text' => $data['contentText'] ?? null,
+    'time_text' => $data['timesText'] ?? null,
+    'space_between_text' => $data['spaceBetweenText'] ?? null,
+    'space_along_lanyard' => $data['spaceAlongLanyard'] ?? null,
+    'colour_text' => $data['colourText'] ?? null,
+    'font_family_text' => $data['fontFamilyText'] ?? null,
+    'size_text' => $data['sizeText'] ?? null,
+    'bold_text' => $data['boldText'] ?? null,
+    'italic_text' => $data['italicText'] ?? null,
+    'underline_text' => $data['underlineText'] ?? null,
+    'text_position' => $data['textPosition'] ?? null
+];
+}
+
+
+public function setArtwork(array $data)
+{
+  $this->Artwork = [
+      'id_jobs' => $data['idJobs'] ?? null,
+      'link_right_image' => $data['linkRightImage'] ?? null,
+      'link_left_image' => $data['linkLeftImage'] ?? null
+  ];
+}
+
+
+public function setAddresses(array $data)
+{
+$this->Addresses = [
+    'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
+    'first_name' => $data['first_name'] ?? null,
+    'last_name' => $data['last_name'] ?? null,
+    'company_name' => $data['company_name'] ?? null,
+    'phone' => $data['phone'] ?? null,
+    'country' => $data['country'] ?? null,
+    'state' => $data['state'] ?? null,
+    'town_city' => $data['town_city'] ?? null,
+    'street_address_1' => $data['street_address_1'] ?? null,
+    'street_address_2' => $data['street_address_2'] ?? null,
+    'postcode' => $data['postcode'] ?? null,
+    'email_address' => $data['email_address'] ?? null,
+    'id_customer' => $data['idUser'] ?? null,      // JSON: idUser
+    'id_customers' => $data['idUser'] ?? null       // JSON: idUser
+];
+}
+
+
+    public function setUsers(array $data)
+{
+    $this->Users = [
+        'id_customers' => $data['idUser'] ?? null,  // JSON: idUser
+        'name' => $data['name'] ?? null,
+        'email' => $data['email'] ?? null
+    ];
+}
 // public function saveOrder()
 // {
 //     try {
