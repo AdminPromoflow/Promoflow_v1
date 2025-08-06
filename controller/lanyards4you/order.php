@@ -26,13 +26,13 @@ class Order
         if (!empty($this->orderData['image'])) {
             $modelOrder->setImage($this->orderData['image']);
         }
-        file_put_contents('log2.txt',"funciona20");
-        exit;
+
 
         if (!empty($this->orderData['text'])) {
             $modelOrder->setText($this->orderData['text']);
         }
-
+        file_put_contents('log2.txt',"funciona21");
+        exit;
         if (!empty($this->orderData['artwork'])) {
             $modelOrder->setArtwork($this->orderData['artwork']);
         }
