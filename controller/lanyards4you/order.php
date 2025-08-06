@@ -1,10 +1,12 @@
 <?php
-file_put_contents('log.txt',"funciona");
-exit;
+
 require_once '../config/database.php';
 require_once '../../models/orders.php';
 
+file_put_contents('log.txt',"funciona2");
+exit;
 class Order
+
 {
     private $orderData = [];
 
