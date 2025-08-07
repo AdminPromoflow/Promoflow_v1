@@ -360,7 +360,6 @@ public function saveOrder()
         }
 
 
-        // 7. Insertar en Artwork (si existe)
         // 7. Insertar en Artwork (si contiene datos válidos)
         if (!empty($this->Artwork) && is_array($this->Artwork) && isset($this->Artwork['id_jobs'])) {
             $stmt = $conn->prepare("INSERT INTO Artwork (
