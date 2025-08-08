@@ -10,7 +10,7 @@ class Order
 
     public function saveLanyardForYou()
     {
-  file_put_contents('log2.txt', "Día 2 pueba 2");exit;
+
         $connection = new Database();
         $modelOrder = new Model_Order($connection);
 
@@ -35,6 +35,7 @@ class Order
         if (!empty($this->orderData['artwork'])) {
             $modelOrder->setArtwork($this->orderData['artwork']);
         }
+
         if (!empty($this->orderData['addresses'])) {
             if (isset($this->orderData['addresses'][0])) {
                 $modelOrder->setAddresses1($this->orderData['addresses'][0]);
@@ -43,7 +44,6 @@ class Order
                 $modelOrder->setAddresses2($this->orderData['addresses'][1]);
             }
         }
-
 
         if (!empty($this->orderData['user'])) {
             $modelOrder->setUsers($this->orderData['user']);

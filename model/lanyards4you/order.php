@@ -7,7 +7,8 @@ class Model_Order
     private $Image = [];
     private $Text = [];
     private $Artwork = [];
-    private $Addresses = [];
+    private $Addresses1 = [];
+    private $Addresses2 = [];
     private $Users = [];
     private $connection;
 
@@ -100,43 +101,45 @@ public function setArtwork(array $data)
 
 public function setAddresses1(array $data)
 {
-$this->Addresses = [
-    'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
-    'first_name' => $data['first_name'] ?? null,
-    'last_name' => $data['last_name'] ?? null,
-    'company_name' => $data['company_name'] ?? null,
-    'phone' => $data['phone'] ?? null,
-    'country' => $data['country'] ?? null,
-    'state' => $data['state'] ?? null,
-    'town_city' => $data['town_city'] ?? null,
-    'street_address_1' => $data['street_address_1'] ?? null,
-    'street_address_2' => $data['street_address_2'] ?? null,
-    'postcode' => $data['postcode'] ?? null,
-    'email_address' => $data['email_address'] ?? null,
-    'id_customer' => $data['idUser'] ?? null,      // JSON: idUser
-    'id_customers' => $data['idUser'] ?? null       // JSON: idUser
-];
+    $this->Addresses1 = [
+        'id_address' => $data['idAddress'] ?? null,
+        'first_name' => $data['first_name'] ?? null,
+        'last_name' => $data['last_name'] ?? null,
+        'company_name' => $data['company_name'] ?? null,
+        'phone' => $data['phone'] ?? null,
+        'country' => $data['country'] ?? null,
+        'state' => $data['state'] ?? null,
+        'town_city' => $data['town_city'] ?? null,
+        'street_address_1' => $data['street_address_1'] ?? null,
+        'street_address_2' => $data['street_address_2'] ?? null,
+        'postcode' => $data['postcode'] ?? null,
+        'email_address' => $data['email_address'] ?? null,
+        'id_customer' => $data['idUser'] ?? null,
+        'id_customers' => $data['idUser'] ?? null
+    ];
 }
 
 public function setAddresses2(array $data)
 {
-$this->Addresses = [
-    'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
-    'first_name' => $data['first_name'] ?? null,
-    'last_name' => $data['last_name'] ?? null,
-    'company_name' => $data['company_name'] ?? null,
-    'phone' => $data['phone'] ?? null,
-    'country' => $data['country'] ?? null,
-    'state' => $data['state'] ?? null,
-    'town_city' => $data['town_city'] ?? null,
-    'street_address_1' => $data['street_address_1'] ?? null,
-    'street_address_2' => $data['street_address_2'] ?? null,
-    'postcode' => $data['postcode'] ?? null,
-    'email_address' => $data['email_address'] ?? null,
-    'id_customer' => $data['idUser'] ?? null,      // JSON: idUser
-    'id_customers' => $data['idUser'] ?? null       // JSON: idUser
-];
+    $this->Addresses2 = [
+        'id_address' => $data['idAddress'] ?? null,
+        'first_name' => $data['first_name'] ?? null,
+        'last_name' => $data['last_name'] ?? null,
+        'company_name' => $data['company_name'] ?? null,
+        'phone' => $data['phone'] ?? null,
+        'country' => $data['country'] ?? null,
+        'state' => $data['state'] ?? null,
+        'town_city' => $data['town_city'] ?? null,
+        'street_address_1' => $data['street_address_1'] ?? null,
+        'street_address_2' => $data['street_address_2'] ?? null,
+        'postcode' => $data['postcode'] ?? null,
+        'email_address' => $data['email_address'] ?? null,
+        'id_customer' => $data['idUser'] ?? null,
+        'id_customers' => $data['idUser'] ?? null
+    ];
 }
+
+
     public function setUsers(array $data)
 {
     $this->Users = [
@@ -174,16 +177,19 @@ public function saveOrder()
 
 
         // 2. Insertar en Addresses (una o múltiples direcciones)
-        $addresses = is_array($this->Addresses[0] ?? null) ? $this->Addresses : [$this->Addresses];
+        $addresses = [];
+
+        if (!empty($this->Addresses1)) $addresses[] = $this->Addresses1;
+        if (!empty($this->Addresses2)) $addresses[] = $this->Addresses2;
 
         foreach ($addresses as $address) {
-            // Validar que la dirección tenga contenido útil
+            // Validar que al menos haya datos útiles
             if (!empty($address['first_name']) || !empty($address['last_name']) || !empty($address['email_address'])) {
 
-                // Verificar si la dirección ya existe por ID y usuario
-                $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM Addresses WHERE id_adddress = :id_adddress AND id_customers = :id_customers");
+                // Verificar si la dirección ya existe
+                $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM Addresses WHERE id_address = :id_address AND id_customers = :id_customers");
                 $stmtCheck->execute([
-                    ':id_adddress' => $address['id_adddress'],
+                    ':id_address' => $address['id_address'],
                     ':id_customers' => $idUser
                 ]);
 
@@ -204,7 +210,7 @@ public function saveOrder()
                         postcode = :postcode,
                         email_address = :email_address,
                         id_customer = :id_customer
-                    WHERE id_adddress = :id_adddress AND id_customers = :id_customers");
+                    WHERE id_address = :id_address AND id_customers = :id_customers");
 
                     $stmtUpdate->execute([
                         ':first_name' => $address['first_name'],
@@ -219,23 +225,23 @@ public function saveOrder()
                         ':postcode' => $address['postcode'],
                         ':email_address' => $address['email_address'],
                         ':id_customer' => $idUser,
-                        ':id_adddress' => $address['id_adddress'],
+                        ':id_address' => $address['id_address'],
                         ':id_customers' => $idUser
                     ]);
                 } else {
                     // Insertar si no existe
                     $stmtInsert = $conn->prepare("INSERT INTO Addresses (
-                        id_adddress, first_name, last_name, company_name, phone, country,
+                        id_address, first_name, last_name, company_name, phone, country,
                         state, town_city, street_address_1, street_address_2,
                         postcode, email_address, id_customer, id_customers
                     ) VALUES (
-                        :id_adddress, :first_name, :last_name, :company_name, :phone, :country,
+                        :id_address, :first_name, :last_name, :company_name, :phone, :country,
                         :state, :town_city, :street_address_1, :street_address_2,
                         :postcode, :email_address, :id_customer, :id_customers
                     )");
 
                     $stmtInsert->execute([
-                        ':id_adddress' => $address['id_adddress'],
+                        ':id_address' => $address['id_address'],
                         ':first_name' => $address['first_name'],
                         ':last_name' => $address['last_name'],
                         ':company_name' => $address['company_name'],
@@ -354,7 +360,6 @@ public function saveOrder()
         }
 
 
-        // 7. Insertar en Artwork (si existe)
         // 7. Insertar en Artwork (si contiene datos válidos)
         if (!empty($this->Artwork) && is_array($this->Artwork) && isset($this->Artwork['id_jobs'])) {
             $stmt = $conn->prepare("INSERT INTO Artwork (
