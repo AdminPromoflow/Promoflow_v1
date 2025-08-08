@@ -98,7 +98,7 @@ public function setArtwork(array $data)
 }
 
 
-public function setAddresses(array $data)
+public function setAddresses1(array $data)
 {
 $this->Addresses = [
     'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
@@ -118,7 +118,25 @@ $this->Addresses = [
 ];
 }
 
-
+public function setAddresses2(array $data)
+{
+$this->Addresses = [
+    'id_adddress' => $data['idAddress'] ?? null,  // JSON: idAddress
+    'first_name' => $data['first_name'] ?? null,
+    'last_name' => $data['last_name'] ?? null,
+    'company_name' => $data['company_name'] ?? null,
+    'phone' => $data['phone'] ?? null,
+    'country' => $data['country'] ?? null,
+    'state' => $data['state'] ?? null,
+    'town_city' => $data['town_city'] ?? null,
+    'street_address_1' => $data['street_address_1'] ?? null,
+    'street_address_2' => $data['street_address_2'] ?? null,
+    'postcode' => $data['postcode'] ?? null,
+    'email_address' => $data['email_address'] ?? null,
+    'id_customer' => $data['idUser'] ?? null,      // JSON: idUser
+    'id_customers' => $data['idUser'] ?? null       // JSON: idUser
+];
+}
     public function setUsers(array $data)
 {
     $this->Users = [

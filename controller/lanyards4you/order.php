@@ -35,10 +35,15 @@ class Order
         if (!empty($this->orderData['artwork'])) {
             $modelOrder->setArtwork($this->orderData['artwork']);
         }
-
         if (!empty($this->orderData['addresses'])) {
-            $modelOrder->setAddresses($this->orderData['addresses']);
+            if (isset($this->orderData['addresses'][0])) {
+                $modelOrder->setAddresses1($this->orderData['addresses'][0]);
+            }
+            if (isset($this->orderData['addresses'][1])) {
+                $modelOrder->setAddresses2($this->orderData['addresses'][1]);
+            }
         }
+
 
         if (!empty($this->orderData['user'])) {
             $modelOrder->setUsers($this->orderData['user']);
