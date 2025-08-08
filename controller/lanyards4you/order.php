@@ -44,7 +44,7 @@ class Order
             }
         }
 
-
+        file_put_contents('log2.txt', "Día 2 pueba 1");exit;
         if (!empty($this->orderData['user'])) {
             $modelOrder->setUsers($this->orderData['user']);
         }
