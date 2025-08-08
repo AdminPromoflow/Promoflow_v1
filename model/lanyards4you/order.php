@@ -102,42 +102,43 @@ public function setArtwork(array $data)
 public function setAddresses1(array $data)
 {
     $this->Addresses1 = [
-        'id_address' => $data['idAddress'] ?? null,
-        'first_name' => $data['first_name'] ?? null,
-        'last_name' => $data['last_name'] ?? null,
-        'company_name' => $data['company_name'] ?? null,
-        'phone' => $data['phone'] ?? null,
-        'country' => $data['country'] ?? null,
-        'state' => $data['state'] ?? null,
-        'town_city' => $data['town_city'] ?? null,
+        'id_adddress'      => $data['idAddress'] ?? null,   // ← nombre correcto
+        'first_name'       => $data['first_name'] ?? null,
+        'last_name'        => $data['last_name'] ?? null,
+        'company_name'     => $data['company_name'] ?? null,
+        'phone'            => $data['phone'] ?? null,
+        'country'          => $data['country'] ?? null,
+        'state'            => $data['state'] ?? null,
+        'town_city'        => $data['town_city'] ?? null,
         'street_address_1' => $data['street_address_1'] ?? null,
         'street_address_2' => $data['street_address_2'] ?? null,
-        'postcode' => $data['postcode'] ?? null,
-        'email_address' => $data['email_address'] ?? null,
-        'id_customer' => $data['idUser'] ?? null,
-        'id_customers' => $data['idUser'] ?? null
+        'postcode'         => $data['postcode'] ?? null,
+        'email_address'    => $data['email_address'] ?? null,
+        'id_customer'      => $data['idUser'] ?? null,
+        'id_customers'     => $data['idUser'] ?? null
     ];
 }
 
 public function setAddresses2(array $data)
 {
     $this->Addresses2 = [
-        'id_address' => $data['idAddress'] ?? null,
-        'first_name' => $data['first_name'] ?? null,
-        'last_name' => $data['last_name'] ?? null,
-        'company_name' => $data['company_name'] ?? null,
-        'phone' => $data['phone'] ?? null,
-        'country' => $data['country'] ?? null,
-        'state' => $data['state'] ?? null,
-        'town_city' => $data['town_city'] ?? null,
+        'id_adddress'      => $data['idAddress'] ?? null,   // ← nombre correcto
+        'first_name'       => $data['first_name'] ?? null,
+        'last_name'        => $data['last_name'] ?? null,
+        'company_name'     => $data['company_name'] ?? null,
+        'phone'            => $data['phone'] ?? null,
+        'country'          => $data['country'] ?? null,
+        'state'            => $data['state'] ?? null,
+        'town_city'        => $data['town_city'] ?? null,
         'street_address_1' => $data['street_address_1'] ?? null,
         'street_address_2' => $data['street_address_2'] ?? null,
-        'postcode' => $data['postcode'] ?? null,
-        'email_address' => $data['email_address'] ?? null,
-        'id_customer' => $data['idUser'] ?? null,
-        'id_customers' => $data['idUser'] ?? null
+        'postcode'         => $data['postcode'] ?? null,
+        'email_address'    => $data['email_address'] ?? null,
+        'id_customer'      => $data['idUser'] ?? null,
+        'id_customers'     => $data['idUser'] ?? null
     ];
 }
+
 
 
     public function setUsers(array $data)
@@ -177,88 +178,93 @@ public function saveOrder()
 
 
         // 2. Insertar en Addresses (una o múltiples direcciones)
-        $addresses = [];
+        // armar arreglo de direcciones
+  $addresses = [];
+  if (!empty($this->Addresses1)) $addresses[] = $this->Addresses1;
+  if (!empty($this->Addresses2)) $addresses[] = $this->Addresses2;
 
-        if (!empty($this->Addresses1)) $addresses[] = $this->Addresses1;
-        if (!empty($this->Addresses2)) $addresses[] = $this->Addresses2;
+  foreach ($addresses as $address) {
+      if (!empty($address['first_name']) || !empty($address['last_name']) || !empty($address['email_address'])) {
 
-        foreach ($addresses as $address) {
-            // Validar que al menos haya datos útiles
-            if (!empty($address['first_name']) || !empty($address['last_name']) || !empty($address['email_address'])) {
+          // EXISTS por id_adddress + id_customers
+          $stmtCheck = $conn->prepare("
+              SELECT COUNT(*)
+              FROM Addresses
+              WHERE id_adddress = :id_adddress AND id_customers = :id_customers
+          ");
+          $stmtCheck->execute([
+              ':id_adddress'  => $address['id_adddress'],
+              ':id_customers' => $idUser
+          ]);
+          $exists = (int)$stmtCheck->fetchColumn();
 
-                // Verificar si la dirección ya existe
-                $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM Addresses WHERE id_address = :id_address AND id_customers = :id_customers");
-                $stmtCheck->execute([
-                    ':id_address' => $address['id_address'],
-                    ':id_customers' => $idUser
-                ]);
+          if ($exists) {
+              // UPDATE
+              $stmtUpdate = $conn->prepare("
+                  UPDATE Addresses SET
+                      first_name = :first_name,
+                      last_name = :last_name,
+                      company_name = :company_name,
+                      phone = :phone,
+                      country = :country,
+                      state = :state,
+                      town_city = :town_city,
+                      street_address_1 = :street_address_1,
+                      street_address_2 = :street_address_2,
+                      postcode = :postcode,
+                      email_address = :email_address,
+                      id_customer = :id_customer
+                  WHERE id_adddress = :id_adddress AND id_customers = :id_customers
+              ");
+              $stmtUpdate->execute([
+                  ':first_name'       => $address['first_name'],
+                  ':last_name'        => $address['last_name'],
+                  ':company_name'     => $address['company_name'],
+                  ':phone'            => $address['phone'],
+                  ':country'          => $address['country'],
+                  ':state'            => $address['state'],
+                  ':town_city'        => $address['town_city'],
+                  ':street_address_1' => $address['street_address_1'],
+                  ':street_address_2' => $address['street_address_2'],
+                  ':postcode'         => $address['postcode'],
+                  ':email_address'    => $address['email_address'],
+                  ':id_customer'      => $idUser,
+                  ':id_adddress'      => $address['id_adddress'],  // ← clave correcta
+                  ':id_customers'     => $idUser
+              ]);
+          } else {
+              // INSERT
+              $stmtInsert = $conn->prepare("
+                  INSERT INTO Addresses (
+                      id_adddress, first_name, last_name, company_name, phone, country,
+                      state, town_city, street_address_1, street_address_2,
+                      postcode, email_address, id_customer, id_customers
+                  ) VALUES (
+                      :id_adddress, :first_name, :last_name, :company_name, :phone, :country,
+                      :state, :town_city, :street_address_1, :street_address_2,
+                      :postcode, :email_address, :id_customer, :id_customers
+                  )
+              ");
+              $stmtInsert->execute([
+                  ':id_adddress'      => $address['id_adddress'],
+                  ':first_name'       => $address['first_name'],
+                  ':last_name'        => $address['last_name'],
+                  ':company_name'     => $address['company_name'],
+                  ':phone'            => $address['phone'],
+                  ':country'          => $address['country'],
+                  ':state'            => $address['state'],
+                  ':town_city'        => $address['town_city'],
+                  ':street_address_1' => $address['street_address_1'],
+                  ':street_address_2' => $address['street_address_2'],
+                  ':postcode'         => $address['postcode'],
+                  ':email_address'    => $address['email_address'],
+                  ':id_customer'      => $idUser,
+                  ':id_customers'     => $idUser
+              ]);
+          }
+      }
+  }
 
-                $exists = $stmtCheck->fetchColumn();
-
-                if ($exists) {
-                    // Actualizar si ya existe
-                    $stmtUpdate = $conn->prepare("UPDATE Addresses SET
-                        first_name = :first_name,
-                        last_name = :last_name,
-                        company_name = :company_name,
-                        phone = :phone,
-                        country = :country,
-                        state = :state,
-                        town_city = :town_city,
-                        street_address_1 = :street_address_1,
-                        street_address_2 = :street_address_2,
-                        postcode = :postcode,
-                        email_address = :email_address,
-                        id_customer = :id_customer
-                    WHERE id_address = :id_address AND id_customers = :id_customers");
-
-                    $stmtUpdate->execute([
-                        ':first_name' => $address['first_name'],
-                        ':last_name' => $address['last_name'],
-                        ':company_name' => $address['company_name'],
-                        ':phone' => $address['phone'],
-                        ':country' => $address['country'],
-                        ':state' => $address['state'],
-                        ':town_city' => $address['town_city'],
-                        ':street_address_1' => $address['street_address_1'],
-                        ':street_address_2' => $address['street_address_2'],
-                        ':postcode' => $address['postcode'],
-                        ':email_address' => $address['email_address'],
-                        ':id_customer' => $idUser,
-                        ':id_address' => $address['id_address'],
-                        ':id_customers' => $idUser
-                    ]);
-                } else {
-                    // Insertar si no existe
-                    $stmtInsert = $conn->prepare("INSERT INTO Addresses (
-                        id_address, first_name, last_name, company_name, phone, country,
-                        state, town_city, street_address_1, street_address_2,
-                        postcode, email_address, id_customer, id_customers
-                    ) VALUES (
-                        :id_address, :first_name, :last_name, :company_name, :phone, :country,
-                        :state, :town_city, :street_address_1, :street_address_2,
-                        :postcode, :email_address, :id_customer, :id_customers
-                    )");
-
-                    $stmtInsert->execute([
-                        ':id_address' => $address['id_address'],
-                        ':first_name' => $address['first_name'],
-                        ':last_name' => $address['last_name'],
-                        ':company_name' => $address['company_name'],
-                        ':phone' => $address['phone'],
-                        ':country' => $address['country'],
-                        ':state' => $address['state'],
-                        ':town_city' => $address['town_city'],
-                        ':street_address_1' => $address['street_address_1'],
-                        ':street_address_2' => $address['street_address_2'],
-                        ':postcode' => $address['postcode'],
-                        ':email_address' => $address['email_address'],
-                        ':id_customer' => $idUser,
-                        ':id_customers' => $idUser
-                    ]);
-                }
-            }
-        }
 
 
         // 3. Insertar en Orders
