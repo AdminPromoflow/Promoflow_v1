@@ -10,7 +10,7 @@ class Addresses_Model {
         $this->connection = $connection;
     }
 
-    public function setAddresses1(array $data)
+    public function setAddress1(array $data)
     {
         $this->Address1 = [
             'id_adddress'      => $data['idAddress'] ?? null,
