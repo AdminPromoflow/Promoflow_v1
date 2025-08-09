@@ -64,6 +64,8 @@ class Order
         $connection = new Database();
         $modelAddresses = new Addresses_Model($connection);
 
+        file_put_contents('log2.txt', json_encode($this->orderData));exit;
+
 
         if (!empty($this->orderData['addresses'])) {
             if (isset($this->orderData['addresses'][0])) {
@@ -74,7 +76,6 @@ class Order
             }
         }
 
-        file_put_contents('log2.txt', "Bueno4");exit;
 
         $connection = new Database();
         $modelUser  = new User_Model($connection);
