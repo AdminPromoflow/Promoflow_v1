@@ -64,6 +64,7 @@ class Order
         $connection = new Database();
         $modelAddresses = new Addresses_Model($connection);
 
+        file_put_contents('log2.txt', "Bueno3");exit;
 
         if (!empty($this->orderData['addresses'])) {
             if (isset($this->orderData['addresses'][0])) {
@@ -73,7 +74,6 @@ class Order
                 $modelAddresses->setAddresses2($this->orderData['addresses'][1]);
             }
         }
-        file_put_contents('log2.txt', "Bueno2");exit;
 
 
         $connection = new Database();
