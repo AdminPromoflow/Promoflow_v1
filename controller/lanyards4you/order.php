@@ -15,6 +15,8 @@ class Order
 
     public function saveLanyardForYou()
     {
+      file_put_contents('log2.txt', "Bueno");exit;
+
 
         $connection = new Database();
         $modelOrder = new Model_Order($connection);
