@@ -81,7 +81,7 @@ class Order
 
 
 
-      file_put_contents('log2.txt', json_encode($this->orderData['job'][0]));
+      file_put_contents('log2.txt', json_encode($this->orderData['jobs'][0]['job']));
 
 
     /*   $connection = new Database();
