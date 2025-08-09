@@ -64,17 +64,17 @@ class Order
         $connection = new Database();
         $modelAddresses = new Addresses_Model($connection);
 
-        file_put_contents('log2.txt', json_encode($this->orderData));exit;
 
 
-        if (!empty($this->orderData['addresses'])) {
             if (isset($this->orderData['addresses'][0])) {
                 $modelAddresses->setAddress1($this->orderData['addresses'][0]);
             }
             if (isset($this->orderData['addresses'][1])) {
                 $modelAddresses->setAddress2($this->orderData['addresses'][1]);
             }
-        }
+            
+            file_put_contents('log2.txt', "Bueno 6");exit;
+
 
 
         $connection = new Database();
