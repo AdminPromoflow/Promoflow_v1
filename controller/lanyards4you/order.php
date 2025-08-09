@@ -51,7 +51,6 @@ class Order
         if (!empty($this->orderData['text'])) {
             $modelText->setText($this->orderData['text']);
         }
-        file_put_contents('log2.txt', "Bueno2");exit;
 
 
         $connection = new Database();
@@ -74,6 +73,8 @@ class Order
                 $modelAddresses->setAddresses2($this->orderData['addresses'][1]);
             }
         }
+        file_put_contents('log2.txt', "Bueno2");exit;
+
 
         $connection = new Database();
         $modelUser  = new User_Model($connection);
