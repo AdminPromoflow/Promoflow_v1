@@ -10,7 +10,7 @@ class Addresses_Model {
         $this->connection = $connection;
     }
 
-    public function setAddress1(array $data)
+    public function setAddresses1(array $data)
     {
         $this->Address1 = [
             'id_adddress'      => $data['idAddress'] ?? null,
@@ -28,7 +28,7 @@ class Addresses_Model {
             'id_customer'      => $data['idUser'] ?? null,
             'id_customers'     => $data['idUser'] ?? null
         ];
-        
+
         return $this;
     }
 
@@ -50,7 +50,7 @@ class Addresses_Model {
             'id_customer'      => $data['idUser'] ?? null,
             'id_customers'     => $data['idUser'] ?? null
         ];
-        
+
         return $this;
     }
 }
