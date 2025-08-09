@@ -72,8 +72,7 @@ class Order
             if (isset($this->orderData['addresses'][1])) {
                 $modelAddresses->setAddress2($this->orderData['addresses'][1]);
             }
-            
-            file_put_contents('log2.txt', "Bueno 6");exit;
+
 
 
 
@@ -88,7 +87,7 @@ class Order
 
       //  $result = $modelOrder->saveOrder();
 
-        file_put_contents('log2.txt', "Bueno");
+        file_put_contents('log2.txt', "Bueno 7");
     }
 
     public function setOrder($data)
