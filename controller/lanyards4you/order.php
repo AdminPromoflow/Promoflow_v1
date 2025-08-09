@@ -16,16 +16,72 @@ class Order
     public function saveLanyardForYou()
     {
 
+      $connection = new Database();
+      $modelUser  = new User_Model($connection);
 
+      if (!empty($this->orderData['user'])) {
+          $modelUser->setUser($this->orderData['user']);
+
+          if (!$modelUser->userExist(false)) {
+              $modelUser->createUser();
+          }
+      }
+      else {
+        exit;
+      }
+
+
+
+
+      if (isset($this->orderData['addresses'][0])) {
+        $connection      = new Database();
+        $modelAddresses  = new Addresses_Model($connection);
+
+        $modelAddresses->setAddress($this->orderData['addresses'][0]);
+
+          if (!$modelAddresses->addressExist(false)) {
+              $modelAddresses->createAddress(false);
+          } else {
+              $modelAddresses->updateAddress(false);
+          }
+      }
+
+      if (isset($this->orderData['addresses'][1])) {
+          $modelAddresses->setAddress($this->orderData['addresses'][1]);
+
+          if (!$modelAddresses->addressExist(false)) {
+              $modelAddresses->createAddress(true);
+          } else {
+              $modelAddresses->updateAddress(true);
+          }
+      }
+
+
+
+
+      if (!empty($this->orderData['order'])) {
         $connection = new Database();
         $modelOrder = new Model_Order($connection);
+        $modelOrder->setOrders($this->orderData['order']);
 
-        if (!empty($this->orderData['order'])) {
-            $modelOrder->setOrders($this->orderData['order']);
-        }
+      }
+      else {
+        exit;
+      }
 
 
-        $connection = new Database();
+
+
+
+
+
+
+
+
+
+
+
+    /*    $connection = new Database();
         $modelJob = new Job_Model($connection);
 
 
@@ -59,35 +115,18 @@ class Order
 
         if (!empty($this->orderData['artwork'])) {
             $modelArtwork->setArtwork($this->orderData['artwork']);
-        }
-
-        $connection = new Database();
-        $modelAddresses = new Addresses_Model($connection);
-
-
-
-            if (isset($this->orderData['addresses'][0])) {
-                $modelAddresses->setAddress1($this->orderData['addresses'][0]);
-            }
-            if (isset($this->orderData['addresses'][1])) {
-                $modelAddresses->setAddress2($this->orderData['addresses'][1]);
-            }
+        }*/
 
 
 
 
-        $connection = new Database();
-        $modelUser  = new User_Model($connection);
 
 
 
-        if (!empty($this->orderData['user'])) {
-            $modelUser->setUser($this->orderData['user']);
-        }
 
       //  $result = $modelOrder->saveOrder();
 
-        file_put_contents('log2.txt', "Bueno 7");
+        //file_put_contents('log2.txt', "Bueno 7");
     }
 
     public function setOrder($data)
