@@ -16,6 +16,9 @@ class Order
     public function saveLanyardForYou()
     {
 
+      file_put_contents('log2.txt', json_encode($this->orderData));exit;
+
+
       $connection = new Database();
       $modelUser  = new User_Model($connection);
 
