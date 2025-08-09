@@ -82,7 +82,7 @@ class Order
 
 
         if (!empty($this->orderData['user'])) {
-            $modelUser->setUsers($this->orderData['user']);
+            $modelUser->setUser($this->orderData['user']);
         }
 
       //  $result = $modelOrder->saveOrder();
