@@ -22,6 +22,24 @@ $jsTime = filemtime('../../view/order_lanyards4you/main/main.js');   // ejemplo:
 
     <!-- Contenido desplegable del acordeón -->
     <div class="accordion_content">
+      <div class="accordion_header">
+        <!-- Fecha dinámica con PHP: hoy -->
+        Orden - Today (<?= date('Y-m-d') ?>)
+        <!-- Flecha visual para el acordeón -->
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="accordion_content">
+        <div class="form_group"><label for="poSent">PO Sent</label><input id="poSent" type="text"></div>
+      <div class="form_group"><label for="approvalSent">Approval Sent</label><input id="approvalSent" type="text"></div>
+      <div class="form_group"><label for="despatchDate">Despatch Date</label><input id="despatchDate" type="date"></div>
+      <div class="form_group"><label for="dueDate">C-DUE DATE</label><input id="dueDate" type="date"></div>
+      <div class="form_group"><label for="artworkPreApproved">Artwork Pre Approved?</label><input id="artworkPreApproved" type="text"></div>
+      <div class="form_group"><label for="artwork">C- Artwork</label><input id="artwork" type="text"></div>
+      <div class="form_group"><label for="artworkVisual">C-Artwork Visual</label><input id="artworkVisual" type="text"></div>
+      <div class="form_group"><label for="approvedPdf">C-Approved PDF</label><input id="approvedPdf" type="text"></div>
+      <div class="form_group"><label for="approvedVisual">C-Approved Visual</label><input id="approvedVisual" type="text"></div>
+
+        </div>
 
       <!-- ===== Inputs del formulario de orden ===== -->
       <!-- Cada grupo contiene una etiqueta y su campo -->
