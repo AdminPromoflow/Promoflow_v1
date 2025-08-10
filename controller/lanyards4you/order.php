@@ -112,7 +112,8 @@ class Order
 
 
         if (!empty($this->orderData['artwork'])) {
-            $modelArtwork->setArtwork($this->orderData['artwork']);
+          $modelArtwork->setArtwork($this->orderData['artwork']);
+          $modelArtwork->createArtwork(false);
         }
 
 
