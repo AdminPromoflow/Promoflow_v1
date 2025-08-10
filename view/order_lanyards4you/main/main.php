@@ -23,16 +23,27 @@ $jsTime = filemtime('../../view/order_lanyards4you/main/main.js');   // ejemplo:
     <!-- Contenido desplegable del acordeón -->
     <div class="accordion_content">
 
+      <div class="accordion_header">
+        <!-- Fecha dinámica con PHP: hoy -->
+        Orden - Today (<?= date('Y-m-d') ?>)
+        <!-- Flecha visual para el acordeón -->
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="accordion_content">
+          <div class="form_group"><label for="poSent">PO Sent</label><input id="poSent" type="text"></div>
+          <div class="form_group"><label for="approvalSent">Approval Sent</label><input id="approvalSent" type="text"></div>
+          <div class="form_group"><label for="despatchDate">Despatch Date</label><input id="despatchDate" type="date"></div>
+          <div class="form_group"><label for="dueDate">C-DUE DATE</label><input id="dueDate" type="date"></div>
+          <div class="form_group"><label for="artworkPreApproved">Artwork Pre Approved?</label><input id="artworkPreApproved" type="text"></div>
+          <div class="form_group"><label for="artwork">C- Artwork</label><input id="artwork" type="text"></div>
+          <div class="form_group"><label for="artworkVisual">C-Artwork Visual</label><input id="artworkVisual" type="text"></div>
+          <div class="form_group"><label for="approvedPdf">C-Approved PDF</label><input id="approvedPdf" type="text"></div>
+          <div class="form_group"><label for="approvedVisual">C-Approved Visual</label><input id="approvedVisual" type="text"></div>
+      </div>
+
       <!-- ===== Inputs del formulario de orden ===== -->
       <!-- Cada grupo contiene una etiqueta y su campo -->
-      <div class="form_group"><label for="dataNo">Data No*</label><input id="dataNo" type="text"></div>
-      <div class="form_group"><label for="customer">Customer</label><input id="customer" type="text"></div>
-      <div class="form_group"><label for="printRef">Print Ref*</label><input id="printRef" type="text"></div>
-      <div class="form_group"><label for="project">Project</label><input id="project" type="text"></div>
-      <div class="form_group"><label for="qty">Qty*</label><input id="qty" type="number"></div>
-      <div class="form_group"><label for="supplier">Supplier</label><input id="supplier" type="text"></div>
-      <div class="form_group"><label for="orderDate">C_Order Date</label><input id="orderDate" type="date"></div>
-      <div class="form_group"><label for="poSent">PO Sent</label><input id="poSent" type="text"></div>
+        <div class="form_group"><label for="poSent">PO Sent</label><input id="poSent" type="text"></div>
       <div class="form_group"><label for="approvalSent">Approval Sent</label><input id="approvalSent" type="text"></div>
       <div class="form_group"><label for="despatchDate">Despatch Date</label><input id="despatchDate" type="date"></div>
       <div class="form_group"><label for="dueDate">C-DUE DATE</label><input id="dueDate" type="date"></div>
@@ -78,27 +89,17 @@ $jsTime = filemtime('../../view/order_lanyards4you/main/main.js');   // ejemplo:
   </div>
 
   <!-- === ACORDEÓN 2: Ayer === -->
-  <div class="accordion">
+<!--  <div class="accordion">
     <div class="accordion_header">
-      Order - Yesterday (<?= date('Y-m-d', strtotime('-1 day')) ?>)
+      Order - Yesterday (<?= //date('Y-m-d', strtotime('-1 day')) ?>)
       <span class="arrow">&#9660;</span>
     </div>
     <div class="accordion_content">
-      <!-- Se puede duplicar el mismo contenido del primer acordeón aquí -->
       <p>[Los mismos inputs aquí]</p>
     </div>
-  </div>
+  </div>!>
 
-  <!-- === ACORDEÓN 3: Anteayer === -->
-  <div class="accordion">
-    <div class="accordion_header">
-      Order - The day before yesterday (<?= date('Y-m-d', strtotime('-2 days')) ?>)
-      <span class="arrow">&#9660;</span>
-    </div>
-    <div class="accordion_content">
-      <p>[Los mismos inputs aquí]</p>
-    </div>
-  </div>
+
 
 </section>
   <script src="../../view/order_lanyards4you/main/main.js" type="text/javascript">
