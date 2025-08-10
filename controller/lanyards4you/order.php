@@ -72,57 +72,41 @@ class Order
         exit;
       }
 
-       $connection = new Database();
-        $modelJob = new Job_Model($connection);
+      $connection = new Database();
 
+      if (!empty($this->orderData['jobs']) && is_array($this->orderData['jobs'])) {
+          foreach ($this->orderData['jobs'] as $i => $bundle) {
 
-        if (!empty($this->orderData['jobs'][0]['job'])) {
-            $modelJob->setJobs($this->orderData['jobs'][0]['job']);
-            $modelJob->createJob(false);
-        }
+              // JOB
+              if (isset($bundle['job']) && is_array($bundle['job']) && isset($bundle['job']['idJobs'])) {
+                  $modelJob = new Job_Model($connection);
+                  $modelJob->setJobs($bundle['job']);
+                  $modelJob->createJob(false); // no cerramos aún
+              }
 
+              // IMAGE
+              if (isset($bundle['image']) && is_array($bundle['image']) && isset($bundle['image']['idJobs'])) {
+                  $modelImage = new Image_Model($connection);
+                  $modelImage->setImage($bundle['image']);
+                  $modelImage->createImage(false);
+              }
 
+              // TEXT
+              if (isset($bundle['text']) && is_array($bundle['text']) && isset($bundle['text']['idJobs'])) {
+                  $modelText = new Text_Model($connection);
+                  $modelText->setText($bundle['text']);
+                  $modelText->createText(false);
+              }
 
-
-
-
-
-        if (!empty($this->orderData['jobs'][0]['image'])) {
-          $connection = new Database();
-          $modelImage = new Image_Model($connection);
-          $modelImage->setImage($this->orderData['jobs'][0]['image']);
-          $modelImage->createImage(false);
-        }
-
-
-
-
-
-
-        if (!empty($this->orderData['jobs'][0]['text'])) {
-          $connection = new Database();
-          $modelText = new Text_Model($connection);
-          $modelText->setText($this->orderData['jobs'][0]['text']);
-          $modelText->createText(false);
-        }
-
-
-
-
-
-
-
-        if (!empty($this->orderData['jobs'][0]['artwork'])) {
-          $connection = new Database();
-          $modelArtwork = new Artwork_Model($connection);
-          $modelArtwork->setArtwork($this->orderData['jobs'][0]['artwork']);
-          $modelArtwork->createArtwork(false);
-        }
-
-
-
-
-        //file_put_contents('log2.txt', "Bueno 7");
+              // ARTWORK
+              if (isset($bundle['artwork']) && is_array($bundle['artwork']) && isset($bundle['artwork']['idJobs'])) {
+                  $modelArtwork = new Artwork_Model($connection);
+                  $modelArtwork->setArtwork($bundle['artwork']);
+                  $modelArtwork->createArtwork(false);
+              }
+          }
+      }
+      $connection->closeConnection();
     }
 
     public function setOrder($data)
