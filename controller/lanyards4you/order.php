@@ -16,8 +16,9 @@ class Order
     public function saveLanyardForYou()
     {
 
+      //  file_put_contents('log2.txt', json_encode($this->orderData['jobs'][0]['job']));
 
-/*
+
       $connection = new Database();
       $modelUser  = new User_Model($connection);
 
@@ -69,28 +70,16 @@ class Order
       }
       else {
         exit;
-      }*/
+      }
 
-
-
-
-
-
-
-
-
-
-
-      file_put_contents('log2.txt', json_encode($this->orderData['jobs'][0]['job']));
-
-
-    /*   $connection = new Database();
+       $connection = new Database();
         $modelJob = new Job_Model($connection);
 
 
-        if (!empty($this->orderData['job'][0])) {
-            $modelJob->setJobs($this->orderData['job'][0]);
-        }*/
+        if (!empty($this->orderData['jobs'][0]['job'])) {
+            $modelJob->setJobs($this->orderData['jobs'][0]['job']);
+            $modelJob->createJob(false);
+        }
 
 
 
