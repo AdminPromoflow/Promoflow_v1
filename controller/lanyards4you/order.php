@@ -83,36 +83,39 @@ class Order
 
 
 
-        $connection = new Database();
-        $modelImage = new Image_Model($connection);
 
 
 
-        if (!empty($this->orderData['image'])) {
-            $modelImage->setImage($this->orderData['image']);
-            $modelImage->createImage(false);
+
+        if (!empty($this->orderData['jobs'][0]['image'])) {
+          $connection = new Database();
+          $modelImage = new Image_Model($connection);
+          $modelImage->setImage($this->orderData['jobs'][0]['image']);
+          $modelImage->createImage(false);
         }
 
 
-        $connection = new Database();
-        $modelText = new Text_Model($connection);
 
 
 
-        if (!empty($this->orderData['text'])) {
-          $modelText->setText($this->orderData['text']);
+
+        if (!empty($this->orderData['jobs'][0]['text'])) {
+          $connection = new Database();
+          $modelText = new Text_Model($connection);
+          $modelText->setText($this->orderData['jobs'][0]['text']);
           $modelText->createText(false);
         }
 
 
 
 
-        $connection = new Database();
-        $modelArtwork = new Artwork_Model($connection);
 
 
-        if (!empty($this->orderData['artwork'])) {
-          $modelArtwork->setArtwork($this->orderData['artwork']);
+
+        if (!empty($this->orderData['jobs'][0]['artwork'])) {
+          $connection = new Database();
+          $modelArtwork = new Artwork_Model($connection);
+          $modelArtwork->setArtwork($this->orderData['jobs'][0]['artwork']);
           $modelArtwork->createArtwork(false);
         }
 
