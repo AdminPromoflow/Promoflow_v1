@@ -23,12 +23,10 @@ $jsTime = filemtime('../../view/order_lanyards4you/main/main.js');   // ejemplo:
     <!-- Contenido desplegable del acordeón -->
     <div class="accordion_content">
 
-      <div class="accordion_header">
-        <!-- Fecha dinámica con PHP: hoy -->
+      <!--<div class="accordion_header">
         Orden - Today (<?= date('Y-m-d') ?>)
-        <!-- Flecha visual para el acordeón -->
         <span class="arrow">&#9660;</span>
-      </div>
+      </div>-->
       <!--<div class="accordion_content">
           <div class="form_group"><label for="poSent">PO Sent</label><input id="poSent" type="text"></div>
           <div class="form_group"><label for="approvalSent">Approval Sent</label><input id="approvalSent" type="text"></div>
