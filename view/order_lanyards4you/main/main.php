@@ -24,7 +24,7 @@ $jsTime = filemtime('../../view/order_lanyards4you/main/main.js');   // ejemplo:
     <div class="accordion_content">
 
       <!--<div class="accordion_header">
-        Orden - Today (<?= date('Y-m-d') ?>)
+        Orden - Today (<?=// date('Y-m-d') ?>)
         <span class="arrow">&#9660;</span>
       </div>-->
       <!--<div class="accordion_content">
