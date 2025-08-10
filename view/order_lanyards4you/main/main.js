@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // 4) Teclado: Enter/Espacio
-  container.addEventListener('keydown', function (e) {
+/*  container.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     const header = e.target.closest('.accordion_header');
     if (!header) return;
@@ -39,4 +39,30 @@ document.addEventListener('DOMContentLoaded', function () {
     acc.classList.toggle('open', willOpen);
     header.setAttribute('aria-expanded', String(willOpen));
   });
+  */
+
+  document.querySelectorAll('.inner-accordion').forEach(function (acc) {
+     const header  = acc.querySelector('.inner-accordion_header');
+     const content = acc.querySelector('.inner-accordion_content');
+     if (!header || !content) return;
+
+     // Estado inicial (cerrado)
+     header.setAttribute('aria-expanded', 'false');
+     content.hidden = true;
+
+     const toggle = () => {
+       const willOpen = !acc.classList.contains('is-open');
+       acc.classList.toggle('is-open', willOpen);
+       header.setAttribute('aria-expanded', String(willOpen));
+       content.hidden = !willOpen;
+     };
+
+     header.addEventListener('click', toggle);
+     header.addEventListener('keydown', function (e) {
+       if (e.key === 'Enter' || e.key === ' ') {
+         e.preventDefault();
+         toggle();
+       }
+     });
+   });
 });

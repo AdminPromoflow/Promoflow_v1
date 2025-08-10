@@ -88,3 +88,61 @@
   color: black;
   border-radius: 5px;                  /* Texto negro */
 }
+
+
+
+
+
+
+
+
+
+
+
+/* ===== Inner accordion wrapper ===== */
+.inner-accordion {
+  border: 1px solid #fffd;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background: transparent; /* hereda el fondo de tu contenedor */
+}
+
+/* ===== Inner accordion header ===== */
+.inner-accordion_header {
+  padding: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  background-color: rgba(255,255,255, .6);
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Focus ring para accesibilidad */
+.inner-accordion_header:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ===== Inner content ===== */
+.inner-accordion_content {
+  padding: 1rem;
+  background-color: rgba(117,129,144,0.5);
+  margin: auto;
+}
+
+/* Oculto por defecto con [hidden] para no pelear con el externo */
+.inner-accordion_content[hidden] {
+  display: none;
+}
+
+/* ===== Inner arrow animation ===== */
+.inner-accordion .inner-arrow {
+  transition: transform 0.3s ease;
+}
+
+.inner-accordion.is-open .inner-arrow {
+  transform: rotate(180deg);
+}
+  
