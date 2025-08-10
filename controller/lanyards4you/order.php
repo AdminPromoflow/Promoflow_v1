@@ -66,7 +66,7 @@ class Order
         $connection = new Database();
         $modelOrder = new Model_Order($connection);
         $modelOrder->setOrders($this->orderData['order']);
-        
+        $modelOrder->createOrder(false);
       }
       else {
         exit;
