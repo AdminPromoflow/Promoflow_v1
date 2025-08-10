@@ -16,6 +16,8 @@ class ControllerOrdersLanyards4You {
     this.attachOuterEvents();
 
     this.initInnerAccordions();
+
+
   }
 
   /* ---------- OUTER ACCORDION (".accordion") ---------- */
@@ -42,6 +44,39 @@ class ControllerOrdersLanyards4You {
     if (!acc) return;
 
     this.toggleOuter(acc, header);
+  }
+
+  // Function to fetch orders from the server
+  fetchOrders() {
+    const url = "../../controller/lanyards4you/order.php"; // API endpoint for orders
+    const data = {
+      action: "getOrders" // Action to request orders
+    };
+
+    fetch(url, {
+      method: "POST", // Send data via HTTP POST
+      headers: {
+        "Content-Type": "application/json" // Sending JSON format
+      },
+      body: JSON.stringify(data) // Convert JS object to JSON string
+    })
+      .then(response => {
+        // Ensure the response status is in the 200–299 range
+        if (response.ok) {
+          return response.json(); // Parse response as JSON
+        }
+        // Throw a general error if the network response was not ok
+        throw new Error("Network error.");
+      })
+      .then(data => {
+        // Here you can handle the orders data
+        alert(data);
+      })
+      .catch(error => {
+        // Handle errors from either fetch failure or .then throw
+        console.error("Error:", error.message);
+        alert(error.message);
+      });
   }
 
   onOuterKeydown(e) {

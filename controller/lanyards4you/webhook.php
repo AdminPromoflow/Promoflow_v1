@@ -1,5 +1,5 @@
 <?php
-include "../../controller/lanyards4you/order.php";
+require_once "../../controller/lanyards4you/order.php"; // <-- Solo clase, sin efectos colaterales
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -26,13 +26,12 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     echo json_encode(['error' => 'Invalid JSON']);
     exit;
 }
+
 file_put_contents('log.txt', json_encode($data, JSON_PRETTY_PRINT));
 
- $order = new Order();
- $order->setOrder($data);
- $order->saveLanyardForYou();
-
+$order = new Order();     // <- OK
+$order->setOrder($data);  // <- OK
+$order->saveLanyardForYou(); // <- OK
 
 http_response_code(200);
 echo json_encode(['status' => 'OK', 'message' => 'Order processed']);
-?>
