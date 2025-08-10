@@ -83,16 +83,14 @@ class Order
 
 
 
-
-
-
-    /*     $connection = new Database();
+        $connection = new Database();
         $modelImage = new Image_Model($connection);
 
 
 
         if (!empty($this->orderData['image'])) {
             $modelImage->setImage($this->orderData['image']);
+            $modelImage->createImage(false);
         }
 
 
@@ -102,8 +100,11 @@ class Order
 
 
         if (!empty($this->orderData['text'])) {
-            $modelText->setText($this->orderData['text']);
+          $modelText->setText($this->orderData['text']);
+          $modelText->createText(false);
         }
+
+
 
 
         $connection = new Database();
@@ -112,16 +113,10 @@ class Order
 
         if (!empty($this->orderData['artwork'])) {
             $modelArtwork->setArtwork($this->orderData['artwork']);
-        }*/
+        }
 
 
 
-
-
-
-
-
-      //  $result = $modelOrder->saveOrder();
 
         //file_put_contents('log2.txt', "Bueno 7");
     }
