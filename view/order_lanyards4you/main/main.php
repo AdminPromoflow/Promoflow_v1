@@ -78,7 +78,29 @@ $jsTime = filemtime('../../view/order_lanyards4you/main/main.js');   // ejemplo:
         <div class="form_group"><label for="notSure">Not Sure</label><input id="notSure" type="text"></div>
         <div class="form_group"><label for="poReceived">PO Received</label><input id="poReceived" type="text"></div>
 
-        </div>
+      </div>
+
+      <div class="accordion_header">
+        <!-- Fecha dinámica con PHP: hoy -->
+        Orden - Today (<?= date('Y-m-d') ?>)
+        <!-- Flecha visual para el acordeón -->
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="accordion_content">
+        <div class="form_group"><label for="dataNo">Data No*</label><input id="dataNo" type="text"></div>
+
+      </div>
+
+      <div class="accordion_header">
+        <!-- Fecha dinámica con PHP: hoy -->
+        Orden - Today (<?= date('Y-m-d') ?>)
+        <!-- Flecha visual para el acordeón -->
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="accordion_content">
+        <div class="form_group"><label for="dataNo">Data No*</label><input id="dataNo" type="text"></div>
+
+      </div>
 
       <!-- ===== Inputs del formulario de orden ===== -->
       <!-- Cada grupo contiene una etiqueta y su campo -->
