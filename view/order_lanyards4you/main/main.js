@@ -1,4 +1,4 @@
-class OrdersAccordionController {
+class ControllerOrdersLanyards4You {
   constructor(rootSelector = '.container_order') {
     this.rootSelector = rootSelector;
     this.root = null;
@@ -104,6 +104,6 @@ class OrdersAccordionController {
 
 /* Boot */
 document.addEventListener('DOMContentLoaded', () => {
-  const controller = new OrdersAccordionController('.container_order');
-  controller.init();
+  const controllerOrdersLanyards4You = new ControllerOrdersLanyards4You('.container_order');
+  controllerOrdersLanyards4You.init();
 });
