@@ -8,7 +8,7 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
 ?>
 <link rel="stylesheet" href="../../view/order_lanyards4you/main/main.css?v=<?= $cssTime ?>">
 
-<section class="container_order">
+<section id="main_lanyards4you" class="container_order">
   <h2>Production Orders</h2>
 
   <!-- Accordion: Order 1 -->
@@ -24,11 +24,22 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
       <!-- INNER ACCORDION #1 -->
       <div class="inner-accordion">
         <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
-          Job
+          Orders
           <span class="inner-arrow">&#9660;</span>
         </div>
         <div class="inner-accordion_content" hidden>
           <!-- … todos tus inputs del Job … -->
+        </div>
+      </div>
+
+      <!-- INNER ACCORDION #1 -->
+      <div class="inner-accordion">
+        <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
+          Job
+          <span class="inner-arrow">&#9660;</span>
+        </div>
+        <div class="inner-accordion_content" hidden>
+          <div class="form_group"><label for="dueDate">C-DUE DATE</label><input id="dueDate" type="date"></div>
         </div>
       </div>
 
@@ -39,7 +50,7 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
           <span class="inner-arrow">&#9660;</span>
         </div>
         <div class="inner-accordion_content" hidden>
-          <!-- … inputs de User … -->
+          <div class="form_group"><label for="dueDate">C-DUE DATE</label><input id="dueDate" type="date"></div>
         </div>
       </div>
 
@@ -50,7 +61,7 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
           <span class="inner-arrow">&#9660;</span>
         </div>
         <div class="inner-accordion_content" hidden>
-          <!-- … inputs de Addresses … -->
+          <div class="form_group"><label for="dueDate">C-DUE DATE</label><input id="dueDate" type="date"></div>
         </div>
       </div>
 
