@@ -10,16 +10,16 @@ class ControllerOrdersLanyards4You {
 
   init() {
     this.root = document.querySelector(this.rootSelector);
+
     if (!this.root) return;
 
     this.initOuterHeaders();
+
     this.attachOuterEvents();
 
     this.initInnerAccordions();
 
     this.fetchOrders();
-
-
   }
 
   /* ---------- OUTER ACCORDION (".accordion") ---------- */

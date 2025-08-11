@@ -46,7 +46,7 @@ class Order
          switch ($data->action) {
              case "getOrders":
                  // $orders = $this->getOrders($data); // Implement when ready
-                 echo json_encode(["success" => true, "orders" => []]);
+                 $this->getOrders();
                  break;
 
              default:
@@ -179,6 +179,25 @@ class Order
     {
         $this->orderData = $data;
     }
+    public function getOrders(): void
+    {
+        // Create DB connection
+        $db = new Database();
+        $modelOrder = new Model_Order($db);
+
+        // Aquí asumo que tu modelo tiene un método getAllOrders() o similar.
+        // Si no existe, tendrás que implementarlo en el modelo.
+        $orders = $modelOrder->getAllOrders();
+
+        $db->closeConnection();
+
+        // Devolver JSON
+        echo json_encode([
+            "success" => true,
+            "orders"  => $orders
+        ]);
+    }
+
 }
 $order = new Order();
 
