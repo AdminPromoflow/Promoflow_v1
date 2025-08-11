@@ -30,7 +30,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
     <li><a href="#">Amazon</a></li>
     <li><a href="#">Lanyard</a></li>
     <li><a href="#">Promoflow</a></li>
-    <li><a href="#">Logout</a></li>
+    <li><a href="../../../view/login/index.php">Logout</a></li>
   </ul>
 </div>
 </html>
