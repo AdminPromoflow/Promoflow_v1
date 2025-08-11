@@ -74,7 +74,7 @@ class ControllerOrdersLanyards4You {
         // Here you can handle the orders data
         console.log(JSON.stringify(data));
 
-        controllerOrdersLanyards4You.drawOrdersHTML(data);
+        this.drawOrdersHTML(data);
 
       })
       .catch(error => {
