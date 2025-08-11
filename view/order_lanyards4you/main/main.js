@@ -48,7 +48,7 @@ class ControllerOrdersLanyards4You {
 
   // Function to fetch orders from the server
   fetchOrders() {
-    const url = "../../controller/lanyards4you/order.php"; // API endpoint for orders
+    const url = "../../../controller/lanyards4you/order.php"; // API endpoint for orders
     const data = {
       action: "getOrders" // Action to request orders
     };
