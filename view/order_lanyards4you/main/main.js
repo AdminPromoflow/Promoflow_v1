@@ -72,7 +72,7 @@ class ControllerOrdersLanyards4You {
       })
       .then(data => {
         // Here you can handle the orders data
-        alert(data);
+        alert(JSON.stringify(data));
       })
       .catch(error => {
         // Handle errors from either fetch failure or .then throw
