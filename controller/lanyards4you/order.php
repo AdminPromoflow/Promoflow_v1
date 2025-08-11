@@ -86,103 +86,94 @@ class Order
      */
     public function saveLanyardForYou(): void
     {
-        // Create a single DB connection for the whole operation.
-        $db = new Database();
+            $connection = new Database();
+            $modelUser  = new User_Model($connection);
 
-        // ---- USER -----------------------------------------------------------------
-        // We require user data to proceed. Create if not present in the DB.
-        if (!empty($this->orderData['user'])) {
-            $userModel = new User_Model($db);
-            $userModel->setUser($this->orderData['user']);
+            if (!empty($this->orderData['user'])) {
+                $modelUser->setUser($this->orderData['user']);
 
-            if (!$userModel->userExist(false)) {
-                $userModel->createUser();
+                if (!$modelUser->userExist(false)) {
+                    $modelUser->createUser();
+                }
             }
-        } else {
-            // No user data – nothing sensible to do.
-            $db->closeConnection();
-            return;
-        }
+            else {
+              exit;
+            }
 
-        // ---- ADDRESSES ------------------------------------------------------------
-        // Upsert up to two addresses (index 0 and 1) if provided.
-        if (!empty($this->orderData['addresses']) && is_array($this->orderData['addresses'])) {
-            $addressesModel = new Addresses_Model($db);
 
-            // Billing / primary address at index 0
-            if (isset($this->orderData['addresses'][0]) && is_array($this->orderData['addresses'][0])) {
-                $addressesModel->setAddress($this->orderData['addresses'][0]);
-                if (!$addressesModel->addressExist(false)) {
-                    $addressesModel->createAddress(false);  // false -> first address slot
+
+
+            if (isset($this->orderData['addresses'][0])) {
+              $connection      = new Database();
+              $modelAddresses  = new Addresses_Model($connection);
+
+              $modelAddresses->setAddress($this->orderData['addresses'][0]);
+
+                if (!$modelAddresses->addressExist(false)) {
+                    $modelAddresses->createAddress(false);
                 } else {
-                    $addressesModel->updateAddress(false);
+                    $modelAddresses->updateAddress(false);
                 }
             }
 
-            // Delivery / secondary address at index 1
-            if (isset($this->orderData['addresses'][1]) && is_array($this->orderData['addresses'][1])) {
-                $addressesModel->setAddress($this->orderData['addresses'][1]);
-                if (!$addressesModel->addressExist(true)) {
-                    $addressesModel->createAddress(true);   // true -> second address slot
+            if (isset($this->orderData['addresses'][1])) {
+                $modelAddresses->setAddress($this->orderData['addresses'][1]);
+
+                if (!$modelAddresses->addressExist(false)) {
+                    $modelAddresses->createAddress(true);
                 } else {
-                    $addressesModel->updateAddress(true);
+                    $modelAddresses->updateAddress(true);
                 }
             }
-        }
 
-        // ---- ORDER HEADER ---------------------------------------------------------
-        // The order header is essential; without it, jobs have nowhere to attach.
-        if (!empty($this->orderData['order'])) {
-            $orderModel = new Model_Order($db);
-            $orderModel->setOrders($this->orderData['order']);
-            // The original code called createOrder(false). Keep the same flag.
-            $orderModel->createOrder(false);
-        } else {
-            // No order header – abort politely.
-            $db->closeConnection();
-            return;
-        }
 
-        // ---- JOBS & ASSETS --------------------------------------------------------
-        // Each entry in 'jobs' is a bundle containing a job and optional assets.
-        if (!empty($this->orderData['jobs']) && is_array($this->orderData['jobs'])) {
-            foreach ($this->orderData['jobs'] as $bundle) {
-                if (!is_array($bundle)) {
-                    continue; // Be defensive: skip anything malformed.
-                }
 
-                // JOB (required per bundle to create assets meaningfully)
-                if (isset($bundle['job'], $bundle['job']['idJobs']) && is_array($bundle['job'])) {
-                    $jobModel = new Job_Model($db);
-                    $jobModel->setJobs($bundle['job']);
-                    $jobModel->createJob(false); // do not close/commit yet – mirrors original behaviour
-                }
 
-                // IMAGE
-                if (isset($bundle['image'], $bundle['image']['idJobs']) && is_array($bundle['image'])) {
-                    $imageModel = new Image_Model($db);
-                    $imageModel->setImage($bundle['image']);
-                    $imageModel->createImage(false);
-                }
+            if (!empty($this->orderData['order'])) {
+              $connection = new Database();
+              $modelOrder = new Model_Order($connection);
+              $modelOrder->setOrders($this->orderData['order']);
+              $modelOrder->createOrder(false);
+            }
+            else {
+              exit;
+            }
 
-                // TEXT
-                if (isset($bundle['text'], $bundle['text']['idJobs']) && is_array($bundle['text'])) {
-                    $textModel = new Text_Model($db);
-                    $textModel->setText($bundle['text']);
-                    $textModel->createText(false);
-                }
+            $connection = new Database();
 
-                // ARTWORK
-                if (isset($bundle['artwork'], $bundle['artwork']['idJobs']) && is_array($bundle['artwork'])) {
-                    $artworkModel = new Artwork_Model($db);
-                    $artworkModel->setArtwork($bundle['artwork']);
-                    $artworkModel->createArtwork(false);
+            if (!empty($this->orderData['jobs']) && is_array($this->orderData['jobs'])) {
+                foreach ($this->orderData['jobs'] as $i => $bundle) {
+
+                    // JOB
+                    if (isset($bundle['job']) && is_array($bundle['job']) && isset($bundle['job']['idJobs'])) {
+                        $modelJob = new Job_Model($connection);
+                        $modelJob->setJobs($bundle['job']);
+                        $modelJob->createJob(false); // no cerramos aún
+                    }
+
+                    // IMAGE
+                    if (isset($bundle['image']) && is_array($bundle['image']) && isset($bundle['image']['idJobs'])) {
+                        $modelImage = new Image_Model($connection);
+                        $modelImage->setImage($bundle['image']);
+                        $modelImage->createImage(false);
+                    }
+
+                    // TEXT
+                    if (isset($bundle['text']) && is_array($bundle['text']) && isset($bundle['text']['idJobs'])) {
+                        $modelText = new Text_Model($connection);
+                        $modelText->setText($bundle['text']);
+                        $modelText->createText(false);
+                    }
+
+                    // ARTWORK
+                    if (isset($bundle['artwork']) && is_array($bundle['artwork']) && isset($bundle['artwork']['idJobs'])) {
+                        $modelArtwork = new Artwork_Model($connection);
+                        $modelArtwork->setArtwork($bundle['artwork']);
+                        $modelArtwork->createArtwork(false);
+                    }
                 }
             }
-        }
-
-        // Always tidy up the connection at the end.
-        $db->closeConnection();
+            $connection->closeConnection();
     }
 
     /**
