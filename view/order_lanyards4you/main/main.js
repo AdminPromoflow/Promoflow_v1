@@ -306,7 +306,7 @@ class ControllerOrdersLanyards4You {
   }
 
   // Simple accordion behaviour (outer + inner)
-  function enableAccordions(root = document) {
+  enableAccordions(root = document) {
     // Outer
     root.querySelectorAll(".accordion .accordion_header").forEach(h => {
       const content = h.nextElementSibling;
