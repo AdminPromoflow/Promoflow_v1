@@ -100,9 +100,6 @@ class Order
               exit;
             }
 
-
-
-
             if (isset($this->orderData['addresses'][0])) {
               $connection      = new Database();
               $modelAddresses  = new Addresses_Model($connection);
@@ -125,9 +122,6 @@ class Order
                     $modelAddresses->updateAddress(true);
                 }
             }
-
-
-
 
             if (!empty($this->orderData['order'])) {
               $connection = new Database();
