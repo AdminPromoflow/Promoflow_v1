@@ -10,13 +10,10 @@ class ControllerOrdersLanyards4You {
 
   init() {
     this.root = document.querySelector(this.rootSelector);
-
     if (!this.root) return;
 
     this.initOuterHeaders();
-
     this.attachOuterEvents();
-
     this.initInnerAccordions();
 
     this.fetchOrders();
@@ -48,6 +45,65 @@ class ControllerOrdersLanyards4You {
     this.toggleOuter(acc, header);
   }
 
+  onOuterKeydown(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const header = e.target.closest('.accordion_header');
+    if (!header || !this.root.contains(header)) return;
+
+    e.preventDefault();
+    const acc = header.closest('.accordion');
+    if (!acc) return;
+
+    this.toggleOuter(acc, header);
+  }
+
+  toggleOuter(acc, header) {
+    const willOpen = !acc.classList.contains('open');
+    acc.classList.toggle('open', willOpen);
+    header.setAttribute('aria-expanded', String(willOpen));
+    // Show/hide + arrow rotation handled by CSS
+  }
+
+  /* ---------- INNER ACCORDION (".inner-accordion") ---------- */
+
+  initInnerAccordions() {
+    this.root.querySelectorAll('.inner-accordion').forEach((acc) => {
+      this.bindInnerAccordion(acc);
+    });
+  }
+
+  bindInnerAccordion(acc) {
+    const header  = acc.querySelector('.inner-accordion_header');
+    const content = acc.querySelector('.inner-accordion_content');
+    if (!header || !content) return;
+
+    // Initial state
+    header.setAttribute('role', 'button');
+    header.setAttribute('aria-expanded', 'false');
+    header.tabIndex = 0;
+    content.hidden = true;
+
+    const toggle = () => this.toggleInner(acc, header, content);
+
+    header.addEventListener('click', toggle);
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  }
+
+  toggleInner(acc, header, content) {
+    const willOpen = !acc.classList.contains('is-open');
+    acc.classList.toggle('is-open', willOpen);
+    header.setAttribute('aria-expanded', String(willOpen));
+    content.hidden = !willOpen;
+    // CSS controls arrow rotation via .is-open
+  }
+
+  /* ---------- DATA ---------- */
+
   // Function to fetch orders from the server
   fetchOrders() {
     const url = "../../../controller/lanyards4you/order.php"; // API endpoint for orders
@@ -56,33 +112,26 @@ class ControllerOrdersLanyards4You {
     };
 
     fetch(url, {
-      method: "POST", // Send data via HTTP POST
-      headers: {
-        "Content-Type": "application/json" // Sending JSON format
-      },
-      body: JSON.stringify(data) // Convert JS object to JSON string
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
     })
       .then(response => {
-        // Ensure the response status is in the 200–299 range
-        if (response.ok) {
-          return response.json(); // Parse response as JSON
-        }
-        // Throw a general error if the network response was not ok
+        if (response.ok) return response.json();
         throw new Error("Network error.");
       })
       .then(data => {
-        // Here you can handle the orders data
         console.log(JSON.stringify(data));
-
+        // ✅ Llamar método de instancia, no variable global
         this.drawOrdersHTML(data);
-
       })
       .catch(error => {
-        // Handle errors from either fetch failure or .then throw
         console.error("Error:", error.message);
         alert(error.message);
       });
   }
+
+  /* ---------- RENDER ---------- */
 
   // Draw orders into #main_lanyards4you using the AJAX response shape provided
   drawOrdersHTML(response) {
@@ -92,7 +141,9 @@ class ControllerOrdersLanyards4You {
       return;
     }
 
+    // Vaciar antes de dibujar
     main.innerHTML = "";
+
     // Guard: expect { success: true, orders: [...] }
     if (!response || response.success !== true || !Array.isArray(response.orders)) {
       console.warn("Unexpected response shape for orders:", response);
@@ -116,7 +167,6 @@ class ControllerOrdersLanyards4You {
       const user = bundle.user || {};
       const addresses = Array.isArray(bundle.addresses) ? bundle.addresses : [];
 
-      // Orders section fields
       const ordersSection = `
         <div class="grid grid-orders">
           <div class="form_group"><label>ID Order</label><input type="text" value="${esc(o.idOrder)}" readonly></div>
@@ -130,7 +180,6 @@ class ControllerOrdersLanyards4You {
         </div>
       `;
 
-      // Jobs section: one inner accordion per job
       const jobsSection = jobs.map((jb, jIndex) => {
         const j = jb.job || {};
         const images = Array.isArray(jb.image) ? jb.image : [];
@@ -204,7 +253,6 @@ class ControllerOrdersLanyards4You {
         `;
       }).join("");
 
-      // User section
       const userSection = `
         <div class="grid grid-user">
           <div class="form_group"><label>ID User</label><input type="text" value="${esc(user.idUser)}" readonly></div>
@@ -214,7 +262,6 @@ class ControllerOrdersLanyards4You {
         </div>
       `;
 
-      // Addresses section
       const addressesSection = (addresses.length
         ? addresses.map((a, aIdx) => `
             <fieldset class="address-block">
@@ -237,7 +284,6 @@ class ControllerOrdersLanyards4You {
         : `<div class="muted">No addresses.</div>`
       );
 
-      // Outer accordion (Order N)
       return `
         <div class="accordion">
           <div class="accordion_header" role="button" aria-expanded="false" tabindex="0">
@@ -246,8 +292,6 @@ class ControllerOrdersLanyards4You {
           </div>
 
           <div class="accordion_content" hidden>
-
-            <!-- INNER ACCORDION: Orders -->
             <div class="inner-accordion">
               <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
                 Orders
@@ -258,7 +302,6 @@ class ControllerOrdersLanyards4You {
               </div>
             </div>
 
-            <!-- INNER ACCORDION: Jobs (one per job) -->
             ${jobsSection || `
               <div class="inner-accordion">
                 <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
@@ -271,7 +314,6 @@ class ControllerOrdersLanyards4You {
               </div>
             `}
 
-            <!-- INNER ACCORDION: User -->
             <div class="inner-accordion">
               <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
                 User
@@ -282,7 +324,6 @@ class ControllerOrdersLanyards4You {
               </div>
             </div>
 
-            <!-- INNER ACCORDION: Addresses -->
             <div class="inner-accordion">
               <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
                 Addresses
@@ -292,106 +333,15 @@ class ControllerOrdersLanyards4You {
                 ${addressesSection}
               </div>
             </div>
-
-          </div><!-- /accordion_content -->
-        </div><!-- /accordion -->
+          </div>
+        </div>
       `;
     });
 
-    // Inject all at once for performance
+    // Inject and (re)initialise
     main.innerHTML += chunks.join("");
-
-    // Wire up toggles
-    enableAccordions(main);
-  }
-
-  // Simple accordion behaviour (outer + inner)
-  enableAccordions(root = document) {
-    // Outer
-    root.querySelectorAll(".accordion .accordion_header").forEach(h => {
-      const content = h.nextElementSibling;
-      const toggle = () => {
-        const expanded = h.getAttribute("aria-expanded") === "true";
-        h.setAttribute("aria-expanded", String(!expanded));
-        if (content) content.hidden = expanded;
-      };
-      h.addEventListener("click", toggle);
-      h.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
-      });
-    });
-
-    // Inner
-    root.querySelectorAll(".inner-accordion .inner-accordion_header").forEach(h => {
-      const content = h.nextElementSibling;
-      const toggle = () => {
-        const expanded = h.getAttribute("aria-expanded") === "true";
-        h.setAttribute("aria-expanded", String(!expanded));
-        if (content) content.hidden = expanded;
-      };
-      h.addEventListener("click", toggle);
-      h.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
-      });
-    });
-  }
-
-
-  onOuterKeydown(e) {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const header = e.target.closest('.accordion_header');
-    if (!header || !this.root.contains(header)) return;
-
-    e.preventDefault();
-    const acc = header.closest('.accordion');
-    if (!acc) return;
-
-    this.toggleOuter(acc, header);
-  }
-
-  toggleOuter(acc, header) {
-    const willOpen = !acc.classList.contains('open');
-    acc.classList.toggle('open', willOpen);
-    header.setAttribute('aria-expanded', String(willOpen));
-    // Show/hide + arrow rotation are handled by CSS
-  }
-
-  /* ---------- INNER ACCORDION (".inner-accordion") ---------- */
-
-  initInnerAccordions() {
-    this.root.querySelectorAll('.inner-accordion').forEach((acc) => {
-      this.bindInnerAccordion(acc);
-    });
-  }
-
-  bindInnerAccordion(acc) {
-    const header  = acc.querySelector('.inner-accordion_header');
-    const content = acc.querySelector('.inner-accordion_content');
-    if (!header || !content) return;
-
-    // Initial state
-    header.setAttribute('role', 'button');
-    header.setAttribute('aria-expanded', 'false');
-    header.tabIndex = 0;
-    content.hidden = true;
-
-    const toggle = () => this.toggleInner(acc, header, content);
-
-    header.addEventListener('click', toggle);
-    header.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggle();
-      }
-    });
-  }
-
-  toggleInner(acc, header, content) {
-    const willOpen = !acc.classList.contains('is-open');
-    acc.classList.toggle('is-open', willOpen);
-    header.setAttribute('aria-expanded', String(willOpen));
-    content.hidden = !willOpen;
-    // CSS controls arrow rotation via .is-open
+    this.initOuterHeaders();     // ensure roles/tabindex on new headers
+    this.initInnerAccordions();  // bind new inner accordions
   }
 }
 
