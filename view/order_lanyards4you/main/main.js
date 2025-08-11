@@ -17,6 +17,8 @@ class ControllerOrdersLanyards4You {
 
     this.initInnerAccordions();
 
+    this.fetchOrders();
+
 
   }
 
