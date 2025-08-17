@@ -11,7 +11,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
 
     <!-- ===== TÍTULO DEL SITIO (lado izquierdo) ===== -->
     <div class="title_nav">
-      <h1>Promoflow</h1> <!-- Nombre de la aplicación o empresa -->
+      <h1>Promoflow test</h1> <!-- Nombre de la aplicación o empresa -->
     </div>
 
     <!-- ===== LOGO DEL SITIO (lado derecho) ===== -->
