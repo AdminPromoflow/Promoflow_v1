@@ -9,7 +9,6 @@ class ClassLogin {
       }
       else {
         alert("Invalid data ");
-
       }
     })
   }

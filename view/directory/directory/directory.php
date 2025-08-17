@@ -45,22 +45,5 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
         </div>
       </a>
 
-      <a href="#">
-        <div class="option_card">
-          <div class="option_img">
-            <img src="../../view/directory/directory/img/ullman-sails-logo-white.png" alt="Ullman Sails">
-          </div>
-          <button type="button" name="button">Ullman Sails</button>
-        </div>
-      </a>
-
-      <a href="#">
-        <div class="option_card">
-          <div class="option_img">
-            <img src="../../view/directory/directory/img/logo.png" alt="Promoflow">
-          </div>
-          <button type="button" name="button">Promoflow</button>
-        </div>
-      </a>
     </div>
   </section>
