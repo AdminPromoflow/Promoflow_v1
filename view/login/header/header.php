@@ -3,7 +3,7 @@
 $cssTime = filemtime('../../../view/login_W3P/header/header.css'); // ejemplo: '../Home/5.Video/video.css'
 $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
 ?>
-<link rel="stylesheet" href="../../view_W3P/login/header/header.css?v=<?= $cssTime ?>">
+<link rel="stylesheet" href="../../../view_W3P/login/header/header.css?v=<?= $cssTime ?>">
 <!-- ===== HEADER PRINCIPAL DE LA PÁGINA ===== -->
 <header class="header_nav">
 
