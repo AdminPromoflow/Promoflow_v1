@@ -17,6 +17,13 @@
   text-align: center;               /* Alineación central del texto */
 }
 
+.inner-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+
+
 /* ===== Contenedor de cada acordeón ===== */
 .accordion {
   border: 1px solid #fffd;           /* Borde blanco semitransparente */
@@ -145,4 +152,3 @@
 .inner-accordion.is-open .inner-arrow {
   transform: rotate(180deg);
 }
-  
