@@ -185,13 +185,10 @@ class Order
         $db = new Database();
         $modelOrder = new Model_Order($db);
 
-        // Aquí asumo que tu modelo tiene un método getAllOrders() o similar.
-        // Si no existe, tendrás que implementarlo en el modelo.
         $orders = $modelOrder->getAllOrders();
 
         $db->closeConnection();
 
-        // Devolver JSON
         echo json_encode([
             "success" => true,
             "orders"  => $orders

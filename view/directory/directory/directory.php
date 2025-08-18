@@ -18,7 +18,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
     </div>
 
     <div class="directory_options">
-      <a href="../../view/order_lanyards4you/index.php">
+      <a href="">
         <div class="option_card">
           <div class="option_img">
             <img src="../../view/directory/directory/img/W3P.png" alt="W3P">
@@ -27,7 +27,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
         </div>
       </a>
 
-      <a href="../../view/login/index.php">
+      <a href="">
         <div class="option_card">
           <div class="option_img">
             <img src="../../view/directory/directory/img/Amazon.png" alt="Amazon">
@@ -36,7 +36,7 @@ $jsTime = filemtime('');   // ejemplo: '../Home/5.Video/video.js'
         </div>
       </a>
 
-      <a href="#">
+      <a href="../../view/order_lanyards4you/index.php">
         <div class="option_card">
           <div class="option_img">
             <img src="../../view/directory/directory/img/LFY.png" alt="Lanyard For You">

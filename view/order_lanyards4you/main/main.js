@@ -123,7 +123,7 @@ class ControllerOrdersLanyards4You {
       .then(data => {
         console.log(JSON.stringify(data));
         // ✅ Llamar método de instancia, no variable global
-        this.drawOrdersHTML(data);
+        //this.drawOrdersHTML(data);
       })
       .catch(error => {
         console.error("Error:", error.message);
