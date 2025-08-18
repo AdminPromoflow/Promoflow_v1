@@ -63,3 +63,27 @@
 .inner-accordion.is-open .inner-arrow {
   transform: rotate(180deg);
 }
+
+/* estado base de la flecha */
+.inner-accordion .inner-accordion_header .inner-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  transform: none; /* asegura reset */
+}
+
+/* rota la flecha del acordeón que está abierto, en cualquier nivel */
+.inner-accordion.is-open .inner-accordion_header .inner-arrow {
+  transform: rotate(180deg);
+}
+
+/* BASE: flecha siempre dentro del header directo del acordeón */
+.inner-accordion > .inner-accordion_header > .inner-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+}
+
+/* ABIERTO: solo rota la flecha del header del acordeón que tiene .is-open */
+.inner-accordion.is-open > .inner-accordion_header > .inner-arrow {
+  transform: rotate(180deg);
+}
