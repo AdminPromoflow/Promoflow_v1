@@ -1,67 +1,37 @@
 class ControllerOrdersLanyards4You {
-  constructor(root = '.container_order') {
-    this.root = document.querySelector(root);
-    this.S = {
-      acc: '.inner-accordion',
-      header: '.inner-accordion_header',
-      content: '.inner-accordion_content',
-    };
-  }
-
   init() {
-    if (!this.root) return;
-
-    // Estado inicial (ARIA + oculto)
-    this.root.querySelectorAll(this.S.header).forEach(h => {
+    // Estado inicial
+    document.querySelectorAll('.inner-accordion_header').forEach(h => {
       h.setAttribute('role', 'button');
       h.setAttribute('aria-expanded', 'false');
       h.tabIndex = 0;
     });
-    this.root.querySelectorAll(this.S.content).forEach(c => (c.hidden = true));
+    document.querySelectorAll('.inner-accordion_content').forEach(c => (c.hidden = true));
 
-    // Delegación: un solo manejador para clicks y teclado, sirve para anidación y contenido dinámico
-    this.root.addEventListener('click', (e) => this._maybeToggle(e.target));
-    this.root.addEventListener('keydown', (e) => {
+    // Delegación de eventos (click + teclado)
+    document.addEventListener('click', e => this.toggle(e));
+    document.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        this._maybeToggle(e.target);
+        this.toggle(e);
       }
     });
   }
 
-  _maybeToggle(target) {
-    const header = target.closest(this.S.header);
-    if (!header || !this.root.contains(header)) return;
+  toggle(e) {
+    const header = e.target.closest('.inner-accordion_header');
+    if (!header) return;
 
-    const acc = header.closest(this.S.acc);
+    const acc = header.closest('.inner-accordion');
     if (!acc) return;
 
-    const content = this._findContentForHeader(acc, header);
+    const content = acc.querySelector('.inner-accordion_content');
     if (!content) return;
 
-    const open = !acc.classList.contains('is-open');
-    acc.classList.toggle('is-open', open);
-    header.setAttribute('aria-expanded', String(open));
+    const open = acc.classList.toggle('is-open');
+    header.setAttribute('aria-expanded', open);
     content.hidden = !open;
     // CSS: .inner-accordion.is-open .inner-arrow { transform: rotate(180deg); }
-  }
-
-  // Busca el panel correspondiente al header:
-  // 1) recorre hermanos siguientes hasta encontrar el content
-  // 2) si no lo halla, busca entre los hijos directos del acordeón
-  _findContentForHeader(acc, header) {
-    // 1) Hermanos siguientes del header
-    let sib = header.nextElementSibling;
-    while (sib && !sib.matches(this.S.content)) {
-      sib = sib.nextElementSibling;
-    }
-    if (sib) return sib;
-
-    // 2) Primer hijo directo del acordeón que sea content
-    for (const child of acc.children) {
-      if (child.matches && child.matches(this.S.content)) return child;
-    }
-    return null;
   }
 }
 
