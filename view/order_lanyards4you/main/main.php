@@ -29,7 +29,34 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
 
         <!-- Contenido del acordeón externo -->
         <div class="accordion_content">
+          <div class="accordion">
+            <div class="accordion_header">
+              Order 1
+              <span class="arrow">&#9660;</span>
+            </div>
 
+            <!-- Contenido del acordeón externo -->
+            <div class="accordion_content">
+
+
+
+
+            </div><!-- /accordion_content de Order 1 -->
+          </div>
+          <div class="accordion">
+            <div class="accordion_header">
+              Order 1
+              <span class="arrow">&#9660;</span>
+            </div>
+
+            <!-- Contenido del acordeón externo -->
+            <div class="accordion_content">
+
+
+
+
+            </div><!-- /accordion_content de Order 1 -->
+          </div>
 
 
 
@@ -44,7 +71,34 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
 
         <!-- Contenido del acordeón externo -->
         <div class="accordion_content">
+          <div class="accordion">
+            <div class="accordion_header">
+              Order 1
+              <span class="arrow">&#9660;</span>
+            </div>
 
+            <!-- Contenido del acordeón externo -->
+            <div class="accordion_content">
+
+
+
+
+            </div><!-- /accordion_content de Order 1 -->
+          </div>
+          <div class="accordion">
+            <div class="accordion_header">
+              Order 1
+              <span class="arrow">&#9660;</span>
+            </div>
+
+            <!-- Contenido del acordeón externo -->
+            <div class="accordion_content">
+
+
+
+
+            </div><!-- /accordion_content de Order 1 -->
+          </div>
 
 
 
