@@ -45,7 +45,23 @@ $jsTime  = filemtime('../../view/order_lanyards4you/main/main.js');
           <span class="inner-arrow">&#9660;</span>
         </div>
         <div class="inner-accordion_content" hidden>
-          <!-- … todos tus inputs del Job … -->
+          <div class="inner-accordion">
+            <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
+              Orders
+              <span class="inner-arrow">&#9660;</span>
+            </div>
+            <div class="inner-accordion_content" hidden>
+              <div class="inner-accordion">
+                <div class="inner-accordion_header" role="button" aria-expanded="false" tabindex="0">
+                  Orders
+                  <span class="inner-arrow">&#9660;</span>
+                </div>
+                <div class="inner-accordion_content" hidden>
+                  <!-- … todos tus inputs del Job … -->
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
