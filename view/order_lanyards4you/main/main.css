@@ -1,120 +1,37 @@
 /* ===== Contenedor principal de órdenes ===== */
 .container_order {
-  background-color: #2F4560;         /* Fondo azul oscuro */
-  padding: 1rem;                     /* Espaciado interno amplio */
-  overflow-y: scroll;                /* Scroll vertical si el contenido es largo */
-  border-radius: 5px;                /* Bordes redondeados */
-  margin: auto;                      /* Centrado horizontal */
-  display: flex;                     /* Layout flexible */
-  flex-direction: column;           /* Apila elementos verticalmente */
-  gap: 2rem;                         /* Espacio entre elementos hijos */
+  background-color: #2F4560;
+  padding: 1rem;
+  overflow-y: scroll;
+  border-radius: 5px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 /* ===== Título principal de sección ===== */
 .container_order h2 {
-  color: #fffd;                      /* Blanco semitransparente */
-  margin: auto;                      /* Centrado */
-  text-align: center;               /* Alineación central del texto */
+  color: #fffd;
+  margin: auto;
+  text-align: center;
 }
 
+/* ===== Flecha ===== */
 .inner-arrow {
   display: inline-block;
   transition: transform 0.3s ease;
 }
 
-
-
-/* ===== Contenedor de cada acordeón ===== */
-.accordion {
-  border: 1px solid #fffd;           /* Borde blanco semitransparente */
-  margin-bottom: 10px;              /* Separación inferior */
-  border-radius: 4px;               /* Bordes redondeados */
-}
-
-/* ===== Encabezado del acordeón (clickeable) ===== */
-.accordion_header {
-  padding: 1rem;                     /* Espaciado interno */
-  cursor: pointer;                  /* Cursor de mano al pasar */
-  font-weight: bold;                /* Texto en negrita */
-  background-color: rgba(255,255,255, .6); /* Fondo blanco translúcido */
-  border-bottom: 1px solid #ccc;    /* Línea separadora inferior */
-  display: flex;                    /* Layout flexible */
-  justify-content: space-between;  /* Espaciado entre título y flecha */
-  align-items: center;             /* Alineación vertical centrada */
-}
-
-/* ===== Contenido desplegable del acordeón ===== */
-.accordion_content {
-  display: none;                    /* Oculto por defecto */
-  padding: 1rem;                    /* Espaciado interno */
-  background-color: rgba(117, 129, 144, 0.5); /* Fondo gris translúcido */
-  margin: auto;                     /* Centrado horizontal */
-}
-
-/* ===== Mostrar contenido cuando el acordeón está abierto ===== */
-.accordion.open .accordion_content {
-  display: block;                   /* Mostrar contenido */
-}
-
-.accordion_header:focus { outline: 2px solid #fff; outline-offset: 2px; }
-
-
-/* ===== Flecha del encabezado (animación) ===== */
-.accordion .arrow {
-  transition: transform 0.3s ease;  /* Suaviza el giro de la flecha */
-}
-
-/* ===== Gira la flecha cuando el acordeón está abierto ===== */
-.accordion.open .arrow {
-  transform: rotate(180deg);        /* Flecha hacia arriba */
-}
-
-/* ===== Contenedor de grupo de formulario ===== */
-.form_group {
-  margin-bottom: 10px;              /* Separación inferior entre campos */
-  display: flex;                    /* Layout flexible */
-  flex-direction: column;          /* Apila etiqueta e input verticalmente */
-}
-
-/* ===== Etiquetas de los formularios ===== */
-.form_group label {
-  display: block;                   /* Ocupa ancho completo */
-  font-weight: 500;                /* Peso medio */
-  color: #fffd;                     /* Color blanco semitransparente */
-  padding: 1rem ;  /* Espaciado alrededor del texto */
-}
-
-/* ===== Inputs del formulario ===== */
-.form_group input {
-  margin: auto;                     /* Centrado horizontal */
-  width: 95%;                       /* Ancho relativo */
-  padding: .5rem;                   /* Espaciado interno */
-  margin-top: 3px;                  /* Espacio superior */
-  border: 1px solid black;          /* Borde negro */
-  background-color: rgba(255,255,255, .6); /* Fondo blanco translúcido */
-  color: black;
-  border-radius: 5px;                  /* Texto negro */
-}
-
-
-
-
-
-
-
-
-
-
-
-/* ===== Inner accordion wrapper ===== */
+/* ===== Acordeón principal ===== */
 .inner-accordion {
   border: 1px solid #fffd;
   margin-bottom: 10px;
   border-radius: 4px;
-  background: transparent; /* hereda el fondo de tu contenedor */
+  background: transparent;
 }
 
-/* ===== Inner accordion header ===== */
+/* ===== Encabezado ===== */
 .inner-accordion_header {
   padding: 1rem;
   cursor: pointer;
@@ -126,29 +43,23 @@
   align-items: center;
 }
 
-/* Focus ring para accesibilidad */
 .inner-accordion_header:focus {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-/* ===== Inner content ===== */
+/* ===== Contenido ===== */
 .inner-accordion_content {
   padding: 1rem;
   background-color: rgba(117,129,144,0.5);
   margin: auto;
 }
 
-/* Oculto por defecto con [hidden] para no pelear con el externo */
 .inner-accordion_content[hidden] {
   display: none;
 }
 
-/* ===== Inner arrow animation ===== */
-.inner-accordion .inner-arrow {
-  transition: transform 0.3s ease;
-}
-
+/* ===== Flecha animada ===== */
 .inner-accordion.is-open .inner-arrow {
   transform: rotate(180deg);
 }
