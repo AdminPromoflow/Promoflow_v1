@@ -44,13 +44,16 @@ class SessionManage
     {
       if (session_status() === PHP_SESSION_NONE) {
           session_start();
-      } 
+      }
         return isset($_SESSION['is_logged']) && $_SESSION['is_logged'] === true;
     }
 
     // destroy current session (returns bool)
     public function turnOff(): bool
     {
+      if (session_status() === PHP_SESSION_NONE) {
+          session_start();
+      }
         if (session_status() === PHP_SESSION_ACTIVE) {
             $_SESSION = [];
             session_unset();
