@@ -10,10 +10,6 @@ class LoginClass {
             echo json_encode(["error" => "No action received"]);
             return;
         }
-        echo json_encode([
-            "status" => "error4",
-            "message" => "Invalid credentials"
-        ]);exit;
 
         switch ($input['action']) {
             case "requestLogin":
@@ -27,6 +23,11 @@ class LoginClass {
 
     // execute login using UserModelPromoflow
     private function Login($input) {
+
+      echo json_encode([
+          "status" => "error4",
+          "message" => "Invalid credentials"
+      ]);exit;
 
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
