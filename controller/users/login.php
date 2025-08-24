@@ -1,5 +1,5 @@
 <?php
-class Login {
+class LoginClass {
 
     // handle login request and switch by action
     public function handleLogin() {
@@ -58,9 +58,6 @@ include_once '../../../controller/config/database.php';
 include_once '../../../model/promoflow/user.php';
 
 // create login controller and handle request
-$login = new Login();
-echo json_encode([
-    "status" => "error3",
-    "message" => "Invalid credentials"
-]);exit;
-$login->handleLogin();
+$loginClass = new LoginClass();
+
+$loginClass->handleLogin();
