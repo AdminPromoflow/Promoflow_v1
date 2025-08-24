@@ -10,6 +10,10 @@ class LoginClass {
             echo json_encode(["error" => "No action received"]);
             return;
         }
+        echo json_encode([
+            "status" => "error4",
+            "message" => "Invalid credentials"
+        ]);exit;
 
         switch ($input['action']) {
             case "requestLogin":
@@ -59,8 +63,4 @@ include_once '../../../model/promoflow/user.php';
 
 // create login controller and handle request
 $loginClass = new LoginClass();
-echo json_encode([
-    "status" => "error3",
-    "message" => "Invalid credentials"
-]);exit;
 $loginClass->handleLogin();
