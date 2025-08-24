@@ -1,4 +1,4 @@
-/* ===== Main container for orders ===== */
+/* ===== Contenedor principal de órdenes ===== */
 .container_order {
   background-color: #2F4560;
   padding: 1rem;
@@ -10,21 +10,20 @@
   gap: 2rem;
 }
 
-/* ===== Section title ===== */
+/* ===== Título principal de sección ===== */
 .container_order h2 {
   color: #fffd;
   margin: auto;
   text-align: center;
 }
 
-/* ===== Base arrow style ===== */
+/* ===== Flecha ===== */
 .inner-arrow {
   display: inline-block;
   transition: transform 0.3s ease;
-  transform: rotate(0deg);
 }
 
-/* ===== Accordion generic ===== */
+/* ===== Acordeón principal ===== */
 .inner-accordion {
   border: 1px solid #fffd;
   margin-bottom: 10px;
@@ -32,11 +31,12 @@
   background: transparent;
 }
 
-/* ===== Header generic ===== */
+/* ===== Encabezado ===== */
 .inner-accordion_header {
   padding: 1rem;
   cursor: pointer;
   font-weight: bold;
+  background-color: rgba(255,255,255, .6);
   border-bottom: 1px solid #ccc;
   display: flex;
   justify-content: space-between;
@@ -48,9 +48,10 @@
   outline-offset: 2px;
 }
 
-/* ===== Content generic ===== */
+/* ===== Contenido ===== */
 .inner-accordion_content {
   padding: 1rem;
+  background-color: rgba(117,129,144,0.5);
   margin: auto;
 }
 
@@ -58,47 +59,31 @@
   display: none;
 }
 
-/* ===== Arrow rotation when open ===== */
-.inner-accordion.is-open > .inner-accordion_header > .inner-arrow {
+/* ===== Flecha animada ===== */
+.inner-accordion.is-open .inner-arrow {
   transform: rotate(180deg);
 }
 
-/* ==========================
-   LEVEL COLOURS
-========================== */
+/* estado base de la flecha */
+.inner-accordion .inner-accordion_header .inner-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  transform: none; /* asegura reset */
+}
 
-/* Level 1 */
-.arrow-level-1 { color: #1e90ff; } /* blue */
-.accordion-level-1 { border-color: #1e90ff; }
-.header-level-1 { background-color: rgba(30,144,255,0.2); }
-.content-level-1 { background-color: rgba(30,144,255,0.1); }
+/* rota la flecha del acordeón que está abierto, en cualquier nivel */
+.inner-accordion.is-open .inner-accordion_header .inner-arrow {
+  transform: rotate(180deg);
+}
 
-/* Level 2 */
-.arrow-level-2 { color: #32cd32; } /* green */
-.accordion-level-2 { border-color: #32cd32; }
-.header-level-2 { background-color: rgba(50,205,50,0.2); }
-.content-level-2 { background-color: rgba(50,205,50,0.1); }
+/* BASE: flecha siempre dentro del header directo del acordeón */
+.inner-accordion > .inner-accordion_header > .inner-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+}
 
-/* Level 3 */
-.arrow-level-3 { color: #ff8c00; } /* orange */
-.accordion-level-3 { border-color: #ff8c00; }
-.header-level-3 { background-color: rgba(255,140,0,0.2); }
-.content-level-3 { background-color: rgba(255,140,0,0.1); }
-
-/* Level 4 */
-.arrow-level-4 { color: #dc143c; } /* crimson */
-.accordion-level-4 { border-color: #dc143c; }
-.header-level-4 { background-color: rgba(220,20,60,0.2); }
-.content-level-4 { background-color: rgba(220,20,60,0.1); }
-
-/* Level 5 */
-.arrow-level-5 { color: #8a2be2; } /* blueviolet */
-.accordion-level-5 { border-color: #8a2be2; }
-.header-level-5 { background-color: rgba(138,43,226,0.2); }
-.content-level-5 { background-color: rgba(138,43,226,0.1); }
-
-/* Level 6 */
-.arrow-level-6 { color: #20b2aa; } /* lightseagreen */
-.accordion-level-6 { border-color: #20b2aa; }
-.header-level-6 { background-color: rgba(32,178,170,0.2); }
-.content-level-6 { background-color: rgba(32,178,170,0.1); }
+/* ABIERTO: solo rota la flecha del header del acordeón que tiene .is-open */
+.inner-accordion.is-open > .inner-accordion_header > .inner-arrow {
+  transform: rotate(180deg);
+}
