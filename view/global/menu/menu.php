@@ -29,7 +29,7 @@ $jsTime  = filemtime('../../view/global/menu/menu.js');   // ejemplo: '../Home/5
     <li><a href="#">Amazon</a></li>
     <li><a href="#">Lanyard</a></li>
     <li><a href="#">Promoflow</a></li>
-    <li><a href="../../../view/login/index.php">Logout</a></li>
+    <li id="logout"><a>Logout</a></li>
   </ul>
 </div>
 

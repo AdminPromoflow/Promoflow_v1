@@ -2,6 +2,10 @@ class Menu {
   constructor() {
     // call checkSession automatically on class instantiation
     this.checkSession();
+
+    logout.addEventListener("click", function(){
+      alert("Buenas");
+    });
   }
 
   // check if the session is active
@@ -44,6 +48,6 @@ class Menu {
       });
   }
 }
-
+const logout = document.getElementById("logout");
 // instantiate class on page load
 const menu = new Menu();
