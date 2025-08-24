@@ -35,16 +35,15 @@ class LoginClass {
         $modelUser  = new UserModelPromoflow($connection);
 
 
-        echo json_encode([
-            "status" => "error6",
-            "message" => "Invalid credentials"
-        ]);exit;
+
         // set credentials
         $modelUser->setEmail($email);
         $modelUser->setPassword($password);
 
         // check login
         $isLogged = $modelUser->loginUser();
+
+
 
         if ($isLogged) {
             echo json_encode([
