@@ -87,3 +87,8 @@
 .inner-accordion.is-open > .inner-accordion_header > .inner-arrow {
   transform: rotate(180deg);
 }
+
+.arrow-level-1 { color: #1e90ff; }  /* azul */
+.arrow-level-2 { color: #32cd32; }  /* verde */
+.arrow-level-3 { color: #ff8c00; }  /* naranja */
+.arrow-level-4 { color: #dc143c; }  /* rojo */
