@@ -3,10 +3,7 @@ class Login {
 
     // handle login request and switch by action
     public function handleLogin() {
-      echo json_encode([
-          "status" => "error3",
-          "message" => "Invalid credentials"
-      ]);exit;
+
         $input = json_decode(file_get_contents("php://input"), true);
 
         if (!isset($input['action'])) {
@@ -62,4 +59,8 @@ include_once '../../../model/promoflow/user.php';
 
 // create login controller and handle request
 $login = new Login();
+echo json_encode([
+    "status" => "error3",
+    "message" => "Invalid credentials"
+]);exit;
 $login->handleLogin();
