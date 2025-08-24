@@ -6,7 +6,7 @@ class Menu {
 
   // check if the session is active
   checkSession() {
-    fetch("controller/promoflow/session.php", {
+    fetch("../../controller/promoflow/session.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "check" })
@@ -27,7 +27,7 @@ class Menu {
 
   // logout user
   logout() {
-    fetch("controller/promoflow/session.php", {
+    fetch("../../controller/promoflow/session.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "off" })
