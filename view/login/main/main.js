@@ -5,7 +5,7 @@ class ClassLogin {
     })
   }
   requestLogin() {
-    const url = "../../controller/users/login.php";
+    const url = "../../controller/promoflow/login.php";
     const data = {
       action: "requestLogin",
       email: email.value,
