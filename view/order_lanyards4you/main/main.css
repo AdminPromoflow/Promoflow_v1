@@ -93,7 +93,6 @@
 .content-level-5 { background-color: #C6CBD2; }
 
 /* Level 6 */
-.arrow-level-6 { color: #b0bec5; } /* slightly darker grey */
-.accordion-level-6 { border-color: #37474f; }
-.header-level-6 { background-color: rgba(55,71,79,0.4); }
-.content-level-6 { background-color: rgba(55,71,79,0.2); }
+.accordion-level-6 { border-color: #F1F3F5; }
+.header-level-6 { background-color: #F1F3F5; }
+.content-level-6 { background-color: #E2E5E9; }
