@@ -52,8 +52,8 @@ class Login {
 }
 
 // include required files
-include_once '../../controller/config/database.php';
-include_once '../../model/promoflow/user.php';
+include_once '../../../controller/config/database.php';
+include_once '../../../model/promoflow/user.php';
 
 // create login controller and handle request
 $login = new Login();
