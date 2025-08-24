@@ -13,16 +13,13 @@ class Menu {
     })
       .then(response => response.json())
       .then(data => {
-        alert(JSON.stringify(data));
         if (data.status === "success") {
-          alert("Session is active ✅");
         } else {
-          alert("Session not found ❌ — redirecting to login...");
           window.location.href = "../../view/users/login.php";
         }
       })
       .catch(error => {
-        alert("Error checking session: " + error);
+        console.log("Error checking session: " + error);
       });
   }
 
