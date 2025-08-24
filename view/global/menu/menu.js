@@ -36,6 +36,7 @@ class Menu {
     })
       .then(response => response.json())
       .then(data => {
+        alert(JSON.stringify(data));
         if (data.status === "success") {
         //  alert("Session closed successfully 🚪 — redirecting...");
           window.location.href = "../../view/login/index.php";
