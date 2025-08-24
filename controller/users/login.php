@@ -25,14 +25,14 @@ class LoginClass {
     private function Login($input) {
 
 
-      echo json_encode([
-          "status" => "error5",
-          "message" => "Invalid credentials"
-      ]);exit;
+
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
-
+        echo json_encode([
+            "status" => "error6",
+            "message" => "Invalid credentials"
+        ]);exit;
         // initialize connection and model
         $connection = new Database();
         $modelUser  = new UserModelPromoflow($connection);
