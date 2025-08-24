@@ -24,10 +24,7 @@ class LoginClass {
     // execute login using UserModelPromoflow
     private function Login($input) {
 
-      echo json_encode([
-          "status" => "error4",
-          "message" => "Invalid credentials"
-      ]);exit;
+
 
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
@@ -35,6 +32,11 @@ class LoginClass {
         // initialize connection and model
         $connection = new Database();
         $modelUser  = new UserModelPromoflow($connection);
+
+        echo json_encode([
+            "status" => "error4",
+            "message" => "Invalid credentials"
+        ]);exit;
 
         // set credentials
         $modelUser->setEmail($email);
