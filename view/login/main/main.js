@@ -2,14 +2,14 @@ class ClassLogin {
   constructor() {
     btn_login.addEventListener("click",function(){
       // alert(email.value + password.value);
-      // classLogin.requestLogin();
-      if (email.value == "ian@kan-do-it.com" && password.value == "32skiff32!CI") {
+       classLogin.requestLogin();
+    /*  if (email.value == "ian@kan-do-it.com" && password.value == "32skiff32!CI") {
         window.location.href = "../../view/directory/index.php";
 
       }
       else {
         alert("Invalid data ");
-      }
+      }*/
     })
   }
   requestLogin(){
