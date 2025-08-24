@@ -22,6 +22,10 @@ class Login {
 
     // execute login using UserModelPromoflow
     private function Login($input) {
+      echo json_encode([
+          "status" => "error3",
+          "message" => "Invalid credentials"
+      ]);exit;
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
@@ -54,10 +58,7 @@ class Login {
 // include required files
 include_once '../../../controller/config/database.php';
 include_once '../../../model/promoflow/user.php';
-echo json_encode([
-    "status" => "error2",
-    "message" => "Invalid credentials"
-]);exit;
+
 // create login controller and handle request
 $login = new Login();
 $login->handleLogin();
