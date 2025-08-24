@@ -29,14 +29,15 @@ class LoginClass {
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
-        // initialize connection and model
-        $connection = new Database();
-        $modelUser  = new UserModelPromoflow($connection);
-
         echo json_encode([
             "status" => "error4",
             "message" => "Invalid credentials"
         ]);exit;
+        // initialize connection and model
+        $connection = new Database();
+        $modelUser  = new UserModelPromoflow($connection);
+
+
 
         // set credentials
         $modelUser->setEmail($email);
