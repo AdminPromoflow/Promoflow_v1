@@ -13,7 +13,7 @@ class Menu {
     })
       .then(response => response.json())
       .then(data => {
-        alert(data);
+        alert(JSON.stringify(data));
         if (data.status === "success") {
           alert("Session is active ✅");
         } else {
