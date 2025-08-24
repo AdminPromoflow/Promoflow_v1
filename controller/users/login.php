@@ -29,16 +29,16 @@ class LoginClass {
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
-        echo json_encode([
-            "status" => "error6",
-            "message" => "Invalid credentials"
-        ]);exit;
+
         // initialize connection and model
         $connection = new Database();
         $modelUser  = new UserModelPromoflow($connection);
 
 
-
+        echo json_encode([
+            "status" => "error6",
+            "message" => "Invalid credentials"
+        ]);exit;
         // set credentials
         $modelUser->setEmail($email);
         $modelUser->setPassword($password);
@@ -62,8 +62,8 @@ class LoginClass {
 }
 
 // include required files
-include_once '../../../controller/config/database.php';
-include_once '../../../model/promoflow/user.php';
+include_once '../../controller/config/database.php';
+include_once '../../model/promoflow/user.php';
 
 // create login controller and handle request
 $loginClass = new LoginClass();
