@@ -42,6 +42,9 @@ class SessionManage
     // check if user is logged in (returns bool)
     public function checkSession(): bool
     {
+      if (session_status() === PHP_SESSION_NONE) {
+          session_start();
+      } 
         return isset($_SESSION['is_logged']) && $_SESSION['is_logged'] === true;
     }
 
