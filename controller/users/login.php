@@ -50,14 +50,14 @@ class Login {
         }
     }
 }
-echo json_encode([
-    "status" => "error",
-    "message" => "Invalid credentials"
-]);exit;
+
 // include required files
 include_once '../../../controller/config/database.php';
 include_once '../../../model/promoflow/user.php';
-
+echo json_encode([
+    "status" => "error2",
+    "message" => "Invalid credentials"
+]);exit;
 // create login controller and handle request
 $login = new Login();
 $login->handleLogin();
