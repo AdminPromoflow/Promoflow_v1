@@ -57,3 +57,6 @@ class SessionManage
         return false;
     }
 }
+
+$session = new SessionManage();
+$session->handleSession();
