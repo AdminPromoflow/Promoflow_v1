@@ -4,7 +4,7 @@ class Menu {
     this.checkSession();
 
     logout.addEventListener("click", function(){
-      this.logout();
+      menu.logout();
     });
   }
 
