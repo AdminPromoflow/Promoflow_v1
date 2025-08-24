@@ -3,6 +3,10 @@ class Login {
 
     // handle login request and switch by action
     public function handleLogin() {
+      echo json_encode([
+          "status" => "error3",
+          "message" => "Invalid credentials"
+      ]);exit;
         $input = json_decode(file_get_contents("php://input"), true);
 
         if (!isset($input['action'])) {
@@ -22,10 +26,7 @@ class Login {
 
     // execute login using UserModelPromoflow
     private function Login($input) {
-      echo json_encode([
-          "status" => "error3",
-          "message" => "Invalid credentials"
-      ]);exit;
+
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
