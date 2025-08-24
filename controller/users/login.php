@@ -13,7 +13,7 @@ class LoginClass {
 
         switch ($input['action']) {
             case "requestLogin":
-                $this->Login($input);
+                $this->login($input);
                 break;
             default:
                 echo json_encode(["error" => "Invalid action"]);
@@ -22,7 +22,7 @@ class LoginClass {
     }
 
     // execute login using UserModelPromoflow
-    private function Login($input) {
+    private function login($input) {
 
 
 
@@ -44,8 +44,16 @@ class LoginClass {
         $isLogged = $modelUser->loginUser();
 
 
-
         if ($isLogged) {
+            // start session if not already started
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            // save global session variables
+            $_SESSION['user_email'] = $email;
+            $_SESSION['is_logged']  = true;
+
             echo json_encode([
                 "status" => "success",
                 "message" => "Login successful",
@@ -57,6 +65,7 @@ class LoginClass {
                 "message" => "Invalid credentials"
             ]);
         }
+
     }
 }
 
