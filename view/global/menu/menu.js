@@ -4,7 +4,7 @@ class Menu {
     this.checkSession();
 
     logout.addEventListener("click", function(){
-      alert("Buenas");
+      this.logout();
     });
   }
 
@@ -19,7 +19,7 @@ class Menu {
       .then(data => {
         if (data.status === "success") {
         } else {
-          window.location.href = "../../view/users/login.php";
+          window.location.href = "../../view/login/index.php";
         }
       })
       .catch(error => {
@@ -37,14 +37,14 @@ class Menu {
       .then(response => response.json())
       .then(data => {
         if (data.status === "success") {
-          alert("Session closed successfully 🚪 — redirecting...");
-          window.location.href = "../../view/users/login.php";
+        //  alert("Session closed successfully 🚪 — redirecting...");
+          window.location.href = "../../view/login/index.php";
         } else {
-          alert("No active session to close ❌");
+        //  alert("No active session to close ❌");
         }
       })
       .catch(error => {
-        alert("Error during logout: " + error);
+        //alert("Error during logout: " + error);
       });
   }
 }
