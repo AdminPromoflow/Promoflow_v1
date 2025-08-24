@@ -59,5 +59,8 @@ include_once '../../../model/promoflow/user.php';
 
 // create login controller and handle request
 $loginClass = new LoginClass();
-
+echo json_encode([
+    "status" => "error3",
+    "message" => "Invalid credentials"
+]);exit;
 $loginClass->handleLogin();
