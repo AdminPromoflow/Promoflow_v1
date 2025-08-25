@@ -247,44 +247,87 @@ class ControllerOrdersLanyards4You {
 
   // ====== Subrenders en formato form_group ======
   // ====== Description como <input> (una sola línea) ======
+  // ====== Description: separar por componentes (form_group dentro de form_card) ======
   #renderDescription(desc, orderId, jid) {
-    const id = this.#id('job-description', orderId, jid);
+    const baseId = this.#id('job-description', orderId, jid);
 
-    // Si no hay descripción
+    // Si no hay descripción, salida simple
     if (!desc || typeof desc !== "string" || !desc.trim()) {
       return `
         <div class="form_group">
-          <label for="${this.#esc(id)}">Description</label>
-          <input id="${this.#esc(id)}" type="text" value="Sin descripción" readonly class="is-json">
+          <label for="${this.#esc(baseId)}">Description</label>
+          <input id="${this.#esc(baseId)}" type="text" value="Sin descripción" readonly>
         </div>
       `;
     }
 
-    // Si viene JSON válido, lo compactamos en una sola línea
+    // Intentar parsear JSON
+    let obj;
     try {
-      const obj = JSON.parse(desc);
-      const compact = JSON.stringify(obj); // sin espacios -> input de una línea
-      return `
-        <div class="form_group">
-          <label for="${this.#esc(id)}">Description (JSON)</label>
-          <input id="${this.#esc(id)}" type="text"
-                 value="${this.#esc(compact)}"
-                 title="${this.#esc(compact)}"
-                 readonly class="is-json">
-        </div>
-      `;
+      obj = JSON.parse(desc);
     } catch {
-      // Si no es JSON, lo mostramos tal cual en el input
+      // Si no es JSON válido, mostrar como texto plano en un input
       return `
         <div class="form_group">
-          <label for="${this.#esc(id)}">Description</label>
-          <input id="${this.#esc(id)}" type="text"
+          <label for="${this.#esc(baseId)}">Description</label>
+          <input id="${this.#esc(baseId)}" type="text"
                  value="${this.#esc(desc)}"
                  title="${this.#esc(desc)}"
-                 readonly class="is-json">
+                 readonly>
         </div>
       `;
     }
+
+    // Si el JSON es un objeto: pintar cada "componente" en su tarjeta
+    if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+      const componentsHTML = Object.entries(obj).map(([compKey, compVal], idx) => {
+        const compId = this.#id(baseId, compKey, String(idx));
+        const compTitle = this.#labelize(compKey);
+
+        // Si el valor del componente es otro objeto, pintar cada propiedad en form_group
+        if (compVal && typeof compVal === "object" && !Array.isArray(compVal)) {
+          const fieldsHTML = Object.entries(compVal).map(([subKey, subVal]) => {
+            const fieldId = this.#id(compId, subKey);
+            const label   = this.#labelize(subKey);
+            const value   = this.#toDisplay(subVal);
+            return this.#fg(fieldId, label, value);
+          }).join("");
+
+          return `
+            <div class="form_card">
+              <h5>${this.#esc(compTitle)}</h5>
+              <div class="form_row">
+                ${fieldsHTML}
+              </div>
+            </div>
+          `;
+        }
+
+        // Si es escalar, un único form_group
+        return `
+          <div class="form_card">
+            <h5>${this.#esc(compTitle)}</h5>
+            <div class="form_row">
+              ${this.#fg(this.#id(compId, 'value'), 'Value', this.#toDisplay(compVal))}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      return componentsHTML;
+    }
+
+    // Si el JSON es array u otra cosa, lo mostramos compactado en un input
+    const compact = JSON.stringify(obj);
+    return `
+      <div class="form_group">
+        <label for="${this.#esc(baseId)}">Description (JSON)</label>
+        <input id="${this.#esc(baseId)}" type="text"
+               value="${this.#esc(compact)}"
+               title="${this.#esc(compact)}"
+               readonly>
+      </div>
+    `;
   }
 
 
@@ -392,6 +435,37 @@ class ControllerOrdersLanyards4You {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
+  // Convierte claves tipo snake_case / kebabCase a "Title Case" y mapea nombres conocidos
+  #labelize(key) {
+    if (!key) return "";
+    const map = {
+      lanyard_type: "Lanyard type",
+      side_printed: "Side printed",
+      colour_quantity: "Colour quantity",
+      price_per_unit: "Price per unit",
+      id_price_amount: "ID PriceAmount",
+      id_supplier: "Supplier",
+    };
+    if (map[key]) return map[key];
+
+    // Title Case básico: reemplaza _ y - por espacios y capitaliza
+    return String(key)
+      .replace(/[_-]+/g, " ")
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1));
+  }
+
+  // Formatea el valor para mostrarlo en input
+  #toDisplay(v) {
+    if (v === null || v === undefined) return "";
+    if (typeof v === "boolean") return v ? "true" : "false";
+    if (typeof v === "number") return String(v);
+    if (typeof v === "string") return v;
+    // Objetos/arrays anidados: compactar
+    try { return JSON.stringify(v); } catch { return String(v); }
+  }
+
 
   toggle(header) {
     const accordion = header.closest('.inner-accordion');
