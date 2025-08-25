@@ -165,7 +165,8 @@ class Model_Order
                     id_order           AS idOrder,
                     id_extras          AS idExtras,
                     id_clip            AS idClip,
-                    id_price_amount    AS idPriceAmount
+                    id_price_amount    AS idPriceAmount,
+                    idSupplier         AS idSupplier
                 FROM Jobs
                 WHERE id_order IN (".implode(',', $ph).")
                 ORDER BY id_jobs ASC
@@ -242,7 +243,7 @@ class Model_Order
             }
         }
 
-        // 5) ARTWORK POR JOB (1:1 normalmente)
+        // 5) ARTWORK POR JOB
         $artworkByJob = [];
         if (!empty($jobIds)) {
             [$ph, $params] = $makeIn($jobIds, 'aid');
@@ -310,38 +311,48 @@ class Model_Order
             $stmtUsers->execute($params);
             $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
             foreach ($users as $u) {
-                // El esquema no tiene password ni signup_category; puedes añadir por defecto si quieres
                 $u['password'] = null;
                 $u['signup_category'] = 'normal';
                 $usersById[(int)$u['idUser']] = $u;
             }
         }
 
-        // 8) ENSAMBLAR ESTRUCTURA
+        // 8) ENSAMBLAR ESTRUCTURA (addresses dentro de user; image/text/artwork dentro de job)
         $result = [];
 
         foreach ($orders as $o) {
-            $oid   = (int)$o['idOrder'];
-            $uid   = $o['idUser'] !== null ? (int)$o['idUser'] : null;
-            $jobs  = [];
+            $oid = (int)$o['idOrder'];
+            $uid = $o['idUser'] !== null ? (int)$o['idUser'] : null;
 
+            // Jobs para la orden, con image/text/artwork anidados dentro de "job"
+            $jobs = [];
             if (!empty($jobsByOrder[$oid])) {
                 foreach ($jobsByOrder[$oid] as $j) {
                     $jid = (int)$j['idJobs'];
-                    $jobs[] = [
-                        "job"     => $j,
-                        "image"   => $imagesByJob[$jid] ?? [],
-                        "text"    => $textsByJob[$jid] ?? [],
-                        "artwork" => $artworkByJob[$jid] ?? (object)[] // objeto vacío si no hay
-                    ];
+
+                    // El objeto "job" contiene sus propios campos + image/text/artwork
+                    $jobObject = $j;
+                    $jobObject['image']   = $imagesByJob[$jid]  ?? [];
+                    $jobObject['text']    = $textsByJob[$jid]   ?? [];
+                    $jobObject['artwork'] = $artworkByJob[$jid] ?? (object)[];
+
+                    $jobs[] = [ "job" => $jobObject ];
+                }
+            }
+
+            // User con addresses embebidas
+            $user = null;
+            if ($uid !== null) {
+                $user = $usersById[$uid] ?? null;
+                if ($user !== null) {
+                    $user['addresses'] = $addressesByUser[$uid] ?? [];
                 }
             }
 
             $bundle = [
-                "order"     => $o,
-                "jobs"      => $jobs,
-                "addresses" => $uid !== null ? ($addressesByUser[$uid] ?? []) : [],
-                "user"      => $uid !== null ? ($usersById[$uid] ?? null) : null
+                "order" => $o,
+                "jobs"  => $jobs,
+                "user"  => $user
             ];
 
             $result[] = $bundle;
@@ -349,6 +360,7 @@ class Model_Order
 
         return $result;
     }
+
 
 
 
