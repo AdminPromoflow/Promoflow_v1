@@ -96,3 +96,132 @@
 .accordion-level-6 { border-color: #F1F3F5; }
 .header-level-6 { background-color: #F1F3F5; }
 .content-level-6 { background-color: #E2E5E9; }
+
+
+
+
+/* ==========================
+   FORM LAYOUT & CARDS
+   (para #main_lanyards4you)
+========================== */
+
+#main_lanyards4you .form_row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+#main_lanyards4you .form_group {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 12px;
+  padding: .75rem .85rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+#main_lanyards4you .form_group label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #fffd; /* blanco con leve transparencia */
+  letter-spacing: .02em;
+}
+
+#main_lanyards4you .form_group input,
+#main_lanyards4you .form_group textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.92);
+  color: #1f2937; /* gris oscuro legible sobre input claro */
+  padding: .6rem .75rem;
+  font-size: .95rem;
+  line-height: 1.35;
+}
+
+#main_lanyards4you .form_group textarea {
+  min-height: 110px;
+  resize: vertical;
+  white-space: pre-wrap;     /* para JSON / textos largos */
+  word-break: break-word;    /* evita overflow */
+}
+
+#main_lanyards4you .form_group input[readonly],
+#main_lanyards4you .form_group textarea[readonly] {
+  background: rgba(255,255,255,.95);
+  cursor: default;
+}
+
+#main_lanyards4you .form_group input:focus,
+#main_lanyards4you .form_group textarea:focus {
+  outline: none;
+  border-color: #E4E6EA;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+}
+
+/* Tarjetas para bloques repetibles (Images / Texts / Address) */
+#main_lanyards4you .form_card {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.08);
+  padding: 1rem;
+  margin: 0 0 1rem 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+
+#main_lanyards4you .form_card h5 {
+  margin: .2rem 0 1rem 0;
+  color: #fffd;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Cabecera del Job */
+#main_lanyards4you .job_header h4 {
+  color: #fffd;
+  margin: .25rem 0 1rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* Bloques de información auxiliares */
+#main_lanyards4you .muted {
+  color: rgba(255,255,255,.8);
+  font-style: italic;
+}
+
+/* Código / JSON prettificado */
+#main_lanyards4you pre.code-block {
+  background: #0f172a;              /* azul muy oscuro */
+  color: #e5e7eb;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.15);
+  padding: .9rem 1rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+/* Afinar flecha dentro de headers */
+#main_lanyards4you .inner-arrow {
+  margin-left: .5rem;
+  opacity: .9;
+}
+
+/* Espaciados dentro de contenidos de acordeón */
+#main_lanyards4you .inner-accordion_content > * + * {
+  margin-top: 1rem;
+}
+
+/* Responsive: inputs full width en pantallas pequeñas */
+@media (max-width: 520px) {
+  #main_lanyards4you .form_row {
+    grid-template-columns: 1fr;
+  }
+}
