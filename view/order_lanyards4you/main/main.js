@@ -1,14 +1,18 @@
 class ControllerOrdersLanyards4You {
+  constructor() {
+    this.orders = []; // estado local editable
+  }
+
   init() {
     this.getOrders();
 
-    // Event delegation: un solo listener para todos los headers
+    // Delegation: toggle acordeones
     document.addEventListener('click', (e) => {
       const header = e.target.closest('.inner-accordion_header');
       if (header) this.toggle(header);
     });
 
-    // Keyboard support: Enter / Space activan el toggle
+    // Teclado accesible
     document.addEventListener('keydown', (e) => {
       const header = e.target.closest?.('.inner-accordion_header');
       if (!header) return;
@@ -16,6 +20,14 @@ class ControllerOrdersLanyards4You {
         e.preventDefault();
         this.toggle(header);
       }
+    });
+
+    // Edición: escuchar cambios en inputs y textareas dentro del main
+    document.addEventListener('input', (e) => {
+      const el = e.target;
+      if (!el.closest('#main_lanyards4you')) return;
+      if (!(el.matches('input') || el.matches('textarea'))) return;
+      this.handleEdit(el);
     });
   }
 
@@ -36,7 +48,9 @@ class ControllerOrdersLanyards4You {
       .then(result => {
         const ok = result && (result.status === "success" || result.success === true);
         if (ok && Array.isArray(result.orders)) {
-          this.renderOrders(result.orders);
+          // Guardar estado editable
+          this.orders = result.orders;
+          this.renderOrders(this.orders);
         } else {
           alert(result?.message || "No fue posible cargar los pedidos.");
         }
@@ -52,7 +66,8 @@ class ControllerOrdersLanyards4You {
     const container = document.getElementById("main_lanyards4you");
     if (!container) return;
 
-    const list = (orders || []).map(bundle => this.#renderOrderLevel1(bundle)).join("");
+    const list = (orders || []).map((bundle, oIndex) => this.#renderOrderLevel1(bundle, oIndex)).join("");
+
     container.innerHTML = `
       <h2>Production Orders</h2>
       ${list || `<p class="muted">No hay órdenes para mostrar.</p>`}
@@ -60,7 +75,7 @@ class ControllerOrdersLanyards4You {
   }
 
   // ====== NIVEL 1: Order ======
-  #renderOrderLevel1(bundle) {
+  #renderOrderLevel1(bundle, oIndex) {
     const o = bundle?.order ?? {};
     const head = `Order #${this.#esc(o.idOrder)} · ${this.#esc(o.status || "-")} · ${this.#esc(o.date_time || "-")} · Total ${this.#esc(o.total || "-")}`;
 
@@ -72,16 +87,16 @@ class ControllerOrdersLanyards4You {
         </div>
 
         <div class="inner-accordion_content content-level-1" hidden>
-          ${this.#renderOrderInfoLevel2(o)}
-          ${this.#renderJobsLevel2(bundle?.jobs || [], o.idOrder)}
-          ${this.#renderUserLevel2(bundle?.user || null)}
+          ${this.#renderOrderInfoLevel2(o, oIndex)}
+          ${this.#renderJobsLevel2(bundle?.jobs || [], oIndex)}
+          ${this.#renderUserLevel2(bundle?.user || null, oIndex)}
         </div>
       </div>
     `;
   }
 
-  // ====== NIVEL 2: Order information (form_group) ======
-  #renderOrderInfoLevel2(order) {
+  // ====== NIVEL 2: Order information (editable) ======
+  #renderOrderInfoLevel2(order, oIndex) {
     const oid = this.#esc(order.idOrder ?? "x");
     return `
       <div class="inner-accordion accordion-level-2">
@@ -91,16 +106,16 @@ class ControllerOrdersLanyards4You {
         </div>
         <div class="inner-accordion_content content-level-2" hidden>
           <div class="form_row">
-            ${this.#fg(this.#id('order-id', oid), 'ID', order.idOrder)}
-            ${this.#fg(this.#id('order-date', oid), 'Date', order.date_time)}
-            ${this.#fg(this.#id('order-status', oid), 'Status', order.status)}
+            ${this.#fg(this.#id('order-id', oid), 'ID', order.idOrder, {scope:'order', oindex:oIndex, field:'idOrder'})}
+            ${this.#fg(this.#id('order-date', oid), 'Date', order.date_time, {scope:'order', oindex:oIndex, field:'date_time'})}
+            ${this.#fg(this.#id('order-status', oid), 'Status', order.status, {scope:'order', oindex:oIndex, field:'status'})}
           </div>
           <div class="form_row">
-            ${this.#fg(this.#id('order-shipdays', oid), 'Shipping days', order.shippingDays)}
-            ${this.#fg(this.#id('order-subtotal', oid), 'Subtotal', order.subtotal)}
-            ${this.#fg(this.#id('order-tax', oid), 'Tax', order.tax)}
-            ${this.#fg(this.#id('order-shipprice', oid), 'Shipping price', order.shipping_price)}
-            ${this.#fg(this.#id('order-total', oid), 'Total', order.total)}
+            ${this.#fg(this.#id('order-shipdays', oid), 'Shipping days', order.shippingDays, {scope:'order', oindex:oIndex, field:'shippingDays'})}
+            ${this.#fg(this.#id('order-subtotal', oid), 'Subtotal', order.subtotal, {scope:'order', oindex:oIndex, field:'subtotal'})}
+            ${this.#fg(this.#id('order-tax', oid), 'Tax', order.tax, {scope:'order', oindex:oIndex, field:'tax'})}
+            ${this.#fg(this.#id('order-shipprice', oid), 'Shipping price', order.shipping_price, {scope:'order', oindex:oIndex, field:'shipping_price'})}
+            ${this.#fg(this.#id('order-total', oid), 'Total', order.total, {scope:'order', oindex:oIndex, field:'total'})}
           </div>
         </div>
       </div>
@@ -108,7 +123,7 @@ class ControllerOrdersLanyards4You {
   }
 
   // ====== NIVEL 2: Jobs ======
-  #renderJobsLevel2(jobsWrap, orderId) {
+  #renderJobsLevel2(jobsWrap, oIndex) {
     const jobs = Array.isArray(jobsWrap) ? jobsWrap : [];
     return `
       <div class="inner-accordion accordion-level-2">
@@ -117,31 +132,30 @@ class ControllerOrdersLanyards4You {
           <span class="inner-arrow arrow-level-2">&#9660;</span>
         </div>
         <div class="inner-accordion_content content-level-2" hidden>
-          ${jobs.length ? jobs.map(j => this.#renderJobLevel3(j, orderId)).join("") : `<p class="muted">Sin trabajos.</p>`}
+          ${jobs.length ? jobs.map((j, jIndex) => this.#renderJobLevel3(j, oIndex, jIndex)).join("") : `<p class="muted">Sin trabajos.</p>`}
         </div>
       </div>
     `;
   }
 
-  // ====== NIVEL 3 en Jobs: Description / Artwork / Image / Text (todo con form_group) ======
-  #renderJobLevel3(jobWrap, orderId) {
+  // ====== NIVEL 3 en Jobs: Description / Artwork / Image / Text ======
+  #renderJobLevel3(jobWrap, oIndex, jIndex) {
     const job = jobWrap?.job || {};
     const jid = this.#esc(job.idJobs ?? "x");
     const title = `${this.#esc(job.name || "Job")} · Qty ${this.#esc(job.amount || "-")} · Total ${this.#esc(job.total || "-")} (ID ${this.#esc(job.idJobs || "-")})`;
 
-    // Cabecera del Job en bloques
     const headerBlocks = `
       <div class="form_row">
-        ${this.#fg(this.#id('job-id', orderId, jid), 'ID Job', job.idJobs)}
-        ${this.#fg(this.#id('job-qty', orderId, jid), 'Quantity', job.amount)}
-        ${this.#fg(this.#id('job-priceunit', orderId, jid), 'Price/Unit', job.price_per_unit)}
-        ${this.#fg(this.#id('job-total', orderId, jid), 'Total', job.total)}
+        ${this.#fg(this.#id('job-id', jid), 'ID Job', job.idJobs, {scope:'job', oindex:oIndex, jindex:jIndex, field:'idJobs'})}
+        ${this.#fg(this.#id('job-qty', jid), 'Quantity', job.amount, {scope:'job', oindex:oIndex, jindex:jIndex, field:'amount'})}
+        ${this.#fg(this.#id('job-priceunit', jid), 'Price/Unit', job.price_per_unit, {scope:'job', oindex:oIndex, jindex:jIndex, field:'price_per_unit'})}
+        ${this.#fg(this.#id('job-total', jid), 'Total', job.total, {scope:'job', oindex:oIndex, jindex:jIndex, field:'total'})}
       </div>
       <div class="form_row">
-        ${this.#fg(this.#id('job-idorder', orderId, jid), 'ID Order', job.idOrder)}
-        ${this.#fg(this.#id('job-idpriceamount', orderId, jid), 'ID PriceAmount', job.idPriceAmount)}
-        ${this.#fg(this.#id('job-supplier', orderId, jid), 'Supplier', job.idSupplier)}
-        ${this.#fg(this.#id('job-pdf', orderId, jid), 'PDF', job.link_pdf ?? '-')}
+        ${this.#fg(this.#id('job-idorder', jid), 'ID Order', job.idOrder, {scope:'job', oindex:oIndex, jindex:jIndex, field:'idOrder'})}
+        ${this.#fg(this.#id('job-idpriceamount', jid), 'ID PriceAmount', job.idPriceAmount, {scope:'job', oindex:oIndex, jindex:jIndex, field:'idPriceAmount'})}
+        ${this.#fg(this.#id('job-supplier', jid), 'Supplier', job.idSupplier, {scope:'job', oindex:oIndex, jindex:jIndex, field:'idSupplier'})}
+        ${this.#fg(this.#id('job-pdf', jid), 'PDF', job.link_pdf ?? '-', {scope:'job', oindex:oIndex, jindex:jIndex, field:'link_pdf'})}
       </div>
     `;
 
@@ -152,10 +166,10 @@ class ControllerOrdersLanyards4You {
           ${headerBlocks}
         </div>
 
-        ${this.#jobSectionLevel3("Description", this.#renderDescription(job.description, orderId, jid))}
-        ${this.#jobSectionLevel3("Artwork", this.#renderArtwork(job.artwork, orderId, jid))}
-        ${this.#jobSectionLevel3(`Image (${Array.isArray(job.image) ? job.image.length : 0})`, this.#renderImages(job.image, orderId, jid))}
-        ${this.#jobSectionLevel3(`Text (${Array.isArray(job.text) ? job.text.length : 0})`, this.#renderTexts(job.text, orderId, jid))}
+        ${this.#jobSectionLevel3("Description", this.#renderDescription(job.description, oIndex, jIndex))}
+        ${this.#jobSectionLevel3("Artwork", this.#renderArtwork(job.artwork, oIndex, jIndex))}
+        ${this.#jobSectionLevel3(`Image (${Array.isArray(job.image) ? job.image.length : 0})`, this.#renderImages(job.image, oIndex, jIndex))}
+        ${this.#jobSectionLevel3(`Text (${Array.isArray(job.text) ? job.text.length : 0})`, this.#renderTexts(job.text, oIndex, jIndex))}
       </div>
     `;
   }
@@ -175,44 +189,43 @@ class ControllerOrdersLanyards4You {
   }
 
   // ====== NIVEL 2: User (con NIVEL 3: Addresses) ======
-  #renderUserLevel2(user) {
+  #renderUserLevel2(user, oIndex) {
     const uid = this.#esc(user?.idUser ?? "x");
 
     const summary = user ? `
       <div class="form_row">
-        ${this.#fg(this.#id('user-name', uid), 'Name', user.name)}
-        ${this.#fg(this.#id('user-email', uid), 'Email', user.email)}
-        ${this.#fg(this.#id('user-id', uid), 'User ID', user.idUser)}
-        ${this.#fg(this.#id('user-category', uid), 'Category', user.signup_category)}
+        ${this.#fg(this.#id('user-name', uid), 'Name', user.name, {scope:'user', oindex:oIndex, field:'name'})}
+        ${this.#fg(this.#id('user-email', uid), 'Email', user.email, {scope:'user', oindex:oIndex, field:'email'})}
+        ${this.#fg(this.#id('user-id', uid), 'User ID', user.idUser, {scope:'user', oindex:oIndex, field:'idUser'})}
+        ${this.#fg(this.#id('user-category', uid), 'Category', user.signup_category, {scope:'user', oindex:oIndex, field:'signup_category'})}
       </div>
     ` : `<p class="muted">Sin información de usuario.</p>`;
 
-    // Nivel 3: Addresses (cada address en tarjeta con form_group)
     const addrs = Array.isArray(user?.addresses) ? user.addresses : [];
     const addrHTML = addrs.length
-      ? addrs.map((a, i) => {
-          const aid = this.#esc(a.idAddress ?? `addr${i}`);
+      ? addrs.map((a, aIndex) => {
+          const aid = this.#esc(a.idAddress ?? `addr${aIndex}`);
           return `
             <div class="form_card">
-              <h5>Address ${i + 1}</h5>
+              <h5>Address ${aIndex + 1}</h5>
               <div class="form_row">
-                ${this.#fg(this.#id('addr-firstname', uid, aid), 'First name', a.first_name)}
-                ${this.#fg(this.#id('addr-lastname', uid, aid), 'Last name', a.last_name)}
-                ${this.#fg(this.#id('addr-company', uid, aid), 'Company Name', a.company_name)}
+                ${this.#fg(this.#id('addr-firstname', aid), 'First name', a.first_name, {scope:'address', oindex:oIndex, aindex:aIndex, field:'first_name'})}
+                ${this.#fg(this.#id('addr-lastname', aid), 'Last name', a.last_name, {scope:'address', oindex:oIndex, aindex:aIndex, field:'last_name'})}
+                ${this.#fg(this.#id('addr-company', aid), 'Company Name', a.company_name, {scope:'address', oindex:oIndex, aindex:aIndex, field:'company_name'})}
               </div>
               <div class="form_row">
-                ${this.#fg(this.#id('addr-street1', uid, aid), 'Street address 1', a.street_address_1)}
-                ${this.#fg(this.#id('addr-street2', uid, aid), 'Street address 2', a.street_address_2)}
+                ${this.#fg(this.#id('addr-street1', aid), 'Street address 1', a.street_address_1, {scope:'address', oindex:oIndex, aindex:aIndex, field:'street_address_1'})}
+                ${this.#fg(this.#id('addr-street2', aid), 'Street address 2', a.street_address_2, {scope:'address', oindex:oIndex, aindex:aIndex, field:'street_address_2'})}
               </div>
               <div class="form_row">
-                ${this.#fg(this.#id('addr-city', uid, aid), 'City', a.town_city)}
-                ${this.#fg(this.#id('addr-state', uid, aid), 'State', a.state)}
-                ${this.#fg(this.#id('addr-country', uid, aid), 'Country', a.country)}
-                ${this.#fg(this.#id('addr-postcode', uid, aid), 'Postcode', a.postcode)}
+                ${this.#fg(this.#id('addr-city', aid), 'City', a.town_city, {scope:'address', oindex:oIndex, aindex:aIndex, field:'town_city'})}
+                ${this.#fg(this.#id('addr-state', aid), 'State', a.state, {scope:'address', oindex:oIndex, aindex:aIndex, field:'state'})}
+                ${this.#fg(this.#id('addr-country', aid), 'Country', a.country, {scope:'address', oindex:oIndex, aindex:aIndex, field:'country'})}
+                ${this.#fg(this.#id('addr-postcode', aid), 'Postcode', a.postcode, {scope:'address', oindex:oIndex, aindex:aIndex, field:'postcode'})}
               </div>
               <div class="form_row">
-                ${this.#fg(this.#id('addr-phone', uid, aid), 'Phone', a.phone)}
-                ${this.#fg(this.#id('addr-email', uid, aid), 'Email', a.email_address)}
+                ${this.#fg(this.#id('addr-phone', aid), 'Phone', a.phone, {scope:'address', oindex:oIndex, aindex:aIndex, field:'phone'})}
+                ${this.#fg(this.#id('addr-email', aid), 'Email', a.email_address, {scope:'address', oindex:oIndex, aindex:aIndex, field:'email_address'})}
               </div>
             </div>
           `;
@@ -245,52 +258,33 @@ class ControllerOrdersLanyards4You {
     `;
   }
 
-  // ====== Subrenders en formato form_group ======
-  // ====== Description como <input> (una sola línea) ======
-  // ====== Description: separar por componentes (form_group dentro de form_card) ======
-  #renderDescription(desc, orderId, jid) {
-    const baseId = this.#id('job-description', orderId, jid);
+  // ====== Description separada por componentes (editable) ======
+  #renderDescription(desc, oIndex, jIndex) {
+    const baseId = this.#id('job-description', oIndex, jIndex);
 
-    // Si no hay descripción, salida simple
     if (!desc || typeof desc !== "string" || !desc.trim()) {
-      return `
-        <div class="form_group">
-          <label for="${this.#esc(baseId)}">Description</label>
-          <input id="${this.#esc(baseId)}" type="text" value="Sin descripción" readonly>
-        </div>
-      `;
+      return this.#fg(baseId, 'Description', 'Sin descripción', {scope:'job', oindex:oIndex, jindex:jIndex, field:'description'});
     }
 
-    // Intentar parsear JSON
     let obj;
-    try {
-      obj = JSON.parse(desc);
-    } catch {
-      // Si no es JSON válido, mostrar como texto plano en un input
-      return `
-        <div class="form_group">
-          <label for="${this.#esc(baseId)}">Description</label>
-          <input id="${this.#esc(baseId)}" type="text"
-                 value="${this.#esc(desc)}"
-                 title="${this.#esc(desc)}"
-                 readonly>
-        </div>
-      `;
-    }
+    try { obj = JSON.parse(desc); } catch { obj = null; }
 
-    // Si el JSON es un objeto: pintar cada "componente" en su tarjeta
     if (obj && typeof obj === "object" && !Array.isArray(obj)) {
-      const componentsHTML = Object.entries(obj).map(([compKey, compVal], idx) => {
+      // Una tarjeta por componente
+      return Object.entries(obj).map(([compKey, compVal], idx) => {
         const compId = this.#id(baseId, compKey, String(idx));
         const compTitle = this.#labelize(compKey);
 
-        // Si el valor del componente es otro objeto, pintar cada propiedad en form_group
         if (compVal && typeof compVal === "object" && !Array.isArray(compVal)) {
           const fieldsHTML = Object.entries(compVal).map(([subKey, subVal]) => {
             const fieldId = this.#id(compId, subKey);
             const label   = this.#labelize(subKey);
-            const value   = this.#toDisplay(subVal);
-            return this.#fg(fieldId, label, value);
+            return this.#fg(
+              fieldId,
+              label,
+              this.#toDisplay(subVal),
+              {scope:'desc', oindex:oIndex, jindex:jIndex, comp:compKey, field:subKey}
+            );
           }).join("");
 
           return `
@@ -303,119 +297,182 @@ class ControllerOrdersLanyards4You {
           `;
         }
 
-        // Si es escalar, un único form_group
+        // Escalar
         return `
           <div class="form_card">
             <h5>${this.#esc(compTitle)}</h5>
             <div class="form_row">
-              ${this.#fg(this.#id(compId, 'value'), 'Value', this.#toDisplay(compVal))}
+              ${this.#fg(this.#id(compId, 'value'), 'Value', this.#toDisplay(compVal),
+                {scope:'desc', oindex:oIndex, jindex:jIndex, comp:compKey, field:'value'})}
             </div>
           </div>
         `;
       }).join("");
-
-      return componentsHTML;
     }
 
-    // Si el JSON es array u otra cosa, lo mostramos compactado en un input
-    const compact = JSON.stringify(obj);
-    return `
-      <div class="form_group">
-        <label for="${this.#esc(baseId)}">Description (JSON)</label>
-        <input id="${this.#esc(baseId)}" type="text"
-               value="${this.#esc(compact)}"
-               title="${this.#esc(compact)}"
-               readonly>
-      </div>
-    `;
+    // Si no es objeto, lo dejamos editable directo
+    return this.#fg(baseId, 'Description (JSON)', desc, {scope:'job', oindex:oIndex, jindex:jIndex, field:'description'});
   }
 
-
-  #renderArtwork(art, orderId, jid) {
-    if (!art || typeof art !== "object" || Object.keys(art).length === 0) {
-      return this.#fg(this.#id('job-artwork-empty', orderId, jid), 'Artwork', 'Sin artwork');
+  #renderArtwork(art, oIndex, jIndex) {
+    if (!art || typeof art !== "object") {
+      return this.#fg(this.#id('job-artwork-empty', oIndex, jIndex), 'Artwork', 'Sin artwork', {scope:'art', oindex:oIndex, jindex:jIndex, field:'_empty'});
     }
     return `
       <div class="form_row">
-        ${this.#fg(this.#id('job-art-right', orderId, jid), 'Right image', art.linkRightImage ?? '-')}
-        ${this.#fg(this.#id('job-art-left', orderId, jid), 'Left image', art.linkLeftImage ?? '-')}
+        ${this.#fg(this.#id('job-art-right', oIndex, jIndex), 'Right image', art.linkRightImage ?? '-', {scope:'art', oindex:oIndex, jindex:jIndex, field:'linkRightImage'})}
+        ${this.#fg(this.#id('job-art-left', oIndex, jIndex), 'Left image', art.linkLeftImage ?? '-', {scope:'art', oindex:oIndex, jindex:jIndex, field:'linkLeftImage'})}
       </div>
     `;
   }
 
-  #renderImages(arr, orderId, jid) {
+  #renderImages(arr, oIndex, jIndex) {
     const list = Array.isArray(arr) ? arr : [];
     if (!list.length) {
-      return this.#fg(this.#id('job-images-empty', orderId, jid), 'Images', 'Sin imágenes');
+      return this.#fg(this.#id('job-images-empty', oIndex, jIndex), 'Images', 'Sin imágenes', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:-1, field:'_empty'});
     }
     return list.map((im, i) => {
-      const iid = this.#esc(String(i));
       return `
         <div class="form_card">
           <h5>Image ${i + 1}</h5>
           <div class="form_row">
-            ${this.#fg(this.#id('img-times', orderId, jid, iid), 'Times', im.timesImage ?? '-')}
-            ${this.#fg(this.#id('img-size', orderId, jid, iid), 'Size', im.imageSize ?? '-')}
-            ${this.#fg(this.#id('img-rotation', orderId, jid, iid), 'Rotation', im.imageRotation ?? '-')}
-            ${this.#fg(this.#id('img-position', orderId, jid, iid), 'Position', im.imagePosition ?? '-')}
+            ${this.#fg(this.#id('img-times', oIndex, jIndex, i), 'Times', im.timesImage ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'timesImage'})}
+            ${this.#fg(this.#id('img-size', oIndex, jIndex, i), 'Size', im.imageSize ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'imageSize'})}
+            ${this.#fg(this.#id('img-rotation', oIndex, jIndex, i), 'Rotation', im.imageRotation ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'imageRotation'})}
+            ${this.#fg(this.#id('img-position', oIndex, jIndex, i), 'Position', im.imagePosition ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'imagePosition'})}
           </div>
           <div class="form_row">
-            ${this.#fg(this.#id('img-between', orderId, jid, iid), 'Space between', im.spaceBetweenImage ?? '-')}
-            ${this.#fg(this.#id('img-along', orderId, jid, iid), 'Space along', im.spaceAlongLanyard ?? '-')}
-            ${this.#fg(this.#id('img-link', orderId, jid, iid), 'Link', im.linkImage ?? '-')}
+            ${this.#fg(this.#id('img-between', oIndex, jIndex, i), 'Space between', im.spaceBetweenImage ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'spaceBetweenImage'})}
+            ${this.#fg(this.#id('img-along', oIndex, jIndex, i), 'Space along', im.spaceAlongLanyard ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'spaceAlongLanyard'})}
+            ${this.#fg(this.#id('img-link', oIndex, jIndex, i), 'Link', im.linkImage ?? '-', {scope:'image', oindex:oIndex, jindex:jIndex, iindex:i, field:'linkImage'})}
           </div>
         </div>
       `;
     }).join("");
   }
 
-  #renderTexts(arr, orderId, jid) {
+  #renderTexts(arr, oIndex, jIndex) {
     const list = Array.isArray(arr) ? arr : [];
     if (!list.length) {
-      return this.#fg(this.#id('job-texts-empty', orderId, jid), 'Texts', 'Sin textos');
+      return this.#fg(this.#id('job-texts-empty', oIndex, jIndex), 'Texts', 'Sin textos', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:-1, field:'_empty'});
     }
     return list.map((t, i) => {
-      const tid = this.#esc(String(i));
       return `
         <div class="form_card">
           <h5>Text ${i + 1}</h5>
           <div class="form_row">
-            ${this.#fg(this.#id('text-content', orderId, jid, tid), 'Content', t.contentText ?? '-')}
-            ${this.#fg(this.#id('text-color', orderId, jid, tid), 'Color', t.colourText ?? '-')}
-            ${this.#fg(this.#id('text-font', orderId, jid, tid), 'Font', t.fontFamilyText ?? '-')}
-            ${this.#fg(this.#id('text-size', orderId, jid, tid), 'Size', t.sizeText ?? '-')}
+            ${this.#fg(this.#id('text-content', oIndex, jIndex, i), 'Content', t.contentText ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'contentText'})}
+            ${this.#fg(this.#id('text-color', oIndex, jIndex, i), 'Color', t.colourText ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'colourText'})}
+            ${this.#fg(this.#id('text-font', oIndex, jIndex, i), 'Font', t.fontFamilyText ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'fontFamilyText'})}
+            ${this.#fg(this.#id('text-size', oIndex, jIndex, i), 'Size', t.sizeText ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'sizeText'})}
           </div>
           <div class="form_row">
-            ${this.#fg(this.#id('text-time', orderId, jid, tid), 'Time', t.timeText ?? '-')}
-            ${this.#fg(this.#id('text-between', orderId, jid, tid), 'Space between', t.spaceBetweenText ?? '-')}
-            ${this.#fg(this.#id('text-along', orderId, jid, tid), 'Space along', t.spaceAlongLanyard ?? '-')}
-            ${this.#fg(this.#id('text-position', orderId, jid, tid), 'Position', t.text_position ?? t.textPosition ?? '-')}
+            ${this.#fg(this.#id('text-time', oIndex, jIndex, i), 'Time', t.timeText ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'timeText'})}
+            ${this.#fg(this.#id('text-between', oIndex, jIndex, i), 'Space between', t.spaceBetweenText ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'spaceBetweenText'})}
+            ${this.#fg(this.#id('text-along', oIndex, jIndex, i), 'Space along', t.spaceAlongLanyard ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'spaceAlongLanyard'})}
+            ${this.#fg(this.#id('text-position', oIndex, jIndex, i), 'Position', t.text_position ?? t.textPosition ?? '-', {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:(t.text_position!==undefined?'text_position':'textPosition')})}
           </div>
           <div class="form_row">
-            ${this.#fg(this.#id('text-bold', orderId, jid, tid), 'Bold', String(!!t.boldText))}
-            ${this.#fg(this.#id('text-italic', orderId, jid, tid), 'Italic', String(!!t.italicText))}
-            ${this.#fg(this.#id('text-underline', orderId, jid, tid), 'Underline', String(!!t.underlineText))}
+            ${this.#fg(this.#id('text-bold', oIndex, jIndex, i), 'Bold', String(!!t.boldText), {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'boldText'})}
+            ${this.#fg(this.#id('text-italic', oIndex, jIndex, i), 'Italic', String(!!t.italicText), {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'italicText'})}
+            ${this.#fg(this.#id('text-underline', oIndex, jIndex, i), 'Underline', String(!!t.underlineText), {scope:'text', oindex:oIndex, jindex:jIndex, tindex:i, field:'underlineText'})}
           </div>
         </div>
       `;
     }).join("");
   }
 
-  // ===== Helpers de UI (form_group) =====
-  #fg(id, label, value, type = "text") {
-    return `
-      <div class="form_group">
-        <label for="${this.#esc(id)}">${this.#esc(label)}</label>
-        <input id="${this.#esc(id)}" type="${this.#esc(type)}" value="${this.#esc(value ?? '')}" readonly>
-      </div>
-    `;
+  // ======== Manejar edición =========
+  handleEdit(el) {
+    const ds = el.dataset;
+    if (!ds.scope) return;
+
+    const o = this.orders[Number(ds.oindex)];
+    if (!o) return;
+
+    const val = el.value;
+
+    switch (ds.scope) {
+      case 'order': {
+        if (!o.order) return;
+        o.order[ds.field] = val;
+        break;
+      }
+      case 'user': {
+        if (!o.user) return;
+        o.user[ds.field] = val;
+        break;
+      }
+      case 'address': {
+        const aidx = Number(ds.aindex);
+        if (!o.user || !Array.isArray(o.user.addresses) || !o.user.addresses[aidx]) return;
+        o.user.addresses[aidx][ds.field] = val;
+        break;
+      }
+      case 'job': {
+        const jidx = Number(ds.jindex);
+        if (!Array.isArray(o.jobs) || !o.jobs[jidx] || !o.jobs[jidx].job) return;
+        o.jobs[jidx].job[ds.field] = val;
+        break;
+      }
+      case 'art': {
+        const jidx = Number(ds.jindex);
+        const job = o.jobs?.[jidx]?.job;
+        if (!job) return;
+        job.artwork = job.artwork || {};
+        job.artwork[ds.field] = val;
+        break;
+      }
+      case 'image': {
+        const jidx = Number(ds.jindex);
+        const iidx = Number(ds.iindex);
+        const job = o.jobs?.[jidx]?.job;
+        if (!job || !Array.isArray(job.image) || !job.image[iidx]) return;
+        job.image[iidx][ds.field] = val;
+        break;
+      }
+      case 'text': {
+        const jidx = Number(ds.jindex);
+        const tidx = Number(ds.tindex);
+        const job = o.jobs?.[jidx]?.job;
+        if (!job || !Array.isArray(job.text) || !job.text[tidx]) return;
+        job.text[tidx][ds.field] = val;
+        break;
+      }
+      case 'desc': {
+        const jidx = Number(ds.jindex);
+        const job = o.jobs?.[jidx]?.job;
+        if (!job) return;
+        // cache objeto de description
+        if (!job.__descObj) {
+          try { job.__descObj = JSON.parse(job.description || "{}"); } catch { job.__descObj = {}; }
+        }
+        const comp = ds.comp;
+        const field = ds.field;
+        job.__descObj[comp] = job.__descObj[comp] || {};
+        job.__descObj[comp][field] = this.#coerce(val);
+        // actualizar cadena JSON
+        try {
+          job.description = JSON.stringify(job.__descObj);
+        } catch {
+          // fallback
+          job.description = String(val);
+        }
+        break;
+      }
+    }
+
+    // Marcar campo como cambiado
+    el.classList.add('is-dirty');
   }
 
-  #fgTextArea(id, label, value) {
+  // ===== Helpers UI =====
+  #fg(id, label, value, bind = {}, type = "text") {
+    const attrs = Object.entries(bind).map(([k,v]) => v !== undefined ? `data-${k}="${this.#esc(v)}"` : "").join(" ");
     return `
       <div class="form_group">
         <label for="${this.#esc(id)}">${this.#esc(label)}</label>
-        <textarea id="${this.#esc(id)}" rows="6" readonly>${this.#esc(value ?? '')}</textarea>
+        <input id="${this.#esc(id)}" type="${this.#esc(type)}" value="${this.#esc(value ?? '')}" ${attrs}>
       </div>
     `;
   }
@@ -427,15 +484,6 @@ class ControllerOrdersLanyards4You {
     return slug.replace(/-+/g, "-").replace(/^-|-$/g, "");
   }
 
-  #esc(v) {
-    return String(v ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-  // Convierte claves tipo snake_case / kebabCase a "Title Case" y mapea nombres conocidos
   #labelize(key) {
     if (!key) return "";
     const map = {
@@ -447,8 +495,6 @@ class ControllerOrdersLanyards4You {
       id_supplier: "Supplier",
     };
     if (map[key]) return map[key];
-
-    // Title Case básico: reemplaza _ y - por espacios y capitaliza
     return String(key)
       .replace(/[_-]+/g, " ")
       .trim()
@@ -456,23 +502,37 @@ class ControllerOrdersLanyards4You {
       .replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1));
   }
 
-  // Formatea el valor para mostrarlo en input
   #toDisplay(v) {
     if (v === null || v === undefined) return "";
     if (typeof v === "boolean") return v ? "true" : "false";
     if (typeof v === "number") return String(v);
     if (typeof v === "string") return v;
-    // Objetos/arrays anidados: compactar
     try { return JSON.stringify(v); } catch { return String(v); }
   }
 
+  #coerce(v) {
+    // convierte strings "true"/"false"/números a sus tipos
+    if (v === "true") return true;
+    if (v === "false") return false;
+    const n = Number(v);
+    if (!Number.isNaN(n) && String(n) === v.trim()) return n;
+    return v;
+  }
+
+  #esc(v) {
+    return String(v ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
   toggle(header) {
     const accordion = header.closest('.inner-accordion');
     if (!accordion) return;
     const content = accordion.querySelector(':scope > .inner-accordion_content');
     if (!content) return;
-
     const isOpen = accordion.classList.toggle('is-open');
     header.setAttribute('aria-expanded', String(isOpen));
     content.hidden = !isOpen;
