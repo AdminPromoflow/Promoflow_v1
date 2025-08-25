@@ -246,18 +246,47 @@ class ControllerOrdersLanyards4You {
   }
 
   // ====== Subrenders en formato form_group ======
+  // ====== Description como <input> (una sola línea) ======
   #renderDescription(desc, orderId, jid) {
     const id = this.#id('job-description', orderId, jid);
-    if (!desc || typeof desc !== "string") {
-      return this.#fg(id, 'Description', 'Sin descripción');
+
+    // Si no hay descripción
+    if (!desc || typeof desc !== "string" || !desc.trim()) {
+      return `
+        <div class="form_group">
+          <label for="${this.#esc(id)}">Description</label>
+          <input id="${this.#esc(id)}" type="text" value="Sin descripción" readonly class="is-json">
+        </div>
+      `;
     }
+
+    // Si viene JSON válido, lo compactamos en una sola línea
     try {
       const obj = JSON.parse(desc);
-      return this.#fgTextArea(id, 'Description (JSON)', JSON.stringify(obj, null, 2));
+      const compact = JSON.stringify(obj); // sin espacios -> input de una línea
+      return `
+        <div class="form_group">
+          <label for="${this.#esc(id)}">Description (JSON)</label>
+          <input id="${this.#esc(id)}" type="text"
+                 value="${this.#esc(compact)}"
+                 title="${this.#esc(compact)}"
+                 readonly class="is-json">
+        </div>
+      `;
     } catch {
-      return this.#fgTextArea(id, 'Description', desc);
+      // Si no es JSON, lo mostramos tal cual en el input
+      return `
+        <div class="form_group">
+          <label for="${this.#esc(id)}">Description</label>
+          <input id="${this.#esc(id)}" type="text"
+                 value="${this.#esc(desc)}"
+                 title="${this.#esc(desc)}"
+                 readonly class="is-json">
+        </div>
+      `;
     }
   }
+
 
   #renderArtwork(art, orderId, jid) {
     if (!art || typeof art !== "object" || Object.keys(art).length === 0) {
