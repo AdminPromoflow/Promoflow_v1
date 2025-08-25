@@ -34,8 +34,8 @@ class ControllerOrdersLanyards4You {
         throw new Error("Network error.");
       })
       .then(result => {
-        // Acepta status: "success" o success: true
-        const ok = (result && (result.status === "success" || result.success === true));
+        // soporta status:"success" o success:true
+        const ok = result && (result.status === "success" || result.success === true);
         if (ok && Array.isArray(result.orders)) {
           this.renderOrders(result.orders);
         } else {
@@ -48,68 +48,151 @@ class ControllerOrdersLanyards4You {
       });
   }
 
-  // ========= RENDER =========
+  // ====================== RENDER ======================
   renderOrders(orders) {
     const container = document.getElementById("main_lanyards4you");
     if (!container) return;
 
-    // Level 1: contenedor maestro "Orders"
-    const html = `
-      <h2>Production Orders</h2>
+    // Nivel 1: un acordeón por cada Order
+    const list = (orders || []).map(bundle => this.#renderOrderLevel1(bundle)).join("");
 
+    container.innerHTML = `
+      <h2>Production Orders</h2>
+      ${list || `<p class="muted">No hay órdenes para mostrar.</p>`}
+    `;
+  }
+
+  // ====== NIVEL 1: Order ======
+  #renderOrderLevel1(bundle) {
+    const o   = bundle?.order ?? {};
+    const uid = bundle?.user?.idUser ?? "-";
+    const head = `Order #${this.#esc(o.idOrder)} · ${this.#esc(o.status || "-")} · ${this.#esc(o.date_time || "-")} · Total ${this.#esc(o.total || "-")}`;
+
+    return `
       <div class="inner-accordion accordion-level-1">
         <div class="inner-accordion_header header-level-1" role="button" aria-expanded="false" tabindex="0">
-          Orders (${orders.length})
+          ${head}
           <span class="inner-arrow arrow-level-1">&#9660;</span>
         </div>
 
         <div class="inner-accordion_content content-level-1" hidden>
-          ${orders.map(o => this.#orderAccordion(o)).join("")}
+          ${this.#renderOrderInfoLevel2(o)}
+          ${this.#renderJobsLevel2(bundle?.jobs || [])}
+          ${this.#renderUserLevel2(bundle?.user || null)}
         </div>
       </div>
     `;
-
-    container.innerHTML = html;
   }
 
-  // ===== Helper: un Order como Level 2 =====
-  #orderAccordion(bundle) {
-    const ord = bundle.order || {};
-    const jobs = Array.isArray(bundle.jobs) ? bundle.jobs : [];
-    const user = bundle.user || null;
-
-    const orderTitle = `#${this.#esc(ord.idOrder)} · ${this.#esc(ord.status || "-")} · ${this.#esc(ord.date_time || "-")} · Total: ${this.#esc(ord.total || "-")}`;
-
+  // ====== NIVEL 2: Order information ======
+  #renderOrderInfoLevel2(order) {
     return `
       <div class="inner-accordion accordion-level-2">
         <div class="inner-accordion_header header-level-2" role="button" aria-expanded="false" tabindex="0">
-          ${orderTitle}
+          Order information
           <span class="inner-arrow arrow-level-2">&#9660;</span>
         </div>
-
         <div class="inner-accordion_content content-level-2" hidden>
-          ${this.#userAccordion(user)}
-          ${this.#jobsAccordion(jobs)}
+          <ul class="order_info">
+            <li><strong>ID:</strong> ${this.#esc(order.idOrder ?? "-")}</li>
+            <li><strong>Date:</strong> ${this.#esc(order.date_time ?? "-")}</li>
+            <li><strong>Status:</strong> ${this.#esc(order.status ?? "-")}</li>
+            <li><strong>Shipping days:</strong> ${this.#esc(order.shippingDays ?? "-")}</li>
+            <li><strong>Subtotal:</strong> ${this.#esc(order.subtotal ?? "-")}</li>
+            <li><strong>Tax:</strong> ${this.#esc(order.tax ?? "-")}</li>
+            <li><strong>Shipping price:</strong> ${this.#esc(order.shipping_price ?? "-")}</li>
+            <li><strong>Total:</strong> ${this.#esc(order.total ?? "-")}</li>
+          </ul>
         </div>
       </div>
     `;
   }
 
-  // ===== Helper: User + Addresses como Level 3 =====
-  #userAccordion(user) {
-    if (!user) return "";
+  // ====== NIVEL 2: Jobs ======
+  #renderJobsLevel2(jobsWrap) {
+    const jobs = Array.isArray(jobsWrap) ? jobsWrap : [];
+    return `
+      <div class="inner-accordion accordion-level-2">
+        <div class="inner-accordion_header header-level-2" role="button" aria-expanded="false" tabindex="0">
+          Jobs (${jobs.length})
+          <span class="inner-arrow arrow-level-2">&#9660;</span>
+        </div>
+        <div class="inner-accordion_content content-level-2" hidden>
+          ${jobs.length ? jobs.map(j => this.#renderJobLevel3(j)).join("") : `<p class="muted">Sin trabajos.</p>`}
+        </div>
+      </div>
+    `;
+  }
 
-    const addresses = Array.isArray(user.addresses) ? user.addresses : [];
+  // ====== NIVEL 3 en Jobs: Description / Artwork / Image / Text por cada Job ======
+  #renderJobLevel3(jobWrap) {
+    const job = jobWrap?.job || {};
+    const title = `${this.#esc(job.name || "Job")} · Qty ${this.#esc(job.amount || "-")} · Total ${this.#esc(job.total || "-")} (ID ${this.#esc(job.idJobs || "-")})`;
 
-    const userBlock = `
+    return `
+      <div class="job_block">
+        <div class="job_header">
+          <h4>${title}</h4>
+          <ul class="job_meta">
+            <li><strong>Price/Unit:</strong> ${this.#esc(job.price_per_unit ?? "-")}</li>
+            <li><strong>ID Order:</strong> ${this.#esc(job.idOrder ?? "-")}</li>
+            <li><strong>ID PriceAmount:</strong> ${this.#esc(job.idPriceAmount ?? "-")}</li>
+            <li><strong>Supplier:</strong> ${this.#esc(job.idSupplier ?? "-")}</li>
+            <li><strong>PDF:</strong> ${this.#esc(job.link_pdf ?? "-")}</li>
+          </ul>
+        </div>
+
+        <!-- Tercer nivel: 4 secciones -->
+        ${this.#jobSectionLevel3("Description", this.#renderDescription(job.description))}
+        ${this.#jobSectionLevel3("Artwork", this.#renderArtwork(job.artwork))}
+        ${this.#jobSectionLevel3(`Image (${Array.isArray(job.image) ? job.image.length : 0})`, this.#renderImages(job.image))}
+        ${this.#jobSectionLevel3(`Text (${Array.isArray(job.text) ? job.text.length : 0})`, this.#renderTexts(job.text))}
+      </div>
+    `;
+  }
+
+  #jobSectionLevel3(title, innerHTML) {
+    return `
+      <div class="inner-accordion accordion-level-3">
+        <div class="inner-accordion_header header-level-3" role="button" aria-expanded="false" tabindex="0">
+          ${title}
+          <span class="inner-arrow arrow-level-3">&#9660;</span>
+        </div>
+        <div class="inner-accordion_content content-level-3" hidden>
+          ${innerHTML}
+        </div>
+      </div>
+    `;
+  }
+
+  // ====== NIVEL 2: User (con NIVEL 3: Addresses) ======
+  #renderUserLevel2(user) {
+    if (!user) {
+      return `
+        <div class="inner-accordion accordion-level-2">
+          <div class="inner-accordion_header header-level-2" role="button" aria-expanded="false" tabindex="0">
+            User
+            <span class="inner-arrow arrow-level-2">&#9660;</span>
+          </div>
+          <div class="inner-accordion_content content-level-2" hidden>
+            <p class="muted">Sin información de usuario.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    const summary = `
       <div class="user_summary">
-        <p><strong>Cliente:</strong> ${this.#esc(user.name || "-")} &lt;${this.#esc(user.email || "-")}&gt;</p>
+        <p><strong>Nombre:</strong> ${this.#esc(user.name || "-")}</p>
+        <p><strong>Email:</strong> ${this.#esc(user.email || "-")}</p>
         <p><strong>ID Usuario:</strong> ${this.#esc(user.idUser || "-")}</p>
         <p><strong>Categoría:</strong> ${this.#esc(user.signup_category || "-")}</p>
       </div>
     `;
 
-    const addrList = addresses.length
+    // Nivel 3: Addresses
+    const addresses = Array.isArray(user.addresses) ? user.addresses : [];
+    const addrHTML = addresses.length
       ? `
         <ul class="address_list">
           ${addresses.map(a => `
@@ -123,123 +206,29 @@ class ControllerOrdersLanyards4You {
           `).join("")}
         </ul>
       `
-      : `<p class="muted">Sin direcciones registradas.</p>`;
+      : `<p class="muted">Sin direcciones.</p>`;
 
-    return `
+    const addressesAcc = `
       <div class="inner-accordion accordion-level-3">
         <div class="inner-accordion_header header-level-3" role="button" aria-expanded="false" tabindex="0">
-          Cliente y direcciones
+          Addresses (${addresses.length})
           <span class="inner-arrow arrow-level-3">&#9660;</span>
         </div>
         <div class="inner-accordion_content content-level-3" hidden>
-          ${userBlock}
-          <h4>Direcciones (${addresses.length})</h4>
-          ${addrList}
+          ${addrHTML}
         </div>
       </div>
     `;
-  }
-
-  // ===== Helper: Jobs como Level 3 que contiene Level 4 por cada Job =====
-  #jobsAccordion(jobs) {
-    if (!jobs.length) {
-      return `
-        <div class="inner-accordion accordion-level-3">
-          <div class="inner-accordion_header header-level-3" role="button" aria-expanded="false" tabindex="0">
-            Jobs (0)
-            <span class="inner-arrow arrow-level-3">&#9660;</span>
-          </div>
-          <div class="inner-accordion_content content-level-3" hidden>
-            <p class="muted">No hay trabajos asociados a esta orden.</p>
-          </div>
-        </div>
-      `;
-    }
 
     return `
-      <div class="inner-accordion accordion-level-3">
-        <div class="inner-accordion_header header-level-3" role="button" aria-expanded="false" tabindex="0">
-          Jobs (${jobs.length})
-          <span class="inner-arrow arrow-level-3">&#9660;</span>
+      <div class="inner-accordion accordion-level-2">
+        <div class="inner-accordion_header header-level-2" role="button" aria-expanded="false" tabindex="0">
+          User
+          <span class="inner-arrow arrow-level-2">&#9660;</span>
         </div>
-        <div class="inner-accordion_content content-level-3" hidden>
-          ${jobs.map(j => this.#jobAccordion(j)).join("")}
-        </div>
-      </div>
-    `;
-  }
-
-  // ===== Helper: un Job como Level 4 con secciones Level 5 (Artwork / Images / Texts) =====
-  #jobAccordion(jobWrap) {
-    const job = jobWrap?.job || {};
-    const title = `${this.#esc(job.name || "Job")} · Qty ${this.#esc(job.amount || "-")} · Total ${this.#esc(job.total || "-")}`;
-
-    const descriptionHTML = this.#renderDescription(job.description);
-    const artworkHTML = this.#renderArtwork(job.artwork);
-    const imagesHTML = this.#renderImages(job.image);
-    const textsHTML = this.#renderTexts(job.text);
-
-    const basics = `
-      <ul class="job_basics">
-        <li><strong>ID Job:</strong> ${this.#esc(job.idJobs || "-")}</li>
-        <li><strong>Price/Unit:</strong> ${this.#esc(job.price_per_unit || "-")}</li>
-        <li><strong>Link PDF:</strong> ${this.#esc(job.link_pdf ?? "-")}</li>
-        <li><strong>Notas:</strong> ${this.#esc(job.notes ?? "-")}</li>
-        <li><strong>ID Order:</strong> ${this.#esc(job.idOrder || "-")}</li>
-        <li><strong>ID PriceAmount:</strong> ${this.#esc(job.idPriceAmount || "-")}</li>
-        <li><strong>Proveedor:</strong> ${this.#esc(job.idSupplier ?? "-")}</li>
-      </ul>
-    `;
-
-    return `
-      <div class="inner-accordion accordion-level-4">
-        <div class="inner-accordion_header header-level-4" role="button" aria-expanded="false" tabindex="0">
-          ${title}
-          <span class="inner-arrow arrow-level-4">&#9660;</span>
-        </div>
-        <div class="inner-accordion_content content-level-4" hidden>
-
-          <div class="job_section">
-            <h4>Descripción</h4>
-            ${descriptionHTML}
-          </div>
-
-          <div class="job_section">
-            <h4>Datos básicos</h4>
-            ${basics}
-          </div>
-
-          <!-- Level 5: secciones del Job -->
-          <div class="inner-accordion accordion-level-5">
-            <div class="inner-accordion_header header-level-5" role="button" aria-expanded="false" tabindex="0">
-              Artwork
-              <span class="inner-arrow arrow-level-5">&#9660;</span>
-            </div>
-            <div class="inner-accordion_content content-level-5" hidden>
-              ${artworkHTML}
-            </div>
-          </div>
-
-          <div class="inner-accordion accordion-level-5">
-            <div class="inner-accordion_header header-level-5" role="button" aria-expanded="false" tabindex="0">
-              Images (${Array.isArray(job.image) ? job.image.length : 0})
-              <span class="inner-arrow arrow-level-5">&#9660;</span>
-            </div>
-            <div class="inner-accordion_content content-level-5" hidden>
-              ${imagesHTML}
-            </div>
-          </div>
-
-          <div class="inner-accordion accordion-level-5">
-            <div class="inner-accordion_header header-level-5" role="button" aria-expanded="false" tabindex="0">
-              Texts (${Array.isArray(job.text) ? job.text.length : 0})
-              <span class="inner-arrow arrow-level-5">&#9660;</span>
-            </div>
-            <div class="inner-accordion_content content-level-5" hidden>
-              ${textsHTML}
-            </div>
-          </div>
-
+        <div class="inner-accordion_content content-level-2" hidden>
+          ${summary}
+          ${addressesAcc}
         </div>
       </div>
     `;
@@ -247,14 +236,11 @@ class ControllerOrdersLanyards4You {
 
   // ====== Subrenders ======
   #renderDescription(desc) {
-    if (typeof desc !== "string" || !desc.trim()) {
-      return `<p class="muted">Sin descripción.</p>`;
-    }
+    if (!desc || typeof desc !== "string") return `<p class="muted">Sin descripción.</p>`;
     try {
       const obj = JSON.parse(desc);
       return `<pre class="code-block">${this.#esc(JSON.stringify(obj, null, 2))}</pre>`;
     } catch {
-      // No es JSON válido; mostrar tal cual
       return `<pre class="code-block">${this.#esc(desc)}</pre>`;
     }
   }
@@ -274,7 +260,6 @@ class ControllerOrdersLanyards4You {
   #renderImages(arr) {
     const list = Array.isArray(arr) ? arr : [];
     if (!list.length) return `<p class="muted">Sin imágenes.</p>`;
-
     return `
       <ul class="image_list">
         ${list.map(im => `
@@ -294,7 +279,6 @@ class ControllerOrdersLanyards4You {
   #renderTexts(arr) {
     const list = Array.isArray(arr) ? arr : [];
     if (!list.length) return `<p class="muted">Sin textos.</p>`;
-
     return `
       <ul class="text_list">
         ${list.map(t => `
@@ -303,7 +287,7 @@ class ControllerOrdersLanyards4You {
             <div><strong>Time:</strong> ${this.#esc(t.timeText ?? "-")} · <strong>Between:</strong> ${this.#esc(t.spaceBetweenText ?? "-")} · <strong>Along:</strong> ${this.#esc(t.spaceAlongLanyard ?? "-")}</div>
             <div><strong>Font:</strong> ${this.#esc(t.fontFamilyText ?? "-")} · <strong>Size:</strong> ${this.#esc(t.sizeText ?? "-")} · <strong>Color:</strong> ${this.#esc(t.colourText ?? "-")}</div>
             <div><strong>Styles:</strong> B:${this.#esc(t.boldText ?? false)} I:${this.#esc(t.italicText ?? false)} U:${this.#esc(t.underlineText ?? false)}</div>
-            <div><strong>Posición:</strong> ${this.#esc(t.text_position ?? t.textPosition ?? "-")}</div>
+            <div><strong>Position:</strong> ${this.#esc(t.text_position ?? t.textPosition ?? "-")}</div>
           </li>
         `).join("")}
       </ul>
@@ -323,7 +307,6 @@ class ControllerOrdersLanyards4You {
   toggle(header) {
     const accordion = header.closest('.inner-accordion');
     if (!accordion) return;
-
     const content = accordion.querySelector(':scope > .inner-accordion_content');
     if (!content) return;
 
