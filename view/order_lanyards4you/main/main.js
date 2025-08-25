@@ -1,21 +1,33 @@
 class ControllerOrdersLanyards4You {
   init() {
-    document.querySelectorAll('.inner-accordion_header').forEach(header => {
-      header.addEventListener('click', () => this.toggle(header));
+    // Event delegation: un solo listener para todos los headers
+    document.addEventListener('click', (e) => {
+      const header = e.target.closest('.inner-accordion_header');
+      if (header) this.toggle(header);
+    });
+
+    // Keyboard support: Enter / Space activan el toggle
+    document.addEventListener('keydown', (e) => {
+      const header = e.target.closest?.('.inner-accordion_header');
+      if (!header) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.toggle(header);
+      }
     });
   }
 
   toggle(header) {
-    const acc = header.closest('.inner-accordion');
-    const content = acc.querySelector('.inner-accordion_content');
-    const arrow = header.querySelector('.inner-arrow'); // 👈 capturamos la flechita
+    const accordion = header.closest('.inner-accordion');
+    if (!accordion) return;
 
-    const open = acc.classList.toggle('is-open');
-    header.setAttribute('aria-expanded', open);
-    content.hidden = !open;
+    const content = accordion.querySelector(':scope > .inner-accordion_content');
+    if (!content) return;
 
-    // Gira la flecha desde JS
-    arrow.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+    // Alterna estado abierto/cerrado
+    const isOpen = accordion.classList.toggle('is-open');
+    header.setAttribute('aria-expanded', String(isOpen));
+    content.hidden = !isOpen;
   }
 }
 
