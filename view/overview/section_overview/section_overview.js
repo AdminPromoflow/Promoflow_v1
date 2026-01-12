@@ -34,7 +34,7 @@ class SectionOverview {
       var date =  data[i]["date_status"];
       var supplier = data[i]["supplier"]["company_name"];
       var sku = data[i]["sku"];
-      var approvalText = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending approval" : "Approved";
+      var status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending approval" : "Approved";
 
       tableOverviewDetails.innerHTML += `
         <tr>
