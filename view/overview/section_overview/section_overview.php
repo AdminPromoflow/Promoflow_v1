@@ -128,7 +128,7 @@
           </thead>
 
           <tbody id="table_overview_details">
-            <tr>
+          <!--  <tr>
               <td>1</td>
               <td>2025-12-21</td>
               <td>Category</td>
@@ -156,7 +156,7 @@
               <td>PRD-20251211</td>
               <td>Ready</td>
               <td>Launch</td>
-            </tr>
+            </tr>-->
           </tbody>
         </table>
       </div>
