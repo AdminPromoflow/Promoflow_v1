@@ -80,12 +80,12 @@
 
         <!-- Company tabs container -->
         <div class="details-tabs">
-          <div class="details-tab-item is-active">
+          <div class="details-tab-item">
             <h4>W3P</h4>
             <div class="details-tab-count"><p>3</p></div>
           </div>
 
-          <div class="details-tab-item">
+          <div class="details-tab-item is-active">
             <h4>.63</h4>
             <div class="details-tab-count"><p>1</p></div>
           </div>
@@ -127,7 +127,7 @@
             </tr>
           </thead>
 
-          <tbody>
+          <tbody id="table_overview_details">
             <tr>
               <td>1</td>
               <td>2025-12-21</td>

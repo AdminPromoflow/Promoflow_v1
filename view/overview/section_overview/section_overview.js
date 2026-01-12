@@ -20,13 +20,22 @@ class SectionOverview {
       throw new Error("Network error.");
     })
     .then(data => {
-      alert(data);
+      const result = JSON.parse(data);
+      sectionOverview.renderOverviewDetailsTable(result);
+    //  alert(data);
     })
     .catch(error => {
       console.log("Error: ", error)
     })
 
   }
+
+  renderOverviewDetailsTable(data){
+    //alert("Bueno" + JSON.stringify(data));
+  }
+
+
+//  table_overview_details
 
 
 }
