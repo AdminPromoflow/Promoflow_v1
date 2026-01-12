@@ -19,7 +19,7 @@ class Resques63API{
   }
 
   private function getAPIOverviewData(){
-    $url = "https://promoflow.net/dot63/controller/webhook/requestAPIProductDetails.php";
+    $url = "https://promoflow.net/dot63/controller/webhook/promoflow_webhook.php";
 
     $payload = [
       "action" => "get_API_overview_data"
