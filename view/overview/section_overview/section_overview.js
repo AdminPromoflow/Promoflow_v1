@@ -31,7 +31,7 @@ class SectionOverview {
   }
 
   renderOverviewDetailsTable(data){
-    //alert("Bueno" + JSON.stringify(data));
+    alert("Bueno" + JSON.stringify(data));
   }
 
 
