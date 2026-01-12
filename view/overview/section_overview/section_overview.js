@@ -32,9 +32,9 @@ class SectionOverview {
     for (let i = 0; i < data.length; i++) {
       var index = i+1;
       var date =  data[i]["date_status"];
-      var supplier = data[i]["company_name"];
+      var supplier = data[i]["supplier"]["company_name"];
       var sku = data[i]["sku"];
-      var status = data[i]["is_approved"];
+      var approvalText = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending approval" : "Approved";
 
       tableOverviewDetails.innerHTML += `
         <tr>
