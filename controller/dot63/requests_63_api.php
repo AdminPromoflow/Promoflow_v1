@@ -19,7 +19,7 @@ class Resques63API{
   }
 
   private function getAPIOverviewData(){
-    $url = "https://tudominio.com/receiver.php";
+    $url = "https://promoflow.net/dot63/controller/webhook/requestAPIProductDetails.php";
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
