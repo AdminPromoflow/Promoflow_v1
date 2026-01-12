@@ -5,34 +5,28 @@ class SectionOverview {
 
 
   getOverviewData() {
-
     const url = "../../controller/dot63/requests_63_api.php";
-    const data = {
-      action: "get_API_overview_data"
-    }
+    const payload = { action: "get_API_overview_data" };
+
     fetch(url, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(data)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     })
-    .then(response =>{
-      if(response.ok) return response.text();
-      throw new Error("Network error.");
+    .then(result => {
+      if (!result.ok) throw new Error("Network error.");
+      return result.json();
     })
     .then(data => {
-      const result = JSON.parse(data);
-      sectionOverview.renderOverviewDetailsTable(result);
-    //  alert(data);
+      this.renderOverviewDetailsTable(data);
     })
-    .catch(error => {
-      console.log("Error: ", error)
-    })
-
+    .catch(err => console.log("Error:", err));
   }
 
-  renderOverviewDetailsTable(data){
-    alert("Bueno" + JSON.stringify(data));
+  renderOverviewDetailsTable(data) {
+    alert("Bueno " + JSON.stringify(data));
   }
+
 
 
 //  table_overview_details
