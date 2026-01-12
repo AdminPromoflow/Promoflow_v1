@@ -29,7 +29,7 @@ class SectionOverview {
     const tableOverviewDetails = document.getElementById("table_overview_details");
 
     for (var i = 0; i < data.length; i++) {
-      alert(data["name"]);
+      alert(JSON.stringify(data));
     }
     //alert(JSON.stringify(data));
   }
