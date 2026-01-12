@@ -1,0 +1,269 @@
+/* ===== Main container for orders ===== */
+.container_order {
+  background-color: #2F4560;
+  padding: 1rem;
+  overflow-y: scroll;
+  border-radius: 5px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ===== Section title ===== */
+.container_order h2 {
+  color: #fffd;
+  margin: auto;
+  text-align: center;
+}
+
+/* ===== Base arrow style ===== */
+.inner-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+}
+
+/* ===== Accordion generic ===== */
+.inner-accordion {
+  border: 1px solid #fffd;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+/* ===== Header generic ===== */
+.inner-accordion_header {
+  padding: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inner-accordion_header:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ===== Content generic ===== */
+.inner-accordion_content {
+  padding: 1rem;
+  margin: auto;
+}
+
+.inner-accordion_content[hidden] {
+  display: none;
+}
+
+/* ===== Arrow rotation when open ===== */
+.inner-accordion.is-open > .inner-accordion_header > .inner-arrow {
+  transform: rotate(180deg);
+}
+
+/* ==========================
+   LEVEL COLOURS
+========================== */
+
+/* Level 1 */
+.accordion-level-1 { border-color: #ADB4C0; }
+.header-level-1 { background-color: #ADB4C0; }
+.content-level-1 { background-color: #536278; }
+
+/* Level 2 */
+.accordion-level-2 { border-color: #BBC1CB; }
+.header-level-2 { background-color: #BBC1CB; }
+.content-level-2 { background-color: #707C8F; }
+
+/* Level 3 */
+.accordion-level-3 { border-color: #C8CDD5; }
+.header-level-3 { background-color: #C8CDD5; }
+.content-level-3 { background-color: #8C96A5; }
+
+/* Level 4 */
+.accordion-level-4 { border-color: #D6DAE0; }
+.header-level-4 { background-color: #D6DAE0; }
+.content-level-4 { background-color: #A9B1BC; }
+
+/* Level 5 */
+.accordion-level-5 { border-color: #E4E6EA; }
+.header-level-5 { background-color: #E4E6EA; }
+.content-level-5 { background-color: #C6CBD2; }
+
+/* Level 6 */
+.accordion-level-6 { border-color: #F1F3F5; }
+.header-level-6 { background-color: #F1F3F5; }
+.content-level-6 { background-color: #E2E5E9; }
+
+
+
+
+/* ==========================
+   FORM LAYOUT & CARDS
+   (para #main_lanyards4you)
+========================== */
+
+#main_lanyards4you .form_row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+#main_lanyards4you .form_group {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 12px;
+  padding: .75rem .85rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+#main_lanyards4you .form_group label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #fffd; /* blanco con leve transparencia */
+  letter-spacing: .02em;
+}
+
+#main_lanyards4you .form_group input,
+#main_lanyards4you .form_group textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.92);
+  color: #1f2937; /* gris oscuro legible sobre input claro */
+  padding: .6rem .75rem;
+  font-size: .95rem;
+  line-height: 1.35;
+}
+
+#main_lanyards4you .form_group textarea {
+  min-height: 110px;
+  resize: vertical;
+  white-space: pre-wrap;     /* para JSON / textos largos */
+  word-break: break-word;    /* evita overflow */
+}
+
+#main_lanyards4you .form_group input[readonly],
+#main_lanyards4you .form_group textarea[readonly] {
+  background: rgba(255,255,255,.95);
+  cursor: default;
+}
+
+#main_lanyards4you .form_group input:focus,
+#main_lanyards4you .form_group textarea:focus {
+  outline: none;
+  border-color: #E4E6EA;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+}
+
+/* Tarjetas para bloques repetibles (Images / Texts / Address) */
+#main_lanyards4you .form_card {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.08);
+  padding: 1rem;
+  margin: 0 0 1rem 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+
+#main_lanyards4you .form_card h5 {
+  margin: .2rem 0 1rem 0;
+  color: #fffd;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Cabecera del Job */
+#main_lanyards4you .job_header h4 {
+  color: #fffd;
+  margin: .25rem 0 1rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* Bloques de información auxiliares */
+#main_lanyards4you .muted {
+  color: rgba(255,255,255,.8);
+  font-style: italic;
+}
+
+/* Código / JSON prettificado */
+#main_lanyards4you pre.code-block {
+  background: #0f172a;              /* azul muy oscuro */
+  color: #e5e7eb;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.15);
+  padding: .9rem 1rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+/* Afinar flecha dentro de headers */
+#main_lanyards4you .inner-arrow {
+  margin-left: .5rem;
+  opacity: .9;
+}
+
+/* Espaciados dentro de contenidos de acordeón */
+#main_lanyards4you .inner-accordion_content > * + * {
+  margin-top: 1rem;
+}
+
+/* Responsive: inputs full width en pantallas pequeñas */
+@media (max-width: 520px) {
+  #main_lanyards4you .form_row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Action bar (aplica a cualquier nivel) ===== */
+#main_lanyards4you .action_bar {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin: 0 0 1rem 0;
+}
+
+#main_lanyards4you .btn {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  padding: .55rem .9rem;
+  font-weight: 700;
+  font-size: .95rem;
+  cursor: pointer;
+  transition: transform .05s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  color: #1f2937;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+#main_lanyards4you .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+}
+
+#main_lanyards4you .btn:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+/* Variantes */
+#main_lanyards4you .btn-send { border-color: #14b8a6; }
+#main_lanyards4you .btn-save { border-color: #60a5fa; }
+#main_lanyards4you .btn-artwork { border-color: #c084fc; }
+
+/* Ajuste visual para la barra del Nivel 1 (opcional) */
+#main_lanyards4you .action-bar-l1 {
+  margin-top: .25rem;
+}
