@@ -27,12 +27,22 @@ class SectionOverview {
 
   renderOverviewDetailsTable(data) {
     const tableOverviewDetails = document.getElementById("table_overview_details");
+    tableOverviewDetails.innerHTML = "";
 
-    for (var i = 0; i < data.length; i++) {
-      alert(JSON.stringify(data[i]["name"]));
+    for (let i = 0; i < data.length; i++) {
+      tableOverviewDetails.innerHTML += `
+        <tr>
+          <td>1</td>
+          <td>2025-12-21</td>
+          <td>Category</td>
+          <td>W3P Supplier A</td>
+          <td>CAT-2002</td>
+          <td>Pending</td>
+          <td>Review</td>
+        </tr>`;
     }
-    //alert(JSON.stringify(data));
   }
+
 
 
 
