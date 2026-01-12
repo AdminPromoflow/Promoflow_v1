@@ -30,15 +30,21 @@ class SectionOverview {
     tableOverviewDetails.innerHTML = "";
 
     for (let i = 0; i < data.length; i++) {
+      var index = i+1;
+      var date =  data["date_status"];
+      var supplier = data["company_name"];
+      var sku = data["sku"];
+      var status = data["is_approved"];
+
       tableOverviewDetails.innerHTML += `
         <tr>
-          <td>1</td>
-          <td>2025-12-21</td>
-          <td>Category</td>
-          <td>W3P Supplier A</td>
-          <td>CAT-2002</td>
-          <td>Pending</td>
-          <td>Review</td>
+          <td>${index}</td>
+          <td>${date}</td>
+          <td>Product Launch</td>
+          <td>${supplier}</td>
+          <td>${sku}</td>
+          <td>${status}</td>
+          <td class="link_review">Review</td>
         </tr>`;
     }
   }

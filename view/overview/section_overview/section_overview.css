@@ -237,3 +237,10 @@
 .details-table-scroll tbody tr:hover{
   background: rgba(255,255,255,.03);
 }
+.link_review{
+  cursor: pointer;
+  transition: .5s;
+}
+.link_review:hover{
+  text-decoration: underline;
+}
