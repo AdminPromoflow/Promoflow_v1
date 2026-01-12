@@ -119,9 +119,9 @@
             <tr>
               <th>#</th>
               <th>Date</th>
-              <th>Approval Type</th>
+              <th>Approval type</th>
               <th>Submit by</th>
-              <th>SKU</th>
+              <th>Product name</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
