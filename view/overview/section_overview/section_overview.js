@@ -42,7 +42,7 @@ class SectionOverview {
           <td>${date}</td>
           <td>Product Launch</td>
           <td>${supplier}</td>
-          <td>${sku}</td>
+          <td>${name}</td>
           <td>${status}</td>
           <td class="link_review">Review</td>
         </tr>`;
