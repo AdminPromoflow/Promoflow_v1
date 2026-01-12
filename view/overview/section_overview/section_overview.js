@@ -18,18 +18,25 @@ class SectionOverview {
       return result.json();
     })
     .then(data => {
-      this.renderOverviewDetailsTable(data);
+      if (data["success"]) {
+        this.renderOverviewDetailsTable(data["result"]);
+      }
     })
     .catch(err => console.log("Error:", err));
   }
 
   renderOverviewDetailsTable(data) {
-    alert("Bueno " + JSON.stringify(data));
+    const tableOverviewDetails = document.getElementById("table_overview_details");
+
+    for (var i = 0; i < data.length; i++) {
+      alert(data["name"]);
+    }
+    //alert(JSON.stringify(data));
   }
 
 
 
-//  table_overview_details
+//
 
 
 }
