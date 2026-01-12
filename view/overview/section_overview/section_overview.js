@@ -31,10 +31,10 @@ class SectionOverview {
 
     for (let i = 0; i < data.length; i++) {
       var index = i+1;
-      var date =  data["date_status"];
-      var supplier = data["company_name"];
-      var sku = data["sku"];
-      var status = data["is_approved"];
+      var date =  data[i]["date_status"];
+      var supplier = data[i]["company_name"];
+      var sku = data[i]["sku"];
+      var status = data[i]["is_approved"];
 
       tableOverviewDetails.innerHTML += `
         <tr>
