@@ -77,7 +77,7 @@ class Resques63API{
 
 
     header('Content-Type: application/json; charset=utf-8');
-    echo $response;
+    echo json_encode($response);
   }
 }
 
