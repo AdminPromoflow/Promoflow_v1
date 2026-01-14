@@ -36,7 +36,7 @@ class SectionOverview {
   }
 
   renderOverviewDetailsTable(data) {
-   alert(JSON.stringify(data));
+  // alert(JSON.stringify(data));
     this.tableOverviewDetails.innerHTML = "";
 
     for (let i = 0; i < data.length; i++) {
@@ -45,7 +45,7 @@ class SectionOverview {
       const supplier = data[i]["supplier"]["company_name"];
       const name = data[i]["name"];
       const status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending" : "Approved";
-      const sku = data[i]["sku"];
+      const sku = data[i]["SKU"];
 
       // Escapar comillas dobles por seguridad en atributos HTML
       const safeSku = String(sku).replace(/"/g, "&quot;");
