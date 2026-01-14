@@ -46,7 +46,7 @@ class SectionOverview {
           <td>${supplier}</td>
           <td>${name}</td>
           <td>${status}</td>
-          <td class="link_review" onclick="reviewProduct('${String(sku).replace(/'/g, "\\'")}')">Review</td>
+          <td class="link_review" onclick="this.reviewProduct('${String(sku).replace(/'/g, "\\'")}')">Review</td>
         </tr>`;
     }
   }
