@@ -33,12 +33,18 @@ class PreviewLogic {
     // this.getDataProduct();
   }
 
+  /*
+  sp-title
+  sp_subtitle
+  sp_desc
+
+
+  */
+
   getDetailsVariationByskuVariation() {
     // 1) Get SKU from the URL query string
     const params = new URLSearchParams(window.location.search);
     const sku = params.get("sku");
-
-    //alert(sku);
 
     if (!sku) {
       console.warn("No SKU in URL");
@@ -59,14 +65,10 @@ class PreviewLogic {
       body: JSON.stringify(data)
     })
       .then(response => {
-        // Network-level validation
-        if (!response.ok) {
-          throw new Error("Network error.");
-        }
+        if (!response.ok) throw new Error("Network error.");
         return response.text();
       })
       .then(text => {
-        alert(text);
         let json;
 
         // 4) Parse JSON with error handling
@@ -77,85 +79,42 @@ class PreviewLogic {
           return;
         }
 
-        // The API is expected to return an array of blocks
-        if (!Array.isArray(json)) {
-          console.error("Unexpected JSON format:", json);
+        // Tu respuesta es un ARRAY con objetos y un null en medio.
+        // Buscamos el objeto que tenga "product_details"
+        const productBlock = Array.isArray(json)
+          ? json.find(item => item && item.product_details)
+          : null;
+
+        if (!productBlock || !productBlock.product_details) {
+          console.warn("No product_details found in response:", json);
           return;
         }
-        var product_name =json[1]["product_details"]["product_name"];
-        //alert(product_name);
 
-        // Helper: find the first block containing a given key
-        const findBlock = (key) => json.find(obj => obj && obj[key]) || null;
+        const productDetails = productBlock.product_details;
 
-        // Extract blocks
-        const supplierBlock = findBlock("company_name");
-        const categoryBlock = findBlock("category_name");
-        const productBlock = findBlock("product_details");
-        const variationsBlock = findBlock("default_variation_sku");
+        // Captura en variables separadas
+        const product_name = productDetails.product_name ?? "";
+        const description = productDetails.description ?? "";
+        const descriptive_tagline = productDetails.descriptive_tagline ?? "";
 
-      //  alert(JSON.stringify(product_details));
+        const sp_title = document.getElementById("sp-title");
+        const sp_subtitle = document.getElementById("sp_subtitle");
+        const sp_desc = document.getElementById("sp_desc");
 
-        // Clear variations section before rendering (if present)
-      /*  const section_variations = document.getElementById("section_variations");
-        if (section_variations) {
-          section_variations.innerHTML = "";
-        }*/
 
-        // Debug: inspect the variations payload
-    //  previewLogic.getDataVariationBySKU(variationsBlock.default_variation_sku)
-        // alert(JSON.stringify(variationsBlock.Variations.Default));
 
-        /**
-         * Group variations (Default) by "group"
-         * - Build a distinct list of group names
-         * - Create a structure: [{ group: "WIDTH", items: [...] }, ...]
-         */
-      /*  const list = variationsBlock?.Variations?.Default ?? [];
-
-        // Unique group names (fallback to UNGROUPED)
-        const groupNames = [...new Set(list.map(v => (v?.group || "UNGROUPED").trim()))];
-
-        // [{ group: "WIDTH", items: [...] }, ...]
-        let detailsByGroup = [];
-
-        // 1) Initialise container for each group
-        for (let j = 0; j < groupNames.length; j++) {
-          detailsByGroup.push({
-            group: groupNames[j],
-            items: []
-          });
-        }*/
-
-        // 2) Assign each variation to its matching group
-        /*for (let i = 0; i < list.length; i++) {
-          const v = list[i];
-          const g = (v?.group || "UNGROUPED").trim();
-
-          const index = detailsByGroup.findIndex(x => x.group === g);
-
-          if (index !== -1) {
-            detailsByGroup[index].items.push(v);
-          }
-        }*/
-      //  alert(JSON.stringify(productBlock));
-
-        // 5) Render header + product details
-      //  this.drawHeaders(supplierBlock, categoryBlock, productBlock);
-
-      //  this.drawProductDetails(productBlock);
-
-        // 6) (Optional) Render variation groups here if desired
-        // Currently not iterating detailsByGroup in this method.
-        // (Compare with getDataProduct() which does drawVariationsFirstLevel per group)
-        ;
-
+        // Mostrar en alert
+        alert(
+          `Product name: ${product_name}\n` +
+          `Description: ${description}\n` +
+          `Descriptive tagline: ${descriptive_tagline}`
+        );
       })
       .catch(error => {
         console.error("Error fetching preview:", error);
-      //  alert("Error loading preview data.");
       });
   }
+
   getDataVariationBySKU(sku_variation){
 
     if (!sku_variation) {
