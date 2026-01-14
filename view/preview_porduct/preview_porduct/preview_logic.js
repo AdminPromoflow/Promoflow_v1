@@ -66,7 +66,7 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
-        alert(text);
+        //alert(text);
         let json;
 
         // 4) Parse JSON with error handling
@@ -92,14 +92,16 @@ class PreviewLogic {
         const productBlock = findBlock("product_details");
         const variationsBlock = findBlock("default_variation_sku");
 
+        alert(JSON.stringify(product_details));
+
         // Clear variations section before rendering (if present)
-        const section_variations = document.getElementById("section_variations");
+      /*  const section_variations = document.getElementById("section_variations");
         if (section_variations) {
           section_variations.innerHTML = "";
-        }
+        }*/
 
         // Debug: inspect the variations payload
-      previewLogic.getDataVariationBySKU(variationsBlock.default_variation_sku)
+    //  previewLogic.getDataVariationBySKU(variationsBlock.default_variation_sku)
         // alert(JSON.stringify(variationsBlock.Variations.Default));
 
         /**
@@ -107,7 +109,7 @@ class PreviewLogic {
          * - Build a distinct list of group names
          * - Create a structure: [{ group: "WIDTH", items: [...] }, ...]
          */
-        const list = variationsBlock?.Variations?.Default ?? [];
+      /*  const list = variationsBlock?.Variations?.Default ?? [];
 
         // Unique group names (fallback to UNGROUPED)
         const groupNames = [...new Set(list.map(v => (v?.group || "UNGROUPED").trim()))];
@@ -121,10 +123,10 @@ class PreviewLogic {
             group: groupNames[j],
             items: []
           });
-        }
+        }*/
 
         // 2) Assign each variation to its matching group
-        for (let i = 0; i < list.length; i++) {
+        /*for (let i = 0; i < list.length; i++) {
           const v = list[i];
           const g = (v?.group || "UNGROUPED").trim();
 
@@ -133,13 +135,13 @@ class PreviewLogic {
           if (index !== -1) {
             detailsByGroup[index].items.push(v);
           }
-        }
+        }*/
       //  alert(JSON.stringify(productBlock));
 
         // 5) Render header + product details
-        this.drawHeaders(supplierBlock, categoryBlock, productBlock);
+      //  this.drawHeaders(supplierBlock, categoryBlock, productBlock);
 
-        this.drawProductDetails(productBlock);
+      //  this.drawProductDetails(productBlock);
 
         // 6) (Optional) Render variation groups here if desired
         // Currently not iterating detailsByGroup in this method.
