@@ -46,7 +46,7 @@ class PreviewLogic {
     }
 
     // 2) Prepare request (server endpoint + payload)
-    const url = "../../controller/order/product.php";
+    const url = "../../controller/dot63/requests_63_api.php";
     const data = {
       action: "get_preview_product_details",
       sku: sku
@@ -66,7 +66,7 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
-      //  alert(text);
+        alert(text);
         let json;
 
         // 4) Parse JSON with error handling
