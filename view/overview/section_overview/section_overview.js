@@ -1,8 +1,18 @@
 class SectionOverview {
   constructor() {
+    this.tableOverviewDetails = document.getElementById("table_overview_details");
+
+    // Un solo listener para toda la tabla
+    this.tableOverviewDetails.addEventListener("click", (e) => {
+      const cell = e.target.closest(".link_review");
+      if (!cell) return;
+
+      const sku = cell.dataset.sku;
+      this.reviewProduct(sku);
+    });
+
     this.getOverviewData();
   }
-
 
   getOverviewData() {
     const url = "../../controller/dot63/requests_63_api.php";
@@ -13,32 +23,33 @@ class SectionOverview {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
-    .then(result => {
-      if (!result.ok) throw new Error("Network error.");
-      return result.json();
-    })
-    .then(data => {
-      if (data["success"]) {
-        this.renderOverviewDetailsTable(data["result"]);
-      }
-    })
-    .catch(err => console.log("Error:", err));
+      .then(result => {
+        if (!result.ok) throw new Error("Network error.");
+        return result.json();
+      })
+      .then(data => {
+        if (data["success"]) {
+          this.renderOverviewDetailsTable(data["result"]);
+        }
+      })
+      .catch(err => console.log("Error:", err));
   }
 
   renderOverviewDetailsTable(data) {
-    const tableOverviewDetails = document.getElementById("table_overview_details");
-    tableOverviewDetails.innerHTML = "";
+    this.tableOverviewDetails.innerHTML = "";
 
     for (let i = 0; i < data.length; i++) {
-      var index = i+1;
-      var date =  data[i]["date_status"];
-      var supplier = data[i]["supplier"]["company_name"];
-      var name = data[i]["name"];
-      var status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending" : "Approved";
-      const sku = data[i]["SKU"]; // <- aquí lo tomas
+      const index = i + 1;
+      const date = data[i]["date_status"];
+      const supplier = data[i]["supplier"]["company_name"];
+      const name = data[i]["name"];
+      const status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending" : "Approved";
+      const sku = data[i]["SKU"];
 
+      // Escapar comillas dobles por seguridad en atributos HTML
+      const safeSku = String(sku).replace(/"/g, "&quot;");
 
-      tableOverviewDetails.innerHTML += `
+      this.tableOverviewDetails.innerHTML += `
         <tr>
           <td>${index}</td>
           <td>${date}</td>
@@ -46,29 +57,16 @@ class SectionOverview {
           <td>${supplier}</td>
           <td>${name}</td>
           <td>${status}</td>
-          <td class="link_review" onclick="sectionOverview.reviewProduct('${String(sku).replace(/'/g, "\\'")}')">Review</td>
+          <td class="link_review" data-sku="${safeSku}">Review</td>
         </tr>`;
     }
   }
 
-    reviewProduct(sku) {
-      alert("SKU:", sku);
-
-      // Ejemplo: redirigir
-      // window.location.href = `review.php?sku=${encodeURIComponent(sku)}`;
-
-      // Ejemplo: llamar tu flujo de review
-      // this.openReviewModal(sku);
-    }
-
-
-
-
-//
-
-
+  reviewProduct(sku) {
+    alert(`SKU: ${sku}`);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const sectionOverview = new SectionOverview();
+  new SectionOverview();
 });
