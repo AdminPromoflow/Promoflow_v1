@@ -35,6 +35,8 @@ class SectionOverview {
       var supplier = data[i]["supplier"]["company_name"];
       var name = data[i]["name"];
       var status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending" : "Approved";
+      const sku = data[i]["SKU"]; // <- aquí lo tomas
+
 
       tableOverviewDetails.innerHTML += `
         <tr>
@@ -44,10 +46,20 @@ class SectionOverview {
           <td>${supplier}</td>
           <td>${name}</td>
           <td>${status}</td>
-          <td class="link_review">Review</td>
+          <td class="link_review" onclick="reviewProduct('${String(sku).replace(/'/g, "\\'")}')">Review</td>
         </tr>`;
     }
   }
+
+    reviewProduct(sku) {
+      alert("SKU:", sku);
+
+      // Ejemplo: redirigir
+      // window.location.href = `review.php?sku=${encodeURIComponent(sku)}`;
+
+      // Ejemplo: llamar tu flujo de review
+      // this.openReviewModal(sku);
+    }
 
 
 
