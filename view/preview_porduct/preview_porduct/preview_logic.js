@@ -83,7 +83,7 @@ class PreviewLogic {
           return;
         }
         var product_name =json[1]["product_details"]["product_name"];
-        alert(product_name);
+        //alert(product_name);
 
         // Helper: find the first block containing a given key
         const findBlock = (key) => json.find(obj => obj && obj[key]) || null;
@@ -237,6 +237,7 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
+      //  alert(text);
         let json;
 
         // 4) Parse JSON with error handling
