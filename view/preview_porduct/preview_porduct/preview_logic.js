@@ -71,13 +71,7 @@ class PreviewLogic {
       .then(text => {
         let json;
 
-        // 4) Parse JSON with error handling
-        try {
-          json = JSON.parse(text);
-        } catch (e) {
-          console.error("Invalid JSON:", e, text);
-          return;
-        }
+      
 
         // Tu respuesta es un ARRAY con objetos y un null en medio.
         // Buscamos el objeto que tenga "product_details"
