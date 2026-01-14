@@ -66,7 +66,7 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
-        //alert(text);
+        alert(text);
         let json;
 
         // 4) Parse JSON with error handling
@@ -183,7 +183,7 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
-        alert(text);
+        //alert(text);
         let json;
 
         // 4) Parse JSON with error handling
@@ -202,7 +202,7 @@ class PreviewLogic {
       })
       .catch(error => {
         console.error("Error fetching preview:", error);
-        alert("Error loading preview data.");
+      //  alert("Error loading preview data.");
       });
   }
   getDataProduct() {
@@ -267,7 +267,7 @@ class PreviewLogic {
         }
 
         // Debug: inspect the variations payload
-        alert(JSON.stringify(variationsBlock));
+      //  alert(JSON.stringify(variationsBlock));
 
         // alert(JSON.stringify(variationsBlock.Variations.Default));
 
@@ -317,7 +317,7 @@ class PreviewLogic {
       })
       .catch(error => {
         console.error("Error fetching preview:", error);
-        alert("Error loading preview data.");
+      //  alert("Error loading preview data.");
       });
   }
 
