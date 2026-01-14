@@ -53,7 +53,7 @@ class Resques63API{
 
   private function getPreviewProductDetails($data){
     $url = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
-  //  echo json_encode($data[sku]);exit;
+    echo json_encode($data["sku"]);exit;
     $payload = [
       "action" => "get_preview_product_details",
       "sku" => $data[sku]
