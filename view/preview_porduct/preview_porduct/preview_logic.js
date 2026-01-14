@@ -66,7 +66,7 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
-        //alert(text);
+        alert(text);
         let json;
 
         // 4) Parse JSON with error handling
@@ -92,7 +92,7 @@ class PreviewLogic {
         const productBlock = findBlock("product_details");
         const variationsBlock = findBlock("default_variation_sku");
 
-        alert(JSON.stringify(product_details));
+      //  alert(JSON.stringify(product_details));
 
         // Clear variations section before rendering (if present)
       /*  const section_variations = document.getElementById("section_variations");
