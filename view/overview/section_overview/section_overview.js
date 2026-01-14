@@ -36,6 +36,7 @@ class SectionOverview {
   }
 
   renderOverviewDetailsTable(data) {
+    alert(JSON.stringify(data));
     this.tableOverviewDetails.innerHTML = "";
 
     for (let i = 0; i < data.length; i++) {
