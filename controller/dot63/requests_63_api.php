@@ -11,7 +11,7 @@ class Resques63API{
         break;
 
         case 'get_preview_product_details':
-          $this->getPreviewProductDetails();
+          $this->getPreviewProductDetails($data);
           break;
 
 
@@ -51,11 +51,12 @@ class Resques63API{
     echo $response;
   }
 
-  private function getPreviewProductDetails(){
+  private function getPreviewProductDetails($data){
     $url = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
 
     $payload = [
-      "action" => "get_preview_product_details"
+      "action" => "get_preview_product_details",
+      "sku" => $data["sku"]
     ];
 
     $ch = curl_init($url);
