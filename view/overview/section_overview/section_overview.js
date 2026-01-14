@@ -64,8 +64,10 @@ class SectionOverview {
   }
 
   reviewProduct(sku) {
-    alert(`SKU: ${sku}`);
+    const url = `../../view/preview_porduct/index.php?sku=${encodeURIComponent(sku)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
