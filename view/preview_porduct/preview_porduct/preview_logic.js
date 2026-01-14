@@ -42,7 +42,6 @@ class PreviewLogic {
   */
 
   getDetailsVariationByskuVariation() {
-    // 1) Get SKU from the URL query string
     const params = new URLSearchParams(window.location.search);
     const sku = params.get("sku");
 
@@ -51,14 +50,9 @@ class PreviewLogic {
       return;
     }
 
-    // 2) Prepare request (server endpoint + payload)
     const url = "../../controller/dot63/requests_63_api.php";
-    const data = {
-      action: "get_preview_product_details",
-      sku: sku
-    };
+    const data = { action: "get_preview_product_details", sku };
 
-    // 3) Make the request
     fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -71,38 +65,36 @@ class PreviewLogic {
       .then(text => {
         let json;
 
-      
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          console.error("Invalid JSON:", e, text);
+          return;
+        }
 
-        // Tu respuesta es un ARRAY con objetos y un null en medio.
-        // Buscamos el objeto que tenga "product_details"
         const productBlock = Array.isArray(json)
           ? json.find(item => item && item.product_details)
           : null;
 
-        if (!productBlock || !productBlock.product_details) {
+        if (!productBlock?.product_details) {
           console.warn("No product_details found in response:", json);
           return;
         }
 
         const productDetails = productBlock.product_details;
 
-        // Captura en variables separadas
         const product_name = productDetails.product_name ?? "";
         const description = productDetails.description ?? "";
         const descriptive_tagline = productDetails.descriptive_tagline ?? "";
 
-        /*const sp_title = document.getElementById("sp-title");
+        // ===== Pintar en el DOM =====
+        const sp_title = document.getElementById("sp-title");
         const sp_subtitle = document.getElementById("sp_subtitle");
-        const sp_desc = document.getElementById("sp_desc");*/
+        const sp_desc = document.getElementById("sp_desc");
 
-
-
-        // Mostrar en alert
-        alert(
-          `Product name: ${product_name}\n` +
-          `Description: ${description}\n` +
-          `Descriptive tagline: ${descriptive_tagline}`
-        );
+        if (sp_title) sp_title.textContent = product_name || "-";
+        if (sp_subtitle) sp_subtitle.textContent = descriptive_tagline || "-";
+        if (sp_desc) sp_desc.textContent = description || "-";
       })
       .catch(error => {
         console.error("Error fetching preview:", error);
