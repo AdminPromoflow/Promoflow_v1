@@ -97,9 +97,9 @@ class PreviewLogic {
         const description = productDetails.description ?? "";
         const descriptive_tagline = productDetails.descriptive_tagline ?? "";
 
-        const sp_title = document.getElementById("sp-title");
+        /*const sp_title = document.getElementById("sp-title");
         const sp_subtitle = document.getElementById("sp_subtitle");
-        const sp_desc = document.getElementById("sp_desc");
+        const sp_desc = document.getElementById("sp_desc");*/
 
 
 
