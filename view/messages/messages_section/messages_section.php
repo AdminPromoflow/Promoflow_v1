@@ -26,7 +26,7 @@
 
       <a class="msg-folder" href="#">
         <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">W3P Supplier </span>
+        <span class="msg-folder-name">W3P Supplier</span>
         <span class="msg-count">3</span>
       </a>
 
@@ -47,8 +47,6 @@
         <span class="msg-folder-name">Ullman Sails</span>
         <span class="msg-count">0</span>
       </a>
-
-
     </nav>
 
   </aside>
@@ -65,18 +63,13 @@
     </header>
 
     <!-- =========================
-         READER (now occupies full space)
-         msg-list removed
+         READER (full space)
     ========================== -->
     <section class="msg-reader" aria-label="Messages">
 
-    
-
-      <!-- msg-reader-body: no platform/supplier cards -->
       <div class="msg-reader-body">
 
-
-        <!-- Selected message preview (simple, no buttons, no info cards) -->
+        <!-- Selected message preview (full width) -->
         <div class="msg-preview" aria-label="Selected message">
           <div class="msg-preview-head">
             <h3>Approval request: SKU PRD-20251211</h3>
@@ -93,6 +86,12 @@
           </div>
         </div>
 
+        <!-- Message input + Send -->
+        <div class="msg-inputbar" aria-label="Write message">
+          <input class="msg-input" type="text" placeholder="Write a message…">
+          <button class="msg-btn msg-btn-primary" type="button">Send</button>
+        </div>
+
       </div>
 
     </section>
@@ -100,9 +99,12 @@
   </div>
 
 
-  <!-- Compose modal (UI only) -->
+  <!-- =========================
+       COMPOSE MODAL (UI only)
+  ========================== -->
   <div class="msg-modal" role="dialog" aria-modal="true" aria-label="Compose message">
     <div class="msg-modal-card">
+
       <div class="msg-modal-header">
         <h3>New message</h3>
         <button class="msg-btn msg-btn-ghost" type="button" aria-label="Close">✕</button>
@@ -129,9 +131,11 @@
         <button class="msg-btn msg-btn-ghost" type="button">Save draft</button>
         <button class="msg-btn msg-btn-primary" type="button">Send</button>
       </div>
+
     </div>
   </div>
 
 </section>
+
 
 <script src="../../view/messages/messages_section/messages_section.js?v=<?= file_exists('../../view/messages/messages_section/messages_section.js') ? filemtime('../../view/messages/messages_section/messages_section.js') : time() ?>" defer></script>
