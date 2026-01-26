@@ -31,7 +31,7 @@ class Resques63API{
 
     $payload = [
       "action" => "approve_product",
-      "sku" => $data[sku]
+      "sku" => $data["sku"]
     ];
 
     $ch = curl_init($url);
