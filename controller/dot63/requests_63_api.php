@@ -26,7 +26,7 @@ class Resques63API{
   }
 
 
-  private function approveProduct(){
+  private function approveProduct($data){
     $url = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
 
     $payload = [
