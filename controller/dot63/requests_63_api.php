@@ -10,17 +10,49 @@ class Resques63API{
         $this->getAPIOverviewData();
         break;
 
-        case 'get_preview_product_details':
-          $this->getPreviewProductDetails($data);
+      case 'get_preview_product_details':
+        $this->getPreviewProductDetails($data);
+        break;
+
+        case 'approve_product':
+          $this->approveProduct($data);
           break;
-
-
       default:
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['response' => false, 'error' => 'Unsupported action']);
         break;
     }
 
+  }
+
+
+  private function approveProduct(){
+    $url = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
+
+    $payload = [
+      "action" => "approve_product",
+      "sku" => $data[sku]
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_POST => true,
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json; charset=utf-8',
+      ],
+      CURLOPT_POSTFIELDS => json_encode($payload),
+      CURLOPT_TIMEOUT => 20,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    curl_close($ch);
+
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo $response;
   }
 
   private function getAPIOverviewData(){

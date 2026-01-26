@@ -22,11 +22,56 @@ class PreviewLogic {
     const btn_publish = document.getElementById("btn_publish");
 
     btn_publish.addEventListener("click", function(){
-      alert("Buenas");
+      previewLogic.approveProduct();
     })
 
     this.getDataProduct();
     // this.getDataProduct();
+  }
+
+  approveProduct(){
+    // 1) Get SKU from the URL query string
+    const params = new URLSearchParams(window.location.search);
+    const sku = params.get("sku");
+
+    //alert(sku);
+
+    if (!sku) {
+      console.warn("No SKU in URL");
+      return;
+    }
+
+    // 2) Prepare request (server endpoint + payload)
+    const url = "../../controller/dot63/requests_63_api.php";
+    const data = {
+      action: "approve_product",
+      sku: sku
+    };
+
+    // 3) Make the request
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+      .then(response => {
+        // Network-level validation
+        if (!response.ok) {
+          throw new Error("Network error.");
+        }
+        return response.text();
+      })
+      .then(text => {
+        alert(text);
+        let json;
+
+          json = JSON.parse(text);
+
+      })
+      .catch(error => {
+        console.error("Error fetching preview:", error);
+        alert("Error loading preview data.");
+      });
   }
 
   getDataProduct() {
