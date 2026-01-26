@@ -70,13 +70,7 @@
     ========================== -->
     <section class="msg-reader" aria-label="Messages">
 
-      <!-- msg-reader-header: no buttons -->
-      <div class="msg-reader-header">
-        <div class="msg-reader-title">
-          <h2>Messages</h2>
-          <p class="msg-muted">Listed individually (no grouping)</p>
-        </div>
-      </div>
+    
 
       <!-- msg-reader-body: no platform/supplier cards -->
       <div class="msg-reader-body">
