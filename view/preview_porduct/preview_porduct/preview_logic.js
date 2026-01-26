@@ -13,93 +13,91 @@
  */
 class PreviewLogic {
   constructor() {
-    /**
-     * Gallery state (thumbs + main image)
-     */
+
     this.currentImages = [];
     this.currentImageIndex = 0;
 
-    /**
-     * Variation cache used by selectVariation()
-     * (Populated in drawVariationsFirstLevel)
-     */
-    // this.variationsFirstLevel will be initialised lazily
 
-    /**
-     * Load preview data immediately (SKU comes from URL)
-     * Note: getDataProduct() exists as an alternative flow (currently not called here).
-     */
-    this.getDetailsVariationByskuVariation();
+
+    const btn_publish = document.getElementById("btn_publish");
+
+    btn_publish.addEventListener("click", function(){
+      alert("Buenas");
+    })
+
+    this.getDataProduct();
     // this.getDataProduct();
   }
 
-  /*
-  sp-title
-  sp_subtitle
-  sp_desc
-
-
-  */
-
-  getDetailsVariationByskuVariation() {
+  getDataProduct() {
+    // 1) Get SKU from the URL query string
     const params = new URLSearchParams(window.location.search);
     const sku = params.get("sku");
+
+    //alert(sku);
 
     if (!sku) {
       console.warn("No SKU in URL");
       return;
     }
 
-    const url = "../../controller/dot63/requests_63_api.php";
-    const data = { action: "get_preview_product_details", sku };
+    // 2) Prepare request (server endpoint + payload)
+    const url = "../../controller/order/product.php";
+    const data = {
+      action: "get_preview_product_details",
+      sku: sku
+    };
 
+    // 3) Make the request
     fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     })
       .then(response => {
-        if (!response.ok) throw new Error("Network error.");
+        // Network-level validation
+        if (!response.ok) {
+          throw new Error("Network error.");
+        }
         return response.text();
       })
       .then(text => {
+        //alert(text);
         let json;
 
-        try {
           json = JSON.parse(text);
-        } catch (e) {
-          console.error("Invalid JSON:", e, text);
-          return;
+
+        // Helper: find the first block containing a given key
+        const findBlock = (key) => json.find(obj => obj && obj[key]) || null;
+
+        // Extract blocks
+        const supplierBlock = findBlock("company_name");
+        const categoryBlock = findBlock("category_name");
+        const productBlock = findBlock("product_details");
+        const variationsBlock = findBlock("default_variation_sku");
+
+        // Clear variations section before rendering (if present)
+        const section_variations = document.getElementById("section_variations");
+        if (section_variations) {
+          section_variations.innerHTML = "";
         }
+        // Debug: inspect the variations payload
+      previewLogic.getDataVariationBySKU(variationsBlock.default_variation_sku)
 
-        const productBlock = Array.isArray(json)
-          ? json.find(item => item && item.product_details)
-          : null;
 
-        if (!productBlock?.product_details) {
-          console.warn("No product_details found in response:", json);
-          return;
-        }
+      this.drawHeaders(supplierBlock, categoryBlock, productBlock);
 
-        const productDetails = productBlock.product_details;
+      this.drawProductDetails(productBlock);
 
-        const product_name = productDetails.product_name ?? "";
-        const description = productDetails.description ?? "";
-        const descriptive_tagline = productDetails.descriptive_tagline ?? "";
 
-        // ===== Pintar en el DOM =====
-        const sp_title = document.getElementById("sp-title");
-        const sp_subtitle = document.getElementById("sp_subtitle");
-        const sp_desc = document.getElementById("sp_desc");
-
-        if (sp_title) sp_title.textContent = product_name || "-";
-        if (sp_subtitle) sp_subtitle.textContent = descriptive_tagline || "-";
-        if (sp_desc) sp_desc.textContent = description || "-";
       })
       .catch(error => {
         console.error("Error fetching preview:", error);
+        alert("Error loading preview data.");
       });
   }
+
+
 
   getDataVariationBySKU(sku_variation){
 
@@ -128,144 +126,18 @@ class PreviewLogic {
         return response.text();
       })
       .then(text => {
-        //alert(text);
+        alert("Buenas" + text);
         let json;
 
-        // 4) Parse JSON with error handling
-        try {
           json = JSON.parse(text);
-        } catch (e) {
-          console.error("Invalid JSON:", e, text);
-          return;
-        }
-
-        if (!Array.isArray(json)) {
-          console.error("Unexpected JSON format:", json);
-          return;
-        }
-
       })
       .catch(error => {
         console.error("Error fetching preview:", error);
-      //  alert("Error loading preview data.");
+        alert("Error loading preview data.");
       });
   }
-  getDataProduct() {
-    // 1) Get SKU from the URL query string
-    const params = new URLSearchParams(window.location.search);
-    const sku = params.get("sku");
 
-    //alert(sku);
 
-    if (!sku) {
-      console.warn("No SKU in URL");
-      return;
-    }
-
-    // 2) Prepare request (server endpoint + payload)
-    const url = "../../controller/order/product.php";
-    const data = {
-      action: "get_preview_product_details",
-      sku: sku
-    };
-
-    // 3) Make the request
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Network error.");
-        }
-        return response.text();
-      })
-      .then(text => {
-      //  alert(text);
-        let json;
-
-        // 4) Parse JSON with error handling
-        try {
-          json = JSON.parse(text);
-        } catch (e) {
-          console.error("Invalid JSON:", e, text);
-          return;
-        }
-
-        if (!Array.isArray(json)) {
-          console.error("Unexpected JSON format:", json);
-          return;
-        }
-
-        // Helper: find the first block containing a given key
-        const findBlock = (key) => json.find(obj => obj && obj[key]) || null;
-
-        const supplierBlock = findBlock("company_name");
-        const categoryBlock = findBlock("category_name");
-        const productBlock = findBlock("product_details");
-        const variationsBlock = findBlock("Variations");
-
-        // Clear variations section before rendering (if present)
-        const section_variations = document.getElementById("section_variations");
-        if (section_variations) {
-          section_variations.innerHTML = "";
-        }
-
-        // Debug: inspect the variations payload
-      //  alert(JSON.stringify(variationsBlock));
-
-        // alert(JSON.stringify(variationsBlock.Variations.Default));
-
-        /**
-         * Group variations (Default) by "group"
-         */
-        const list = variationsBlock?.Variations?.Default ?? [];
-
-        // Unique group names (fallback to UNGROUPED)
-        const groupNames = [...new Set(list.map(v => (v?.group || "UNGROUPED").trim()))];
-
-        // [{ group: "WIDTH", items: [...] }, ...]
-        let detailsByGroup = [];
-
-        // 1) Initialise container for each group
-        for (let j = 0; j < groupNames.length; j++) {
-          detailsByGroup.push({
-            group: groupNames[j],
-            items: []
-          });
-        }
-
-        // 2) Assign each variation to its matching group
-        for (let i = 0; i < list.length; i++) {
-          const v = list[i];
-          const g = (v?.group || "UNGROUPED").trim();
-
-          const index = detailsByGroup.findIndex(x => x.group === g);
-
-          if (index !== -1) {
-            detailsByGroup[index].items.push(v);
-          }
-        }
-
-        // 5) Render header + product details
-        this.drawHeaders(supplierBlock, categoryBlock, productBlock);
-        this.drawProductDetails(productBlock);
-
-        // 6) Render each first-level variation group
-        for (let k = 0; k < detailsByGroup.length; k++) {
-          this.drawVariationsFirstLevel(groupNames[k], detailsByGroup[k].items);
-
-          // alert(JSON.stringify(detailsByGroup[k].items + " " + groupNames[k]));
-        }
-
-        ;
-      })
-      .catch(error => {
-        console.error("Error fetching preview:", error);
-      //  alert("Error loading preview data.");
-      });
-  }
 
   /**
    * Render product title/tagline/description
@@ -343,69 +215,7 @@ class PreviewLogic {
     brandEl.textContent = supplierBlock.company_name;
   }
 
-  /**
-   * Draw first-level variations (e.g. WIDTH) into #section_variations
-   * variationsBlock is the array of variations for the given group.
-   */
-  drawVariationsFirstLevel(group, variationsBlock, selectedIndex = 0) {
-    // alert(JSON.stringify(variationsBlock))
 
-    const section = document.getElementById("section_variations");
-    if (!section) return;
-
-    /**
-     * Keep a flat cache of all first-level variations so selectVariation()
-     * can find the selected variation by ID later.
-     * Important: we remove any previous entries for this group, then append the new ones.
-     */
-    if (!Array.isArray(this.variationsFirstLevel)) this.variationsFirstLevel = [];
-    this.variationsFirstLevel = this.variationsFirstLevel
-      .filter(v => v?.group !== group)
-      .concat(variationsBlock || []);
-
-    const labelId = `var_label_size_${group}`;
-    const idGroup = `sp_var_group_size_${group}`;
-
-    // Append group container (do not overwrite other groups)
-    section.innerHTML += `<div class="var-group" aria-labelledby="${labelId}">
-        <div  class="var-label">
-          <span class="var-name">${group}</span>
-          <strong id="${labelId}">${variationsBlock?.[selectedIndex]?.name ?? ""}</strong>
-        </div>
-
-        <div class="var-options" id="${idGroup}">
-        </div>
-      </div>`;
-
-    const sectionGroup = document.getElementById(idGroup);
-    if (!sectionGroup) return;
-
-    var imageButton = '';
-
-    // Encode variationsBlock safely for inline onclick usage
-    const vbEnc = encodeURIComponent(JSON.stringify(variationsBlock || []));
-
-    // Render each option button
-    for (var i = 0; i < variationsBlock.length; i++) {
-      imageButton = variationsBlock[i]?.details?.image
-        ? `src=../../${variationsBlock[i].details.image}`
-        : '';
-
-      const selectedClass = i === selectedIndex ? " is-selected" : "";
-
-      sectionGroup.innerHTML += `
-          <button id="${variationsBlock[i].variation_id}"
-            onclick="previewLogic.selectVariation('${variationsBlock[i].variation_id}', 'button_variation_${group}', ${i}, '${vbEnc}')"
-            type="button"
-            class="var-option js-scale-in button_variation_${group}${selectedClass}">
-            <img class="var-thumb"
-                 ${imageButton}
-                 alt="Slim lanyard sample">
-            <span class="opt-main">${variationsBlock[i].name}</span>
-          </button>
-        `;
-    }
-  }
 
   /**
    * Handle a variation selection:
@@ -657,3 +467,191 @@ class PreviewLogic {
 
 // Single instance (global usage for inline onclick handlers)
 const previewLogic = new PreviewLogic();
+// getDataProduct() {
+//   // 1) Get SKU from the URL query string
+//   const params = new URLSearchParams(window.location.search);
+//   const sku = params.get("sku");
+//
+//   //alert(sku);
+//
+//   if (!sku) {
+//     console.warn("No SKU in URL");
+//     return;
+//   }
+//
+//   // 2) Prepare request (server endpoint + payload)
+//   const url = "../../controller/order/product.php";
+//   const data = {
+//     action: "get_preview_product_details",
+//     sku: sku
+//   };
+//
+//   // 3) Make the request
+//   fetch(url, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify(data)
+//   })
+//     .then(response => {
+//       if (!response.ok) {
+//         throw new Error("Network error.");
+//       }
+//       return response.text();
+//     })
+//     .then(text => {
+//
+//       alert("raro" + text);
+//       let json;
+//
+//       // 4) Parse JSON with error handling
+//       try {
+//         json = JSON.parse(text);
+//       } catch (e) {
+//         console.error("Invalid JSON:", e, text);
+//         return;
+//       }
+//
+//       if (!Array.isArray(json)) {
+//         console.error("Unexpected JSON format:", json);
+//         return;
+//       }
+//
+//       // Helper: find the first block containing a given key
+//       const findBlock = (key) => json.find(obj => obj && obj[key]) || null;
+//
+//       const supplierBlock = findBlock("company_name");
+//       const categoryBlock = findBlock("category_name");
+//       const productBlock = findBlock("product_details");
+//       const variationsBlock = findBlock("Variations");
+//
+//       // Clear variations section before rendering (if present)
+//       const section_variations = document.getElementById("section_variations");
+//       if (section_variations) {
+//         section_variations.innerHTML = "";
+//       }
+//
+//       // Debug: inspect the variations payload
+//     //  alert(JSON.stringify(variationsBlock));
+//
+//       // alert(JSON.stringify(variationsBlock.Variations.Default));
+//
+//       /**
+//        * Group variations (Default) by "group"
+//        */
+//       const list = variationsBlock?.Variations?.Default ?? [];
+//
+//       // Unique group names (fallback to UNGROUPED)
+//       const groupNames = [...new Set(list.map(v => (v?.group || "UNGROUPED").trim()))];
+//
+//       // [{ group: "WIDTH", items: [...] }, ...]
+//       let detailsByGroup = [];
+//
+//       // 1) Initialise container for each group
+//       for (let j = 0; j < groupNames.length; j++) {
+//         detailsByGroup.push({
+//           group: groupNames[j],
+//           items: []
+//         });
+//       }
+//
+//       // 2) Assign each variation to its matching group
+//       for (let i = 0; i < list.length; i++) {
+//         const v = list[i];
+//         const g = (v?.group || "UNGROUPED").trim();
+//
+//         const index = detailsByGroup.findIndex(x => x.group === g);
+//
+//         if (index !== -1) {
+//           detailsByGroup[index].items.push(v);
+//         }
+//       }
+//
+//       // 5) Render header + product details
+//       this.drawHeaders(supplierBlock, categoryBlock, productBlock);
+//       this.drawProductDetails(productBlock);
+//
+//       // 6) Render each first-level variation group
+//       for (let k = 0; k < detailsByGroup.length; k++) {
+//         this.drawVariationsFirstLevel(groupNames[k], detailsByGroup[k].items);
+//
+//         // alert(JSON.stringify(detailsByGroup[k].items + " " + groupNames[k]));
+//       }
+//
+//       ;
+//     })
+//     .catch(error => {
+//       console.error("Error fetching preview:", error);
+//       alert("Error loading preview data.");
+//     });
+// }
+
+
+
+
+
+
+
+
+/**
+ * Draw first-level variations (e.g. WIDTH) into #section_variations
+ * variationsBlock is the array of variations for the given group.
+ */
+// drawVariationsFirstLevel(group, variationsBlock, selectedIndex = 0) {
+//   // alert(JSON.stringify(variationsBlock))
+//
+//   const section = document.getElementById("section_variations");
+//   if (!section) return;
+//
+//   /**
+//    * Keep a flat cache of all first-level variations so selectVariation()
+//    * can find the selected variation by ID later.
+//    * Important: we remove any previous entries for this group, then append the new ones.
+//    */
+//   if (!Array.isArray(this.variationsFirstLevel)) this.variationsFirstLevel = [];
+//   this.variationsFirstLevel = this.variationsFirstLevel
+//     .filter(v => v?.group !== group)
+//     .concat(variationsBlock || []);
+//
+//   const labelId = `var_label_size_${group}`;
+//   const idGroup = `sp_var_group_size_${group}`;
+//
+//   // Append group container (do not overwrite other groups)
+//   section.innerHTML += `<div class="var-group" aria-labelledby="${labelId}">
+//       <div  class="var-label">
+//         <span class="var-name">${group}</span>
+//         <strong id="${labelId}">${variationsBlock?.[selectedIndex]?.name ?? ""}</strong>
+//       </div>
+//
+//       <div class="var-options" id="${idGroup}">
+//       </div>
+//     </div>`;
+//
+//   const sectionGroup = document.getElementById(idGroup);
+//   if (!sectionGroup) return;
+//
+//   var imageButton = '';
+//
+//   // Encode variationsBlock safely for inline onclick usage
+//   const vbEnc = encodeURIComponent(JSON.stringify(variationsBlock || []));
+//
+//   // Render each option button
+//   for (var i = 0; i < variationsBlock.length; i++) {
+//     imageButton = variationsBlock[i]?.details?.image
+//       ? `src=../../${variationsBlock[i].details.image}`
+//       : '';
+//
+//     const selectedClass = i === selectedIndex ? " is-selected" : "";
+//
+//     sectionGroup.innerHTML += `
+//         <button id="${variationsBlock[i].variation_id}"
+//           onclick="previewLogic.selectVariation('${variationsBlock[i].variation_id}', 'button_variation_${group}', ${i}, '${vbEnc}')"
+//           type="button"
+//           class="var-option js-scale-in button_variation_${group}${selectedClass}">
+//           <img class="var-thumb"
+//                ${imageButton}
+//                alt="Slim lanyard sample">
+//           <span class="opt-main">${variationsBlock[i].name}</span>
+//         </button>
+//       `;
+//   }
+// }
