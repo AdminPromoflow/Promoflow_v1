@@ -391,8 +391,8 @@ $jsTime2 = @filemtime($jsPath2) ?: time();
     <!-- Volver a la edición -->
     <button type="button"
             class="btn btn-back-preview"
-            id="btn_back_edit">
-      Back to editing
+            id="btn_send_message">
+      Send a message
     </button>
 
     <!-- Publicar el producto -->

@@ -24,6 +24,13 @@ class PreviewLogic {
     btn_publish.addEventListener("click", function(){
       previewLogic.approveProduct();
     })
+    const btn_send_message = document.getElementById("btn_send_message");
+
+    btn_send_message.addEventListener("click", function(){
+      window.open('../../view/messages/index.php', '_self');
+    })
+
+
 
     this.getDataProduct();
     // this.getDataProduct();
