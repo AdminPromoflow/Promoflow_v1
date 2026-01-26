@@ -26,33 +26,29 @@
 
       <a class="msg-folder" href="#">
         <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Starred</span>
+        <span class="msg-folder-name">W3P Supplier </span>
         <span class="msg-count">3</span>
       </a>
 
       <a class="msg-folder" href="#">
         <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Sent</span>
+        <span class="msg-folder-name">Amazon Ops</span>
         <span class="msg-count">8</span>
       </a>
 
       <a class="msg-folder" href="#">
         <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Drafts</span>
+        <span class="msg-folder-name">.63 Team</span>
         <span class="msg-count">2</span>
       </a>
 
       <a class="msg-folder" href="#">
         <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Archive</span>
+        <span class="msg-folder-name">Ullman Sails</span>
         <span class="msg-count">0</span>
       </a>
 
-      <a class="msg-folder" href="#">
-        <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Trash</span>
-        <span class="msg-count">0</span>
-      </a>
+
     </nav>
 
   </aside>
@@ -72,112 +68,7 @@
          READER (now occupies full space)
          msg-list removed
     ========================== -->
-    <section class="msg-reader" aria-label="Messages">
-
-      <!-- msg-reader-header: no buttons -->
-      <div class="msg-reader-header">
-        <div class="msg-reader-title">
-          <h2>Messages</h2>
-          <p class="msg-muted">Listed individually (no grouping)</p>
-        </div>
-      </div>
-
-      <!-- msg-reader-body: no platform/supplier cards -->
-      <div class="msg-reader-body">
-
-        <!-- Inbox list (ungrouped) -->
-        <div class="msg-message-list" aria-label="Inbox list">
-
-          <article class="msg-message-item is-unread is-active" tabindex="0">
-            <div class="msg-message-left">
-              <div class="msg-avatar" aria-hidden="true">W</div>
-              <div class="msg-message-meta">
-                <div class="msg-message-row">
-                  <h3 class="msg-message-from">W3P Supplier A</h3>
-                  <span class="msg-message-time">10:24</span>
-                </div>
-                <p class="msg-message-subject">Approval request: SKU PRD-20251211</p>
-                <p class="msg-message-snippet">Hi team, please review the product details and confirm approval…</p>
-              </div>
-            </div>
-            <div class="msg-message-right">
-              <span class="msg-badge">Unread</span>
-            </div>
-          </article>
-
-          <article class="msg-message-item" tabindex="0">
-            <div class="msg-message-left">
-              <div class="msg-avatar" aria-hidden="true">A</div>
-              <div class="msg-message-meta">
-                <div class="msg-message-row">
-                  <h3 class="msg-message-from">Amazon Ops</h3>
-                  <span class="msg-message-time">Yesterday</span>
-                </div>
-                <p class="msg-message-subject">Order flagged: 112-9012345-6789012</p>
-                <p class="msg-message-snippet">The order is missing tracking information. Please update…</p>
-              </div>
-            </div>
-            <div class="msg-message-right">
-              <span class="msg-badge is-neutral">Open</span>
-            </div>
-          </article>
-
-          <article class="msg-message-item" tabindex="0">
-            <div class="msg-message-left">
-              <div class="msg-avatar" aria-hidden="true">.</div>
-              <div class="msg-message-meta">
-                <div class="msg-message-row">
-                  <h3 class="msg-message-from">.63 Team</h3>
-                  <span class="msg-message-time">Jan 10</span>
-                </div>
-                <p class="msg-message-subject">Supplier upload completed</p>
-                <p class="msg-message-snippet">We’ve finished the supplier import. Next: approvals workflow…</p>
-              </div>
-            </div>
-            <div class="msg-message-right">
-              <span class="msg-badge is-neutral">Read</span>
-            </div>
-          </article>
-
-          <article class="msg-message-item" tabindex="0">
-            <div class="msg-message-left">
-              <div class="msg-avatar" aria-hidden="true">U</div>
-              <div class="msg-message-meta">
-                <div class="msg-message-row">
-                  <h3 class="msg-message-from">Ullman Sails</h3>
-                  <span class="msg-message-time">Jan 08</span>
-                </div>
-                <p class="msg-message-subject">Copy adjustments</p>
-                <p class="msg-message-snippet">Could you keep the section titles slimmer than the main intro…</p>
-              </div>
-            </div>
-            <div class="msg-message-right">
-              <span class="msg-badge is-neutral">Read</span>
-            </div>
-          </article>
-
-        </div>
-
-        <!-- Selected message preview (simple, no buttons, no info cards) -->
-        <div class="msg-preview" aria-label="Selected message">
-          <div class="msg-preview-head">
-            <h3>Approval request: SKU PRD-20251211</h3>
-            <p class="msg-muted">From: W3P Supplier A • To: Operations • 10:24</p>
-          </div>
-
-          <div class="msg-preview-body">
-            <p>Hello team,</p>
-            <p>
-              Please review the product submission for <strong>SKU PRD-20251211</strong>.
-              The supplier has requested approval to proceed. Let us know if any changes are required.
-            </p>
-            <p>Thanks,<br>Supplier Team</p>
-          </div>
-        </div>
-
-      </div>
-
-    </section>
+    
 
   </div>
 
