@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="../../view/login/style.css?v=<?php echo filemtime("../../view/login/style.css"); ?>">
 </head>
 
-<body class="body_login">
+<body style="background: red" class="body_login">
   <?php include "../../view/login/header/header.php"; ?>
   <?php include "../../view/login/main/main.php";?>
 </body>
