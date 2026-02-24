@@ -10,7 +10,7 @@
     </header>
 
     <!-- =========================
-         TOP 3 CARDS
+         TOP CARDS (4)
     ========================== -->
     <div class="overview-cards-container">
 
@@ -65,20 +65,33 @@
         </div>
       </div>
 
+      <!-- User manager card (NEW) -->
+      <div class="overview-card user-manager-card">
+        <div class="overview-card-top">
+          <h2>User manager</h2>
+        </div>
+
+        <div class="overview-card-mid">
+          <h1 class="overview-card-number">—</h1>
+          <p>Manage users & access</p>
+        </div>
+
+        <div class="overview-card-actions">
+          <button type="button" data-go="user-manager">Open</button>
+          <button type="button" data-go="user-manager">Add user</button>
+        </div>
+      </div>
+
     </div>
 
     <!-- =========================
          DETAILS CONTAINER (tabs + table)
-         This area will change depending on selected card:
-         Messages / Approbals / Orders
     ========================== -->
     <div class="approvals-details-container">
 
-      <!-- Header inside details container -->
       <div class="details-header">
         <h2>Approbals</h2>
 
-        <!-- Company tabs container -->
         <div class="details-tabs">
           <div class="details-tab-item">
             <h4>W3P</h4>
@@ -112,7 +125,6 @@
         </div>
       </div>
 
-      <!-- Scroll container (table) -->
       <div class="details-table-scroll">
         <table>
           <thead>
@@ -127,37 +139,7 @@
             </tr>
           </thead>
 
-          <tbody id="table_overview_details">
-          <!--  <tr>
-              <td>1</td>
-              <td>2025-12-21</td>
-              <td>Category</td>
-              <td>W3P Supplier A</td>
-              <td>CAT-2002</td>
-              <td>Pending</td>
-              <td>Review</td>
-            </tr>
-
-            <tr>
-              <td>2</td>
-              <td>2025-12-20</td>
-              <td>Product Group</td>
-              <td>W3P Supplier B</td>
-              <td>GRP-3110</td>
-              <td>Pending</td>
-              <td>Review</td>
-            </tr>
-
-            <tr>
-              <td>3</td>
-              <td>2025-12-19</td>
-              <td>Product Launch</td>
-              <td>.63 Supplier</td>
-              <td>PRD-20251211</td>
-              <td>Ready</td>
-              <td>Launch</td>
-            </tr>-->
-          </tbody>
+          <tbody id="table_overview_details"></tbody>
         </table>
       </div>
 

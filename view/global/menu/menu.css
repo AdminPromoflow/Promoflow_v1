@@ -1,5 +1,6 @@
 /* ===== HEADER PRINCIPAL ===== */
 .header_menu {
+
   position: sticky;
   top: 0px;
   margin-bottom: 1rem;
@@ -81,9 +82,14 @@
   text-align: center;
   display: none;
   color: #fffd;
-  display: flex;
+  display: none;
   align-items: center;
   flex-direction: column;
+
+}
+.movil_menu li a{
+  color: lightgrey;
+  text-decoration: none;
 }
 .movil_menu li:nth-child(1){
   background: linear-gradient(
@@ -163,7 +169,8 @@
   top: 2rem;
   right: 2rem;
   width: 80%;
-  height: 500px;
+  max-height: 200px;
+  padding: 20px 0;
   background-color: rgba(47, 69, 96, 0.97);
   border-radius: 5px;
 

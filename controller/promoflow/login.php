@@ -25,24 +25,17 @@ class LoginClass {
     private function login($input) {
 
 
-
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
-
         // initialize connection and model
-        $connection = new Database();
-        $modelUser  = new UserModelPromoflow($connection);
+      $connection = new Database();
+      $modelUser  = new Users($connection);
 
+      $modelUser->setEmail($email);
+      $modelUser->setPassword($password);
 
-
-        // set credentials
-        $modelUser->setEmail($email);
-        $modelUser->setPassword($password);
-
-        // check login
-        $isLogged = $modelUser->loginUser();
-
+      $isLogged = $modelUser->loginUser();
 
         if ($isLogged) {
             // start session if not already started

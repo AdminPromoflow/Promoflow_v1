@@ -1,71 +1,170 @@
 <?php
-// Get the last modified time of the CSS and JS files to force cache refresh when files are updated
-$cssTime = filemtime('../../view/user_manager/user_manager/user_manager.css');
-$jsTime = filemtime('../../view/user_manager/user_manager/user_manager.js');
+$cssHref      = '../../view/user_manager/user_manager/user_manager.css';
+$jsStoreHref  = '../../view/user_manager/user_manager/user_manager_logic.js';
+$jsUIHref     = '../../view/user_manager/user_manager/user_manager.js';
+
+$cssFile      = __DIR__ . '/../../view/user_manager/user_manager/user_manager.css';
+$jsStoreFile  = __DIR__ . '/../../view/user_manager/user_manager/user_manager_logic.js';
+$jsUIFile     = __DIR__ . '/../../view/user_manager/user_manager/user_manager.js';
+
+$cssTime      = file_exists($cssFile) ? filemtime($cssFile) : time();
+$jsStoreTime  = file_exists($jsStoreFile) ? filemtime($jsStoreFile) : time();
+$jsUITime     = file_exists($jsUIFile) ? filemtime($jsUIFile) : time();
 ?>
-<!-- Link to stylesheet with versioning to prevent caching issues -->
-<link rel="stylesheet" href="../../view/user_manager/user_manager/user_manager.css?v=<?= $cssTime ?>">
 
-<section class="container_user_manager">
-  <!-- Left container: user list and search bar -->
-  <div class="container_user">
-    <div class="header_user">
-      <h3>Users</h3>
-      <div class="box_user_manager">
-        <!-- Input field for searching users -->
-        <input type="text" name="Search" placeholder="Search user...">
-        <!-- Icon for search (magnifying glass) -->
-        <div class="header_user_img"></div>
+<link rel="stylesheet" href="<?= $cssHref ?>?v=<?= $cssTime ?>">
+
+<section class="um" data-um-root>
+  <div class="um-layout">
+
+    <!-- LEFT -->
+    <div class="um-panel um-panel-scroll">
+      <div class="um-header">
+        <div>
+          <h3 class="um-header__title">Users</h3>
+          <p class="um-header__sub">Select a user to view details.</p>
+        </div>
+
+        <div class="um-search">
+          <input data-um="search" type="search" placeholder="Search user..." autocomplete="off">
+          <div class="um-search__icon" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="um-grid">
+        <div class="um-grid__head">
+          <div class="um-grid__th">Full Name</div>
+          <div class="um-grid__th">Access</div>
+          <div class="um-grid__th">Email Address</div>
+        </div>
+
+        <div class="um-grid__body" data-um="grid" aria-label="Users list">
+          <!-- rows by JS -->
+        </div>
       </div>
     </div>
 
-    <!-- Grid to display list of users -->
-    <div class="user_data_grid" id="userGrid">
-      <div class="grid_header">Full Name</div>
-      <div class="grid_header">Role</div>
-      <div class="grid_header">Email Address</div>
-      <!-- User rows will be added here dynamically via JavaScript -->
-    </div>
-  </div>
+    <!-- RIGHT -->
+    <div class="um-panel um-panel--details is-empty" data-um="details">
+      <div class="um-details__top">
+        <h2 class="um-details__title">User Details</h2>
+        <div class="um-badges">
+          <span class="um-badge" data-um="badge-status">—</span>
+          <span class="um-badge" data-um="badge-access">—</span>
+        </div>
+      </div>
 
-  <!-- Right container: detailed information of selected user -->
-  <div id="user_details_container" class="container_user_information" style="display: ;">
-    <h2>User Details</h2>
+      <div class="um-profile">
+        <div class="um-profile__avatar" data-um="detail-avatar" aria-hidden="true"></div>
+        <div class="um-profile__name" data-um="detail-name">Select a user</div>
+        <div class="um-profile__email" data-um="detail-email-small">Click on a row to load details.</div>
+      </div>
 
-    <!-- Placeholder for user image -->
-    <div class="container_user_information_img"></div>
+      <div class="um-cards">
+        
+        <div class="um-card">
+          <div class="um-card__icon">📧</div>
+          <div class="um-card__text">
+            <h3>Email Address</h3>
+            <p data-um="detail-email">—</p>
+          </div>
+        </div>
 
-    <!-- User full name -->
-    <div id="user_fullname" class="user_name">Pepito perez</div>
+        <div class="um-card">
+          <div class="um-card__icon">🔑</div>
+          <div class="um-card__text">
+            <h3>Access</h3>
+            <p data-um="detail-roles">—</p>
+          </div>
+        </div>
 
-    <!-- Email information card -->
-    <div class="info_card">
-      <div class="icon">📧</div>
-      <div class="text">
-        <h3>Email Address</h3>
-        <p id="user_email">example@email.com</p>
+      </div>
+
+      <div class="um-actions">
+        <button type="button" class="um-btn" data-um="btn-edit" id="edit" disabled>Edit</button>
+        <button type="button" class="um-btn um-btn--ghost" data-um="btn-toggle" id="toggle" disabled>Disable</button>
+        <button type="button" class="um-btn um-btn--danger" data-um="btn-delete" id="delete" disabled>Delete user</button>
       </div>
     </div>
 
-    <!-- Last visit information card -->
-    <div class="info_card">
-      <div class="icon">⏰</div>
-      <div class="text">
-        <h3>Last Visit</h3>
-        <p id="user_last_visit">29 July 2025 – 14:22</p>
-      </div>
-    </div>
+    <!-- ADD (FULL WIDTH) -->
+    <section class="um-panel um-panel--add" data-um="add-section" aria-label="Add user section">
+      <header class="um-add__header">
+        <h3 data-um="add-title">Add user</h3>
+        <p data-um="add-desc">Create a new user and assign platform access.</p>
+      </header>
 
-    <!-- Role information card -->
-    <div class="info_card">
-      <div class="icon">🛡️</div>
-      <div class="text">
-        <h3>Role(s)</h3>
-        <p id="user_role">Administrator</p>
-      </div>
-    </div>
+      <form class="um-form" data-um="form" novalidate>
+        <input type="hidden" name="id" data-um="field-id" id="user_id" value="">
+
+        <label class="um-field">
+          <span>Full name</span>
+          <input type="text" name="name" data-um="field-name" id="name" placeholder="e.g. Pepito Pérez" required>
+        </label>
+
+        <label class="um-field">
+          <span>Email</span>
+          <input type="email" name="email" data-um="field-email" id="email" placeholder="e.g. pepito@company.com" required>
+        </label>
+
+        <label class="um-field">
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            data-um="field-password"
+            id="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          >
+        </label>
+
+        <!-- <label class="um-field">
+          <span>Status</span>
+          <select name="status" data-um="field-status" id="status" required>
+            <option value="active">Active</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </label> -->
+
+        <div class="um-field um-field--full">
+          <span>Access (roles)</span>
+
+          <div class="um-roles" role="group" aria-label="Access roles">
+            <label class="um-role"><input type="checkbox" name="roles[]" value="Ullman Sails"><span>Ullman Sails</span></label>
+            <label class="um-role"><input type="checkbox" name="roles[]" value="W3P"><span>W3P</span></label>
+            <label class="um-role"><input type="checkbox" name="roles[]" value="Amazon"><span>Amazon</span></label>
+            <label class="um-role"><input type="checkbox" name="roles[]" value="eBay"><span>eBay</span></label>
+            <label class="um-role"><input type="checkbox" name="roles[]" value=".63"><span>.63</span></label>
+            <label class="um-role"><input type="checkbox" name="roles[]" value="Hello Print"><span>Hello Print</span></label>
+            <label class="um-role um-role--admin"><input type="checkbox" name="roles[]" value="Admin"><span>Admin (all access)</span></label>
+          </div>
+
+          <div class="um-roles-hint" data-um="roles-hint" aria-live="polite"></div>
+        </div>
+
+        <!-- <label class="um-field um-field--full um-field--file">
+          <span>Avatar image (optional)</span>
+
+          <input type="file" name="avatar" accept="image/*" data-um="field-avatar" id="avatar">
+
+          <div class="um-file" aria-hidden="true">
+            <span class="um-file__btn">Choose file</span>
+            <span class="um-file__name" data-um="file-name">No file chosen</span>
+          </div>
+        </label> -->
+
+        <div class="um-form__actions">
+          <button type="reset" class="um-btn um-btn--ghost">Clear</button>
+          <button type="submit" class="um-btn" data-um="btn-submit" id="create">Create user</button>
+        </div>
+      </form>
+    </section>
+
   </div>
 </section>
 
-<!-- Link to JavaScript file (dynamic loading and events) -->
-<script src="../../view/order/user_manager/user_manager.js?v=<?= $jsTime ?>" type="text/javascript"></script>
+
+
+<script src="<?= $jsStoreHref ?>?v=<?= $jsStoreTime ?>" defer></script>
+<script src="<?= $jsUIHref ?>?v=<?= $jsUITime ?>" defer></script>

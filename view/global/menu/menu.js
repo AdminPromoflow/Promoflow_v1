@@ -1,11 +1,18 @@
 class Menu {
   constructor() {
-    // call checkSession automatically on class instantiation
-  //  this.checkSession();
+    this.toggle = document.getElementById("toggle-menu");
+    this.logoutLi = document.getElementById("logout");
+    this.logoutLink = this.logoutLi ? this.logoutLi.querySelector("a") : null;
 
-    logout.addEventListener("click", function(){
-      menu.logout();
-    });
+    // call checkSession automatically on class instantiation
+    this.checkSession();
+
+    if (this.logoutLink) {
+      this.logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.logout();
+      });
+    }
   }
 
   // check if the session is active
@@ -13,17 +20,16 @@ class Menu {
     fetch("../../controller/promoflow/session.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "check" })
+      body: JSON.stringify({ action: "check" }),
     })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === "success") {
-        } else {
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status !== "success") {
           window.location.href = "../../view/login/index.php";
         }
       })
-      .catch(error => {
-        console.log("Error checking session: " + error);
+      .catch((error) => {
+        console.log("Error checking session:", error);
       });
   }
 
@@ -32,23 +38,22 @@ class Menu {
     fetch("../../controller/promoflow/session.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "off" })
+      body: JSON.stringify({ action: "off" }),
     })
-      .then(response => response.json())
-      .then(data => {
-      //  alert(JSON.stringify(data));
+      .then((response) => response.json())
+      .then((data) => {
         if (data.status === "success") {
-        //  alert("Session closed successfully 🚪 — redirecting...");
+          // close menu if open
+          if (this.toggle) this.toggle.checked = false;
+
           window.location.href = "../../view/login/index.php";
-        } else {
-        //  alert("No active session to close ❌");
         }
       })
-      .catch(error => {
-        //alert("Error during logout: " + error);
+      .catch((error) => {
+        console.log("Error during logout:", error);
       });
   }
 }
-const logout = document.getElementById("logout");
-// instantiate class on page load
+
+// instantiate class on page load (script is defer)
 const menu = new Menu();

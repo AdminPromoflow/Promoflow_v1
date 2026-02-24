@@ -2,15 +2,24 @@ class SectionOverview {
   constructor() {
     this.tableOverviewDetails = document.getElementById("table_overview_details");
 
-    // Event delegation: un solo listener para todos los "Review"
-    this.tableOverviewDetails.addEventListener("click", (e) => {
-      const cell = e.target.closest(".link_review");
-      if (!cell) return;
+    if (this.tableOverviewDetails) {
+      // Event delegation: un solo listener para todos los "Review"
+      this.tableOverviewDetails.addEventListener("click", (e) => {
+        const cell = e.target.closest(".link_review");
+        if (!cell) return;
 
-      const sku = cell.dataset.sku || "";
-      const skuVariation = cell.dataset.skuVariation || "";
+        const sku = cell.dataset.sku || "";
+        const skuVariation = cell.dataset.skuVariation || "";
 
-      this.reviewProduct(sku, skuVariation);
+        this.reviewProduct(sku, skuVariation);
+      });
+    }
+
+    // ✅ Botones del card "User manager"
+    document.querySelectorAll('[data-go="user-manager"]').forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.location.href = "../../view/user_manager/user_manager/index.php";
+      });
     });
 
     this.getOverviewData();
@@ -38,19 +47,18 @@ class SectionOverview {
   }
 
   renderOverviewDetailsTable(data) {
+    if (!this.tableOverviewDetails) return;
     this.tableOverviewDetails.innerHTML = "";
 
     for (let i = 0; i < data.length; i++) {
       const index = i + 1;
 
       const dateRaw = data[i]["date_status"];
-      const date =
-        dateRaw === null || dateRaw === undefined || dateRaw === "" ? "-" : dateRaw;
+      const date = (dateRaw === null || dateRaw === undefined || dateRaw === "") ? "-" : dateRaw;
 
       const supplier = data[i]["supplier"]?.["company_name"] ?? "-";
       const name = data[i]["name"] ?? "";
-      const status =
-        parseInt(data[i]["is_approved"], 10) === 0 ? "Pending" : "Approved";
+      const status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending" : "Approved";
 
       const sku = data[i]["SKU"] ?? "";
       const skuVariation = data[i]["sku_variations"] ?? "";

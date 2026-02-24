@@ -5,7 +5,7 @@ class ClassLogin {
     })
   }
   requestLogin() {
-    const url = "../../controller/promoflow/login.php";
+    const url = "../../controller/promoflow/user.php";
     const data = {
       action: "requestLogin",
       email: email.value,
@@ -26,9 +26,10 @@ class ClassLogin {
         throw new Error("Network error.");
       })
       .then(result => {
+      //  alert(result);
         if (result.status === "success") {
           // redirect if login success
-          window.location.href = "../../view/directory/index.php";
+          window.location.href = "../../view/overview/index.php";
         } else {
           // show alert if login failed
           alert("Your credentials are incorrect, please try again.");

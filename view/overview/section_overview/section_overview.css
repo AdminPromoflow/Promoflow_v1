@@ -29,6 +29,7 @@
 
   flex-wrap: nowrap;
 }
+
 .section-overview-responsive{
   position: relative;
   width: 100%;
@@ -58,15 +59,24 @@
   line-height: 1.45;
 }
 
-/* Cards row */
+/* =========================
+   TOP CARDS (NOW SHORTER)
+========================= */
 .overview-cards-container{
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
   margin-bottom: 18px;
 }
-@media (min-width: 900px){
-  .overview-cards-container{ grid-template-columns: repeat(3, 1fr); }
+
+/* 4 columnas en desktop */
+@media (min-width: 1100px){
+  .overview-cards-container{ grid-template-columns: repeat(4, 1fr); }
+}
+
+/* 2 columnas en tablet */
+@media (min-width: 900px) and (max-width: 1099px){
+  .overview-cards-container{ grid-template-columns: repeat(2, 1fr); }
 }
 
 .overview-card{
@@ -74,8 +84,10 @@
   border: 1px solid var(--ov-border);
   border-radius: var(--ov-radius);
   box-shadow: var(--ov-shadow);
-  padding: 18px 20px;
-  min-height: 260px;
+
+  /* ✅ más cortos */
+  padding: 14px 16px;
+  min-height: 170px;
 
   display: flex;
   flex-direction: column;
@@ -83,28 +95,29 @@
   gap: 10px;
 }
 
-/* Top title with spacing */
+/* Top title */
 .overview-card-top h2{
   margin: 0;
   color: var(--ov-text);
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 740;
 }
 
 /* Middle number */
 .overview-card-mid{
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .overview-card-number{
   margin: 0;
-  font-size: 3.2rem;
+  font-size: 2.6rem; /* ✅ menos grande */
   color: rgba(255,255,255,.95);
-  font-weight: 800;
+  font-weight: 820;
   line-height: 1;
 }
 .overview-card-mid p{
-  margin: 10px 0 0 0;
+  margin: 8px 0 0 0;
   color: var(--ov-muted);
+  font-size: .98rem;
 }
 
 /* Actions */
@@ -118,12 +131,17 @@
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color: var(--ov-btnText);
-  padding: 10px 14px;
+  padding: 9px 12px; /* ✅ más compacto */
   border-radius: 12px;
   cursor: pointer;
   text-shadow: 1px 1px 0px rgba(28,48,74,.85);
 }
 .overview-card-actions button:hover{ filter: brightness(1.08); }
+
+/* Extra look for user manager card (solo esta card) */
+.user-manager-card{
+  background: rgba(0,0,0,.14);
+}
 
 /* =========================
    DETAILS CONTAINER
@@ -161,7 +179,6 @@
   align-items: center;
 }
 
-/* Each company item */
 .details-tab-item{
   display: inline-flex;
   align-items: center;
@@ -237,6 +254,7 @@
 .details-table-scroll tbody tr:hover{
   background: rgba(255,255,255,.03);
 }
+
 .link_review{
   cursor: pointer;
   transition: .5s;
