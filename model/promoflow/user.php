@@ -46,15 +46,14 @@ class Users
     {
         try {
             $sql = $this->db->prepare("
-                INSERT INTO Users (name, email, password, role, avatar)
-                VALUES (:name, :email, :password, :role, :avatar)
+                INSERT INTO Users (name, email, password, role)
+                VALUES (:name, :email, :password, :role)
             ");
 
             $sql->bindParam(':name', $this->name, PDO::PARAM_STR);
             $sql->bindParam(':email', $this->email, PDO::PARAM_STR);
             $sql->bindParam(':password', $this->password, PDO::PARAM_STR);
             $sql->bindParam(':role', $this->role, PDO::PARAM_STR);
-            $sql->bindValue(':avatar', $this->avatar, $this->avatar === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
 
             return (bool)$sql->execute();
 
