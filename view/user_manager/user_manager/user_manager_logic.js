@@ -136,6 +136,8 @@ class UMStore {
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Network error."))))
       .then((resp) => {
+        alert(JSON.stringify(resp));
+
         if (!resp?.success) {
           alert(resp?.message || "Create user failed.");
           return false;
