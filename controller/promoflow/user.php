@@ -54,7 +54,7 @@ class UserClass {
         $user->setRole($data['role'] ?? '');
 
         // ✅ avatar llega como DataURL base64 "data:image/...;base64,..."
-        $user->setAvatar($data['avatar'] ?? null);
+      //  $user->setAvatar($data['avatar'] ?? null);
 
         $result = $user->createUser();
 
