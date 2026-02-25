@@ -52,6 +52,7 @@ class UserClass {
         $user->setEmail($data['email'] ?? '');
         $user->setPassword($data['password'] ?? '');
         $user->setRole($data['role'] ?? '');
+        echo json_encode("Buenas");exit;
 
         // ✅ avatar llega como DataURL base64 "data:image/...;base64,..."
       //  $user->setAvatar($data['avatar'] ?? null);
