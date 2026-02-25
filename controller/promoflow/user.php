@@ -57,7 +57,6 @@ class UserClass {
       //  $user->setAvatar($data['avatar'] ?? null);
 
         $result = $user->createUser();
-        echo json_encode("Buenas2");exit;
 
 
         echo json_encode([
