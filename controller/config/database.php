@@ -3,8 +3,8 @@ class Database{
 
   // Database connection parameters
   private $servername = 'localhost';
-  private $dbname = "u273173398_Lanyards"; //u273173398_Lanyards Lanyards
-  private $username = "u273173398_Cat"; //u273173398_Cat root
+  private $dbname = "u273173398_promoflow_v1"; //u273173398_Lanyards Lanyards
+  private $username = "u273173398_Ian_Southworth"; //u273173398_Ian_Southworth root
   private $password = "32skiff32!CI"; //32skiff32!CI ""
   private $connection;
 
