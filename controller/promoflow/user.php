@@ -53,12 +53,7 @@ class UserClass {
         $user->setPassword($data['password'] ?? '');
         $user->setRole($data['role'] ?? '');
 
-        // ✅ avatar llega como DataURL base64 "data:image/...;base64,..."
-      //  $user->setAvatar($data['avatar'] ?? null);
-
         $result = $user->createUser();
-
-
         echo json_encode([
             "success" => $result,
             "message" => $result ? "User created" : "Create failed"
