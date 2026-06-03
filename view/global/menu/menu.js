@@ -5,7 +5,7 @@ class Menu {
     this.logoutLink = this.logoutLi ? this.logoutLi.querySelector("a") : null;
 
     // call checkSession automatically on class instantiation
-    this.checkSession();
+    //this.checkSession();
 
     if (this.logoutLink) {
       this.logoutLink.addEventListener("click", (e) => {
