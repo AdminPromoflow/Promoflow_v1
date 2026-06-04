@@ -1,404 +1,457 @@
 // preview.js
 
-class Preview {
-  constructor() {
-    this.main = document.getElementById("sp_main");
+class PreviewGallery {
+  constructor(options = {}) {
+    this.rootId = options.rootId || "wrap-images-group";
+    this.thumbsId = options.thumbsId || "sp_thumbs";
+    this.intervalMs = Number(options.intervalMs || 5000);
+    this.zoomScale = Number(options.zoomScale || 2);
 
-    if (!this.main) return;
+    this.currentIndex = 0;
+    this.autoTimer = null;
+    this.observer = null;
 
-    this.bindEvents();
+    this.init();
+
+
+
+
   }
 
-  // Solo manejamos el zoom sobre la imagen principal
-  bindEvents() {
-    // Pausar zoom / reset al entrar
-    this.main.addEventListener("mouseenter", () => {
-      const img = this.main.querySelector("img");
-      if (img instanceof HTMLImageElement) {
-        img.style.transformOrigin = "center center";
-        img.style.transform = "scale(1)";
-      }
-    });
+  /* ============================================================================
+    INITIALISE
+  ============================================================================ */
 
-    // Resetear zoom cuando el mouse sale
-    this.main.addEventListener("mouseleave", () => {
-      const img = this.main.querySelector("img");
-      if (img instanceof HTMLImageElement) {
-        img.style.transformOrigin = "center center";
-        img.style.transform = "scale(1)";
-      }
-    });
-
-    // 🔍 Zoom real bajo el cursor (solo desktop)
-    this.main.addEventListener("mousemove", (event) => {
-      if (window.innerWidth <= 760) return;
-
-      const img = this.main.querySelector("img");
-      if (!(img instanceof HTMLImageElement)) {
-        return;
-      }
-
-      const rect = this.main.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width) * 100;
-      const y = ((event.clientY - rect.top) / rect.height) * 100;
-
-      img.style.transformOrigin = `${x}% ${y}%`;
-      img.style.transform = "scale(2.1)";
-    });
-  }
-}
-
-/**
- * Divide dinámicamente los .var-group entre:
- * - .sp-variations (arriba, limitado por altura imagen grande + thumbs)
- * - .sp-variations-bottom (banda inferior, columnas 1 y 2)
- */
-function setupVariationsSplit() {
-  const main = document.querySelector(".sp-main");
-  const topContainer = document.querySelector(".sp-variations");
-  const bottomContainer = document.querySelector(".sp-variations-bottom");
-  if (!main || !topContainer || !bottomContainer) return;
-
-  // Subir todos los var-group al contenedor de arriba antes de recalcular
-  const allGroups = [
-    ...topContainer.querySelectorAll(".var-group"),
-    ...bottomContainer.querySelectorAll(".var-group"),
-  ];
-  allGroups.forEach((group) => topContainer.appendChild(group));
-
-  // En móvil: no dividimos, todo arriba
-  if (window.innerWidth <= 760) {
-    bottomContainer.style.display = "none";
-    return;
-  } else {
-    bottomContainer.style.display = "grid";
-  }
-
-  // Altura máxima permitida = altura imagen grande + altura thumbs
-  const mainRect = main.getBoundingClientRect();
-  const thumbsEl = document.querySelector(".sp-thumbs");
-  const thumbsRect = thumbsEl ? thumbsEl.getBoundingClientRect() : { height: 0 };
-
-  const maxHeight = mainRect.height + thumbsRect.height;
-
-  const styles = window.getComputedStyle(topContainer);
-  const gap = parseFloat(styles.rowGap || styles.gap || "0") || 0;
-
-  let accumulated = 0;
-  let splitIndex = allGroups.length;
-
-  allGroups.forEach((group, index) => {
-    const rect = group.getBoundingClientRect();
-    const h = rect.height;
-    const extraGap = accumulated === 0 ? 0 : gap;
-
-    if (accumulated + extraGap + h <= maxHeight) {
-      accumulated += extraGap + h;
-    } else if (splitIndex === allGroups.length) {
-      splitIndex = index;
-    }
-  });
-
-  if (splitIndex < allGroups.length) {
-    const toMove = allGroups.slice(splitIndex);
-    toMove.forEach((group) => bottomContainer.appendChild(group));
-  }
-}
-
-/**
- * Animaciones al hacer scroll: fade-up y scale-in
- * Aplica .is-visible cuando los elementos entran al viewport.
- */
-function setupScrollAnimations() {
-  const fadeEls = document.querySelectorAll(".js-fade-up");
-  const scaleEls = document.querySelectorAll(".js-scale-in");
-
-  if (!fadeEls.length && !scaleEls.length) return;
-
-  const observer = new IntersectionObserver(
-    (entries, obs) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          obs.unobserve(entry.target);
-        }
+  init() {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        this.setupObserver();
+        this.setupZoomEvents();
+        this.refreshGallery();
       });
-    },
-    {
-      threshold: 0.15,
+    } else {
+      this.setupObserver();
+      this.setupZoomEvents();
+      this.refreshGallery();
     }
-  );
 
-  fadeEls.forEach((el) => observer.observe(el));
-  scaleEls.forEach((el) => observer.observe(el));
-}
+    this.setupVariationSelection();
+  }
 
-/**
- * Parallax suave en:
- * - .sp-main-wrapper (galería)
- * - .sp-buybox .box (buybox)
- */
-function setupParallaxScroll() {
-  const parallaxEls = document.querySelectorAll(".js-parallax");
-  if (!parallaxEls.length) return;
+  setupVariationSelection() {
+    const parent = document.getElementById("wrap-variations-group");
+    if (!parent) return;
 
-  const update = () => {
-    const scrollY = window.scrollY || window.pageYOffset;
+    // Prevents duplicate binding.
+    if (parent.dataset.bound === "1") return;
+    parent.dataset.bound = "1";
 
-    parallaxEls.forEach((el) => {
-      // Solo en desktop grande para no marear en móvil
-      if (window.innerWidth > 1120) {
-        const factor = el.closest(".sp-buybox") ? 0.02 : 0.03;
-        const offset = scrollY * factor;
-        el.style.transform = `translateY(${offset}px)`;
+    parent.addEventListener("click", (e) => {
+      const option = e.target.closest(".var-option");
+      if (!option || !parent.contains(option)) return;
+
+      const group = option.closest(".wrap-variations");
+      if (!group) return;
+
+      // Removes the selected class only within the same variation group.
+      group.querySelectorAll(".var-option.is-selected").forEach((btn) => {
+        btn.classList.remove("is-selected");
+      });
+
+      // Selects the clicked option.
+      option.classList.add("is-selected");
+
+      // Updates the visible selected label.
+      const labelStrong = group.querySelector(".var-label strong");
+      const mainSpan = option.querySelector(".opt-main");
+      if (labelStrong && mainSpan) {
+        labelStrong.textContent = mainSpan.textContent.trim();
+      }
+    });
+  }
+
+
+
+  setupObserver() {
+    const root = this.getRoot();
+    if (!root) return;
+
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    // Watches for media inserted later by preview_logic.js.
+    this.observer = new MutationObserver(() => {
+      this.refreshGallery(true);
+    });
+
+    this.observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["src", "poster"]
+    });
+  }
+
+  setupZoomEvents() {
+    const root = this.getRoot();
+    if (!root) return;
+
+    // Prevents duplicate binding.
+    if (root.dataset.zoomBound === "1") return;
+    root.dataset.zoomBound = "1";
+
+    root.addEventListener("mousemove", (event) => {
+      this.handleZoomMove(event);
+    });
+
+    root.addEventListener("mouseleave", () => {
+      this.handleZoomLeave();
+    });
+  }
+
+  /* ============================================================================
+    HELPERS
+  ============================================================================ */
+
+  getRoot() {
+    return document.getElementById(this.rootId);
+  }
+
+  getThumbsRoot() {
+    return document.getElementById(this.thumbsId);
+  }
+
+  getMediaItems() {
+    const root = this.getRoot();
+    if (!root) return [];
+
+    return Array.from(root.querySelectorAll(".preview-media"));
+  }
+
+  getCurrentMedia() {
+    const items = this.getMediaItems();
+    if (!items.length) return null;
+    return items[this.currentIndex] || null;
+  }
+
+  hasMedia() {
+    return this.getMediaItems().length > 0;
+  }
+
+  normaliseIndex(index, total) {
+    if (total <= 0) return 0;
+    if (index < 0) return total - 1;
+    if (index >= total) return 0;
+    return index;
+  }
+
+  stopAutoplay() {
+    if (this.autoTimer) {
+      clearInterval(this.autoTimer);
+      this.autoTimer = null;
+    }
+  }
+
+  startAutoplay() {
+    this.stopAutoplay();
+
+    const items = this.getMediaItems();
+    if (items.length <= 1) return;
+
+    this.autoTimer = setInterval(() => {
+      this.nextImage();
+    }, this.intervalMs);
+  }
+
+  clearGallery() {
+    this.stopAutoplay();
+    this.currentIndex = 0;
+
+    const thumbsRoot = this.getThumbsRoot();
+    if (thumbsRoot) {
+      thumbsRoot.innerHTML = "";
+    }
+  }
+
+  resetZoom(media = null) {
+    const items = media ? [media] : this.getMediaItems();
+
+    for (const item of items) {
+      if (!(item instanceof HTMLElement)) continue;
+
+      item.classList.remove("is-zooming");
+      item.style.transformOrigin = "50% 50%";
+      item.style.transform = "scale(1)";
+    }
+  }
+
+  handleZoomMove(event) {
+    const activeMedia = event.target.closest(".preview-media.is-active");
+    if (!activeMedia) return;
+    if (activeMedia.tagName !== "IMG") return;
+
+    const rect = activeMedia.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+
+    const xPercent = (offsetX / rect.width) * 100;
+    const yPercent = (offsetY / rect.height) * 100;
+
+    activeMedia.classList.add("is-zooming");
+    activeMedia.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+    activeMedia.style.transform = `scale(${this.zoomScale})`;
+
+    this.stopAutoplay();
+  }
+
+  handleZoomLeave() {
+    const current = this.getCurrentMedia();
+    if (current && current.tagName === "IMG") {
+      this.resetZoom(current);
+    }
+
+    this.startAutoplay();
+  }
+
+  /* ============================================================================
+    MAIN GALLERY REFRESH
+  ============================================================================ */
+
+  refreshGallery(keepIndex = false) {
+    const items = this.getMediaItems();
+
+    if (!items.length) {
+      this.clearGallery();
+      return;
+    }
+
+    if (!keepIndex) {
+      this.currentIndex = 0;
+    } else {
+      this.currentIndex = this.normaliseIndex(this.currentIndex, items.length);
+    }
+
+    this.renderThumbs();
+    this.showCurrentMedia();
+    this.startAutoplay();
+  }
+
+  showCurrentMedia() {
+    const items = this.getMediaItems();
+    if (!items.length) return;
+
+    this.currentIndex = this.normaliseIndex(this.currentIndex, items.length);
+
+    for (let i = 0; i < items.length; i++) {
+      const media = items[i];
+      const isActive = i === this.currentIndex;
+
+      this.resetZoom(media);
+
+      media.classList.toggle("is-active", isActive);
+      media.hidden = !isActive;
+      media.style.display = isActive ? "block" : "none";
+
+      if (media.tagName === "VIDEO" && !isActive) {
+        media.pause();
+      }
+    }
+
+    this.updateThumbStates();
+  }
+
+  /* ============================================================================
+    NAVIGATION
+  ============================================================================ */
+
+  nextImage() {
+    const items = this.getMediaItems();
+    if (items.length <= 1) return;
+
+    this.currentIndex = this.normaliseIndex(this.currentIndex + 1, items.length);
+    this.showCurrentMedia();
+    this.startAutoplay();
+  }
+
+  prevImage() {
+    const items = this.getMediaItems();
+    if (items.length <= 1) return;
+
+    this.currentIndex = this.normaliseIndex(this.currentIndex - 1, items.length);
+    this.showCurrentMedia();
+    this.startAutoplay();
+  }
+
+  goToImage(index) {
+    const items = this.getMediaItems();
+    if (!items.length) return;
+
+    this.currentIndex = this.normaliseIndex(index, items.length);
+    this.showCurrentMedia();
+    this.startAutoplay();
+  }
+
+  /* ============================================================================
+    THUMBNAILS
+  ============================================================================ */
+
+  renderThumbs() {
+    const thumbsRoot = this.getThumbsRoot();
+    const items = this.getMediaItems();
+
+    if (!thumbsRoot) return;
+
+    thumbsRoot.innerHTML = "";
+
+    for (let i = 0; i < items.length; i++) {
+      const media = items[i];
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "sp-thumb";
+      button.setAttribute("role", "listitem");
+      button.setAttribute("aria-label", `Show media ${i + 1}`);
+
+      if (media.tagName === "IMG") {
+        const thumbImg = document.createElement("img");
+        thumbImg.src = media.currentSrc || media.src;
+        thumbImg.alt = media.alt || `Preview image ${i + 1}`;
+        thumbImg.loading = "lazy";
+        thumbImg.decoding = "async";
+        button.appendChild(thumbImg);
+      } else if (media.tagName === "VIDEO") {
+        const thumbLabel = document.createElement("span");
+        thumbLabel.className = "sp-thumb-video";
+        thumbLabel.textContent = `Video ${i + 1}`;
+        button.appendChild(thumbLabel);
       } else {
-        el.style.transform = "";
+        button.textContent = `Media ${i + 1}`;
       }
-    });
-  };
 
-  window.addEventListener("scroll", update, { passive: true });
-  window.addEventListener("resize", update);
-  update();
-}
-
-/**
- * ✅ Selección de variantes:
- * - Al hacer click en una .var-option:
- *   - Se quita .is-selected de las hermanas dentro del mismo .var-group
- *   - Se añade .is-selected a la opción clicada
- *   - Se actualiza el <strong> del label con el texto de .opt-main (si existe)
- *   - Se recalcula el precio
- */
-function setupVariationSelection() {
-  const groups = document.querySelectorAll(".var-group");
-  if (!groups.length) return;
-
-  groups.forEach((group) => {
-    const options = group.querySelectorAll(".var-option");
-    if (!options.length) return;
-
-    options.forEach((option) => {
-      option.addEventListener("click", () => {
-        // Quitar selección de todas dentro del grupo
-        options.forEach((o) => o.classList.remove("is-selected"));
-
-        // Marcar la opción clicada
-        option.classList.add("is-selected");
-
-        // Actualizar el texto del label (strong) con el opt-main
-        const labelStrong = group.querySelector(".var-label strong");
-        const mainSpan = option.querySelector(".opt-main");
-        if (labelStrong && mainSpan) {
-          labelStrong.textContent = mainSpan.textContent;
-        }
-
-        // Recalcular precios
-        updatePrice();
+      button.addEventListener("click", () => {
+        this.goToImage(i);
       });
-    });
-  });
+
+      thumbsRoot.appendChild(button);
+    }
+
+    this.updateThumbStates();
+  }
+
+  updateThumbStates() {
+    const thumbsRoot = this.getThumbsRoot();
+    if (!thumbsRoot) return;
+
+    const thumbs = Array.from(thumbsRoot.querySelectorAll(".sp-thumb"));
+
+    for (let i = 0; i < thumbs.length; i++) {
+      const isActive = i === this.currentIndex;
+      thumbs[i].classList.toggle("is-active", isActive);
+      thumbs[i].setAttribute("aria-pressed", isActive ? "true" : "false");
+    }
+  }
+
+  /* ============================================================================
+    PRICE HELPERS
+    - Kept because preview_logic.js already calls window.previewGallery?.updatePrice?.()
+  ============================================================================ */
+
+  updatePrice(preferredButton = null) {
+    const selectedButton =
+      preferredButton ||
+      document.querySelector("#wrap-prices-group .js-price-option.is-selected") ||
+      document.querySelector("#wrap-prices-group .js-price-option");
+
+    if (!selectedButton) return false;
+
+   // this.paintSelectedPrice(selectedButton);
+   // this.syncPriceDisplay(selectedButton);
+
+    return true;
+  }
+
+  paintSelectedPrice(activeButton) {
+    const buttons = Array.from(
+      document.querySelectorAll("#wrap-prices-group .js-price-option")
+    );
+
+    for (const btn of buttons) {
+      btn.classList.remove("is-selected");
+      btn.setAttribute("aria-pressed", "false");
+    }
+
+    activeButton.classList.add("is-selected");
+    activeButton.setAttribute("aria-pressed", "true");
+  }
+
+  syncPriceDisplay(button) {
+    const rawPrice = String(button?.dataset?.price ?? button?.value ?? "").trim();
+    const maxQuantity = String(button?.dataset?.maxQuantity ?? "").trim();
+
+    if (!rawPrice) return;
+
+    const numericPrice = Number(rawPrice);
+    const safePrice = Number.isFinite(numericPrice) ? numericPrice : 0;
+
+    const fixed = safePrice.toFixed(2);
+    const [major, minor] = fixed.split(".");
+
+    const spPrice = document.getElementById("sp_price");
+    const spUnitHint = document.getElementById("sp_unit_hint");
+    const bbTotal = document.getElementById("bb_total");
+    // const bbUnit = document.getElementById("bb_unit");
+    const symbolEl = document.getElementById("sp_currency_symbol");
+
+    const symbol = symbolEl ? symbolEl.textContent.trim() || "£" : "£";
+
+    if (spPrice) {
+      spPrice.innerHTML = `${major}<span class="sp-price-minor">.${minor}</span>`;
+    }
+
+    // if (spUnitHint) {
+    //   spUnitHint.textContent = maxQuantity ? `per ${maxQuantity} units` : "";
+    // }
+
+    // if (bbTotal) {
+    //   bbTotal.textContent = `${symbol}${fixed}`;
+    // }
+
+    // if (bbUnit) {
+    //   const qty = Number(maxQuantity.replace(/,/g, ""));
+    //   if (Number.isFinite(qty) && qty > 0) {
+    //     const unit = (safePrice / qty).toFixed(2);
+    //     bbUnit.textContent = `${symbol}${unit}`;
+    //   } else {
+    //     bbUnit.textContent = "";
+    //   }
+    // }
+  }
 }
 
-/**
- * Calcula y actualiza el precio en la buybox
- * según:
- * - Width
- * - Print side
- * - Clip type
- * - Pack size
- * - Opción de entrega (radio buttons)
- */
-function updatePrice() {
-  const unitEl = document.getElementById("bb_unit");
-  const totalEl = document.getElementById("bb_total");
-  if (!unitEl || !totalEl) return;
+/* ============================================================================
+  GLOBAL INSTANCE
+============================================================================ */
 
-  // ==== 1. Leer variantes seleccionadas ====
-
-  // Width
-  let width = "20mm";
-  const widthGroup = document.getElementById("sp_var_group_size_1");
-  if (widthGroup) {
-    const selected = widthGroup.querySelector(".var-option.is-selected") || widthGroup.querySelector(".var-option");
-    if (selected) {
-      const span = selected.querySelector(".opt-main");
-      if (span) width = span.textContent.trim();
-    }
-  }
-
-  // Pack size
-  let packQty = 500;
-  const packGroup = document.getElementById("sp_var_group_items");
-  if (packGroup) {
-    const selected = packGroup.querySelector(".var-option.is-selected") || packGroup.querySelector(".var-option");
-    if (selected) {
-      const span = selected.querySelector(".opt-main");
-      if (span) {
-        const txt = span.textContent.replace(/,/g, "").trim();
-        const n = parseInt(txt, 10);
-        if (!Number.isNaN(n) && n > 0) packQty = n;
-      }
-    }
-  }
-
-  // Print side
-  let printName = "Double sided";
-  const printGroup = Array.from(document.querySelectorAll(".var-group")).find((g) => {
-    const nameEl = g.querySelector(".var-name");
-    return nameEl && nameEl.textContent.trim().toLowerCase() === "print side";
-  });
-  if (printGroup) {
-    const selected = printGroup.querySelector(".var-option.is-selected") || printGroup.querySelector(".var-option");
-    if (selected) {
-      const span = selected.querySelector(".opt-main");
-      if (span) printName = span.textContent.trim();
-    }
-  }
-
-  // Clip type
-  let clipName = "Swivel hook";
-  const clipGroup = Array.from(document.querySelectorAll(".var-group")).find((g) => {
-    const nameEl = g.querySelector(".var-name");
-    return nameEl && nameEl.textContent.trim().toLowerCase() === "clip type";
-  });
-  if (clipGroup) {
-    const selected = clipGroup.querySelector(".var-option.is-selected") || clipGroup.querySelector(".var-option");
-    if (selected) {
-      const span = selected.querySelector(".opt-main");
-      if (span) clipName = span.textContent.trim();
-    }
-  }
-
-  // ==== 2. Calcular precio base según width + pack size ====
-
-  const BASE_PER_100 = {
-    "10mm": 7.0,
-    "15mm": 7.5,
-    "20mm": 8.0,
-    "25mm": 8.8,
-    "30mm": 9.4,
-    "35mm": 10.2,
-  };
-
-  const PACK_ADJUST = {
-    50: 0.05,
-    100: 0.0,
-    200: -0.03,
-    500: -0.08,
-    1000: -0.12,
-    2000: -0.16,
-    3000: -0.18,
-    5000: -0.22,
-  };
-
-  const basePer100 = BASE_PER_100[width] || 8.0;
-  const adjust = PACK_ADJUST[packQty] ?? 0;
-  const packFactor = 1 + adjust;
-
-  let baseTotal = basePer100 * (packQty / 100) * packFactor;
-
-  // ==== 3. Ajustes por print side y clip ====
-
-  let printFactor = 1;
-  if (/single/i.test(printName)) {
-    printFactor = 0.8;
-  }
-
-  let clipFactor = 1;
-  if (/trigger/i.test(clipName)) {
-    clipFactor = 1.05;
-  } else if (/split/i.test(clipName)) {
-    clipFactor = 1.02;
-  }
-
-  let subtotal = baseTotal * printFactor * clipFactor;
-
-  // ==== 4. Ajuste por entrega (radio buttons) ====
-
-  const deliveryRadio = document.querySelector('input[name="delivery_speed"]:checked');
-  if (deliveryRadio) {
-    const mode = deliveryRadio.dataset.mode;
-    const val = parseFloat(deliveryRadio.dataset.value || "0") || 0;
-
-    if (mode === "percent") {
-      subtotal = subtotal * (1 + val);
-    } else if (mode === "absolute") {
-      subtotal = subtotal + val;
-    }
-  }
-
-  // ==== 5. Calcular VAT y escribir en la UI ====
-
-  const VAT_RATE = 0.2;
-  const taxEl = document.getElementById("bb_tax");
-  const taxAmount = subtotal * VAT_RATE;
-  if (taxEl) {
-    taxEl.textContent = `Estimated £${taxAmount.toFixed(2)}`;
-  }
-
-  const total = subtotal;
-  const packQtySafe = packQty || 1;
-  const unitPrice = total / packQtySafe;
-
-  unitEl.textContent = `£${unitPrice.toFixed(2)}`;
-  totalEl.textContent = `£${total.toFixed(2)}`;
-}
-
-/**
- * Vincula los radio buttons de entrega rápida con el cálculo de precio
- */
-function setupDeliveryOptions() {
-  const radios = document.querySelectorAll('input[name="delivery_speed"]');
-  if (!radios.length) return;
-
-  radios.forEach((radio) => {
-    radio.addEventListener("change", () => {
-      updatePrice();
-    });
-  });
-}
-
-// Instanciar al cargar
-document.addEventListener("DOMContentLoaded", () => {
-  new Preview();
-  setupScrollAnimations();
-  setupParallaxScroll();
-  setupVariationSelection();
-  setupDeliveryOptions();
-  updatePrice();
+const previewGallery = new PreviewGallery({
+  rootId: "wrap-images-group",
+  thumbsId: "sp_thumbs",
+  intervalMs: 5000,
+  zoomScale: 2
 });
 
-// Esperamos a que cargue todo (imágenes) para medir bien alturas
-window.addEventListener("load", () => {
-  setupVariationsSplit();
-});
+window.previewGallery = previewGallery;
 
-// Recalcular al redimensionar
-window.addEventListener("resize", () => {
-  setupVariationsSplit();
-});
+/* ============================================================================
+  OPTIONAL: PRICE BUTTON DELEGATION
+  - Useful because price buttons are also rendered later.
+============================================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
-  const backBtn = document.getElementById('btn_back_edit');
-  const publishBtn = document.getElementById('btn_publish');
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("#wrap-prices-group .js-price-option");
+  if (!button) return;
 
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      const url = '../../view/product_details/index.php';
-
-      const current = new URL(window.location.href);
-      const dest    = new URL(url, current);
-
-      const sku  = current.searchParams.get('sku');
-      const skuv = current.searchParams.get('sku_variation');
-
-      if (sku)  dest.searchParams.set('sku', sku);
-      if (skuv) dest.searchParams.set('sku_variation', skuv);
-
-      window.location.assign(dest);
-    });
-  }
-
-
+  window.previewGallery?.updatePrice?.(button);
 });
