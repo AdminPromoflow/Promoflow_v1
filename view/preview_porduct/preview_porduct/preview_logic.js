@@ -39,7 +39,7 @@ class PreviewLogic {
 
   }
   MsnSupplier(){
-    alert("hah");
+    //alert("hah");
   }
   publishBtn(){
     const params = new URLSearchParams(window.location.search);
@@ -626,8 +626,8 @@ class PreviewLogic {
               rawImg.startsWith("http") || rawImg.startsWith("data:") || rawImg.startsWith("blob:")
                 ? rawImg
                 : (rawImg.startsWith("controller/")
-                    ? "../../" + rawImg
-                    : "../../controller/" + rawImg)
+                    ? "../../dot63/" + rawImg
+                    : "../../dot63/controller/" + rawImg)
             )
           : "../../view/preview_porduct/img/icon_product.png";
 
