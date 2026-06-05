@@ -803,8 +803,8 @@ class PreviewLogic {
             rawLink.startsWith("blob:")
               ? rawLink
               : (rawLink.startsWith("controller/")
-                  ? "../../" + rawLink
-                  : "../../controller/" + rawLink)
+                  ? "../../dot63/" + rawLink
+                  : "../../dot63/controller/" + rawLink)
           )
         : "";
 
