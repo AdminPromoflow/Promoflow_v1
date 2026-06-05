@@ -49,6 +49,7 @@ body{
   top: 0;
   left: 0;
   right: 0;
+  height: 80px;
   z-index: 1000;
   background: var(--brand);
   border-bottom: none;
