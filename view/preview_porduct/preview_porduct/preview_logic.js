@@ -754,6 +754,7 @@ class PreviewLogic {
   ============================================================================ */
 
   renderPrices(pricesOnlyOfType = [], typeVariation) {
+    alert(JSON.stringify(pricesOnlyOfType) + "ahhh" + JSON.stringify(typeVariation));
     loader.show();
 
     const id_variation = Number(
@@ -978,6 +979,7 @@ class PreviewLogic {
         return response.text();
       })
       .then((text) => {
+        alert(text);
         const data = JSON.parse(text);
         this.drawExtraVariationPrices(data["prices"]);
       })
