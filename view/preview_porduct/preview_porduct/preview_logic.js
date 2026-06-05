@@ -33,6 +33,13 @@ class PreviewLogic {
       previewLogic.publishBtn();
     })
 
+    btnMsnSupplier.addEventListener("click", function(){
+      previewLogic.MsnSupplier();
+    })
+
+  }
+  MsnSupplier(){
+    alert("hah");
   }
   publishBtn(){
     const params = new URLSearchParams(window.location.search);
@@ -1184,6 +1191,9 @@ class PreviewLogic {
     }
   }
 }
+
+
 const backBtn = document.getElementById("btn_back_edit");
+const btnMsnSupplier = document.getElementById("btn_msn_supplier");
 const publishBtn = document.getElementById("btn_publish");
 const previewLogic = new PreviewLogic();
