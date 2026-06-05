@@ -174,7 +174,7 @@ class PreviewLogic {
         return response.text();
       })
       .then((text) => {
-        alert("2. " + text);
+      //  alert("2. " + text);
 
         const json = JSON.parse(text);
 
@@ -844,7 +844,7 @@ class PreviewLogic {
 
   renderPrices(pricesOnlyOfType = [], typeVariation) {
 
-  //  alert(JSON.stringify(pricesOnlyOfType) + " " + JSON.stringify(typeVariation));
+    alert(JSON.stringify(pricesOnlyOfType) + " " + JSON.stringify(typeVariation));
     loader.show();
 
 
