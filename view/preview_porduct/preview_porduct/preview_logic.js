@@ -43,7 +43,7 @@ class PreviewLogic {
       return;
     }
 
-    const url = "../../controller/products/product.php";
+    const url = "../../controller/dot63/requests_63_api.php";
     const data = {
       action: "publish_product",
       sku: sku
@@ -106,7 +106,7 @@ class PreviewLogic {
       return;
     }
 
-    const url = "../../controller/order/product.php";
+    const url = "../../controller/dot63/requests_63_api.php";
     const data = {
       action: "get_preview_product_details",
       sku: sku
@@ -158,7 +158,7 @@ class PreviewLogic {
       return;
     }
 
-    const url = "../../controller/order/product.php";
+    const url = "../../controller/dot63/requests_63_api.php";
     const data = {
       action: "get_variation_children_by_id",
       variation_id: variation_id
@@ -1071,7 +1071,7 @@ class PreviewLogic {
     const max_quantity = this.getMaxQuantity();
 
 
-    const url = "../../controller/order/product.php";
+    const url = "../../controller/dot63/requests_63_api.php";
     const data = {
       action: "get_variation_prices",
       ids: ids,
