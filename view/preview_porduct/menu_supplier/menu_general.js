@@ -6,14 +6,14 @@ class Menu_Supplier {
     this.ticking = false;
 
     // Verificar login al iniciar
-    this.verifyLogin();
+  //  this.verifyLogin();
 
-    // Botón logout (si existe)
-    // if (logout) {
-    //   logout.addEventListener("click", () => {
-    //     this.logout();
-    //   });
-    // }
+    //Botón logout (si existe)
+    if (logout) {
+      logout.addEventListener("click", () => {
+        alert("This button is part of a test interface and has no functionality.");
+      });
+    }
 
     // Inicializar comportamiento de esconder header al hacer scroll
     this.initScrollHideHeader();
