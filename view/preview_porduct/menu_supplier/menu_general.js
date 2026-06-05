@@ -9,11 +9,11 @@ class Menu_Supplier {
     this.verifyLogin();
 
     // Botón logout (si existe)
-    if (logout) {
-      logout.addEventListener("click", () => {
-        this.logout();
-      });
-    }
+    // if (logout) {
+    //   logout.addEventListener("click", () => {
+    //     this.logout();
+    //   });
+    // }
 
     // Inicializar comportamiento de esconder header al hacer scroll
     this.initScrollHideHeader();
