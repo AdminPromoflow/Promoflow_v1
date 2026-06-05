@@ -72,14 +72,8 @@ class PreviewLogic {
 
   backBtn() {
     const backBtn = document.getElementById("btn_back_edit");
-    //const publishBtn = document.getElementById("btn_publish");
-
-      backBtn.addEventListener("click", () => {
         const url = "../../view/overview/index.php";
           window.location = url;
-      });
-
-
   }
 
   /* ============================================================================
