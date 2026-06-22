@@ -1,0 +1,362 @@
+:root{
+  --msg-bg: #2F4560;
+  --msg-panel: rgba(0,0,0,.12);
+  --msg-border: rgba(255,255,255,.12);
+  --msg-text: rgba(255,255,255,.92);
+  --msg-muted: rgba(255,255,255,.72);
+  --msg-btn-text: rgb(214,218,223);
+  --msg-radius: 18px;
+  --msg-shadow: 0 16px 40px rgba(0,0,0,.28);
+}
+
+*,
+*::before,
+*::after{
+  box-sizing: border-box;
+}
+
+.msg-shell{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px;
+  background: var(--msg-bg);
+  border-radius: 8px;
+}
+
+.msg-sidebar,
+.msg-topbar,
+.msg-reader,
+.msg-modal-card{
+  background: var(--msg-panel);
+  border: 1px solid var(--msg-border);
+  border-radius: var(--msg-radius);
+  box-shadow: var(--msg-shadow);
+}
+
+.msg-sidebar{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.msg-brand h2{
+  margin: 0;
+  color: var(--msg-text);
+  font-size: 1.35rem;
+}
+
+.msg-brand p{
+  margin: 6px 0 0;
+  color: var(--msg-muted);
+  line-height: 1.4;
+}
+
+.msg-folders{
+  display: grid;
+  gap: 8px;
+}
+
+.msg-folder{
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--msg-text);
+  border-radius: 999px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: filter .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.msg-folder:hover,
+.msg-btn:hover{
+  filter: brightness(1.08);
+}
+
+.msg-folder.is-active{
+  background: rgba(0,0,0,.22);
+  border-color: rgba(255,255,255,.22);
+}
+
+.msg-folder-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.55);
+}
+
+.msg-folder-name{
+  font-weight: 700;
+}
+
+.msg-count{
+  margin-left: auto;
+  min-width: 30px;
+  height: 26px;
+  padding-inline: 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.12);
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+.msg-btn{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--msg-btn-text);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: filter .2s ease;
+}
+
+.msg-btn-primary{
+  background: rgba(0,0,0,.20);
+  border-color: rgba(255,255,255,.18);
+  font-weight: 700;
+}
+
+.msg-btn-ghost{
+  background: rgba(255,255,255,.05);
+}
+
+.msg-main{
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.msg-topbar{
+  padding: 16px;
+}
+
+.msg-title{
+  margin: 0;
+  color: var(--msg-text);
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+}
+
+.msg-reader{
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  min-height: 460px;
+}
+
+.msg-preview{
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.10);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.msg-preview-head{
+  padding: 14px;
+  background: rgba(0,0,0,.06);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.msg-preview-head h3{
+  margin: 0;
+  color: var(--msg-text);
+  font-size: 1.12rem;
+}
+
+.msg-muted{
+  margin: 8px 0 0;
+  color: var(--msg-muted);
+  line-height: 1.4;
+}
+
+.msg-preview-body{
+  padding: 14px;
+  color: rgba(255,255,255,.88);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.msg-inputbar{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.08);
+  border-radius: 16px;
+}
+
+.msg-input{
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--msg-text);
+  border-radius: 14px;
+  padding: 12px;
+  outline: none;
+}
+
+.msg-input::placeholder,
+.msg-field input::placeholder,
+.msg-field textarea::placeholder{
+  color: rgba(255,255,255,.55);
+}
+
+.msg-modal[hidden]{
+  display: none;
+}
+
+.msg-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0,0,0,.55);
+}
+
+.msg-modal-card{
+  width: min(780px, 100%);
+  overflow: hidden;
+  background: #253a54;
+}
+
+.msg-modal-header,
+.msg-modal-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.msg-modal-header{
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.14);
+}
+
+.msg-modal-header h3{
+  margin: 0;
+  color: var(--msg-text);
+  font-size: 1.05rem;
+}
+
+.msg-modal-body{
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.msg-field{
+  display: grid;
+  gap: 6px;
+}
+
+.msg-field span{
+  color: rgba(255,255,255,.70);
+  font-size: .92rem;
+  font-weight: 700;
+}
+
+.msg-field input,
+.msg-field textarea{
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--msg-text);
+  border-radius: 14px;
+  padding: 12px;
+  outline: none;
+}
+
+.msg-field textarea{
+  resize: vertical;
+}
+
+.msg-modal-footer{
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.10);
+}
+
+.msg-row{
+  display: flex;
+  width: 100%;
+}
+
+.msg-row.is-mine{
+  justify-content: flex-end;
+}
+
+.msg-row.is-other{
+  justify-content: flex-start;
+}
+
+.msg-bubble{
+  max-width: min(75%, 520px);
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.msg-row.is-mine .msg-bubble{
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.20);
+}
+
+.msg-bubble-text{
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+  color: var(--msg-text);
+}
+
+.msg-bubble-meta{
+  display: block;
+  margin-top: 8px;
+  font-size: .78rem;
+  opacity: .72;
+  color: var(--msg-muted);
+}
+
+.msg-empty{
+  margin: 0;
+  color: var(--msg-muted);
+}
+
+@media (max-width: 900px){
+  .msg-shell{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px){
+  .msg-inputbar{
+    grid-template-columns: 1fr;
+  }
+
+  .msg-inputbar .msg-btn,
+  .msg-modal-footer .msg-btn{
+    width: 100%;
+  }
+
+  .msg-bubble{
+    max-width: 100%;
+  }
+}
