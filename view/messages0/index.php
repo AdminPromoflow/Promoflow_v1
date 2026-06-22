@@ -14,7 +14,7 @@
 
   <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
 
-  <link rel="stylesheet" href="../../view/directory/style.css?v=<?php echo filemtime("../../view/directory/style.css"); ?>">
+  <!-- <link rel="stylesheet" href="../../view/directory/style.css?v=<?php echo filemtime("../../view/directory/style.css"); ?>"> -->
 </head>
 
 <body class="body_directory">
