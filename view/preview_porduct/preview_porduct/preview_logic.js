@@ -39,7 +39,8 @@ class PreviewLogic {
 
   }
   MsnSupplier(){
-    //alert("hah");
+    const url = "../../view/messages/index.php";
+      window.location = url;
   }
   publishBtn(){
     const params = new URLSearchParams(window.location.search);
