@@ -1,91 +1,177 @@
-class SectionOverview {
+class MessagesSection {
   constructor() {
-    this.tableOverviewDetails = document.getElementById("table_overview_details");
+    this.modal = document.querySelector(".msg-modal");
+    this.openButton = document.querySelector("[data-compose-open]");
+    this.closeButtons = document.querySelectorAll("[data-compose-close]");
 
-    // Event delegation: un solo listener para todos los "Review"
-    this.tableOverviewDetails.addEventListener("click", (e) => {
-      const cell = e.target.closest(".link_review");
-      if (!cell) return;
+    this.form = document.getElementById("msg-form-promoflow");
+    this.input = document.getElementById("msg-input-promoflow");
+    this.messagesContainer = document.getElementById("msg-preview-body");
 
-      const sku = cell.dataset.sku || "";
-      const skuVariation = cell.dataset.skuVariation || "";
+    this.lastRenderKey = "";
 
-      this.reviewProduct(sku, skuVariation);
-    });
+    if (!this.modal || !this.openButton || !this.form || !this.input || !this.messagesContainer) {
+      return;
+    }
 
-    this.getOverviewData();
+    this.bindEvents();
+    this.fetchGetMessages();
+    this.startMessagesPolling();
   }
 
-  getOverviewData() {
-    const url = "../../controller/dot63/requests_63_api.php";
-    const payload = { action: "get_API_overview_data" };
+  bindEvents() {
+    this.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.fetchSaveMessages();
+    });
+
+    this.openButton.addEventListener("click", () => {
+      this.openModal();
+    });
+
+    this.closeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        this.closeModal();
+      });
+    });
+
+    this.modal.addEventListener("click", (event) => {
+      if (event.target === this.modal) {
+        this.closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !this.modal.hidden) {
+        this.closeModal();
+      }
+    });
+  }
+
+  openModal() {
+    this.modal.hidden = false;
+  }
+
+  closeModal() {
+    this.modal.hidden = true;
+  }
+
+  startMessagesPolling() {
+    this.polling = setInterval(() => {
+      this.fetchGetMessages();
+    }, 3000);
+  }
+
+  fetchSaveMessages() {
+    const message = this.input.value.trim();
+
+    if (!message) {
+      return;
+    }
+
+    const url = "../../controller/messages/messages.php";
+    const data = {
+      action: "save_messages",
+      message: message
+    };
 
     fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
     })
-      .then((result) => {
-        if (!result.ok) throw new Error("Network error.");
-        return result.json();
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network error.");
+        }
+        return response.json();
       })
-      .then((data) => {
-        if (data["success"]) {
-          this.renderOverviewDetailsTable(data["result"]);
+      .then((result) => {
+        if (result.status === "success") {
+          this.input.value = "";
+          this.fetchGetMessages();
         }
       })
-      .catch((err) => console.log("Error:", err));
+      .catch((error) => {
+        console.error("Error saving messages:", error);
+      });
   }
 
-  renderOverviewDetailsTable(data) {
-    this.tableOverviewDetails.innerHTML = "";
+  fetchGetMessages() {
+    const url = "../../controller/messages/messages.php";
+    const data = {
+      action: "get_data_messages"
+    };
 
-    for (let i = 0; i < data.length; i++) {
-      const index = i + 1;
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network error.");
+        }
+        return response.json();
+      })
+      .then((result) => {
+        if (result.status === "success") {
+          this.renderMessages(result.result || []);
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading messages:", error);
+      });
+  }
 
-      const dateRaw = data[i]["date_status"];
-      const date =
-        dateRaw === null || dateRaw === undefined || dateRaw === "" ? "-" : dateRaw;
+  renderMessages(messages) {
+    const renderKey = JSON.stringify(messages);
 
-      const supplier = data[i]["supplier"]?.["company_name"] ?? "-";
-      const name = data[i]["name"] ?? "";
-      const status =
-        parseInt(data[i]["is_approved"], 10) === 0 ? "Pending" : "Approved";
-
-      const sku = data[i]["SKU"] ?? "";
-      const skuVariation = data[i]["sku_variations"] ?? "";
-
-      // Escapar comillas dobles para atributos HTML
-      const safeSku = String(sku).replace(/"/g, "&quot;");
-      const safeSkuVar = String(skuVariation).replace(/"/g, "&quot;");
-
-      this.tableOverviewDetails.innerHTML += `
-        <tr>
-          <td>${index}</td>
-          <td>${date}</td>
-          <td>Product Launch</td>
-          <td>${supplier}</td>
-          <td>${name}</td>
-          <td>${status}</td>
-          <td class="link_review"
-              data-sku="${safeSku}"
-              data-sku-variation="${safeSkuVar}">
-            Review
-          </td>
-        </tr>`;
+    if (this.lastRenderKey === renderKey) {
+      return;
     }
+
+    this.lastRenderKey = renderKey;
+
+    if (!messages.length) {
+      this.messagesContainer.innerHTML = `<p class="msg-empty">No messages found.</p>`;
+      return;
+    }
+
+    let html = "";
+
+    for (let i = 0; i < messages.length; i++) {
+      const item = messages[i];
+      const isMine = item.user_1 === "ian@kan-do-it.com";
+
+      html += `
+        <div class="msg-row ${isMine ? "is-mine" : "is-other"}">
+          <div class="msg-bubble">
+            <p class="msg-bubble-text">${this.escapeHtml(item.message ?? "")}</p>
+            <span class="msg-bubble-meta">${this.escapeHtml(item.date ?? "")}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    this.messagesContainer.innerHTML = html;
+    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
   }
 
-  reviewProduct(sku, skuVariation) {
-    const url =
-      `../../view/preview_porduct/index.php` +
-      `?sku=${encodeURIComponent(sku)}` +
-      `&sku_variation=${encodeURIComponent(skuVariation)}`;
-
-    window.open(url, "_blank", "noopener,noreferrer");
+  escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new SectionOverview();
+  new MessagesSection();
 });
