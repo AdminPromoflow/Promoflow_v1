@@ -433,7 +433,7 @@ $jsTime2 = @filemtime($jsPath2) ?: time();
 
   <!-- Actions -->
   <div class="sp-actions">
-    <button type="button" class="btn btn-back-preview" id="btn_back_edit">Back to editing</button>
+    <button type="button" class="btn btn-back-preview" id="btn_back_edit">Back to Dashboard</button>
     <button type="button" class="btn btn-back-preview" id="btn_msn_supplier">Message Supplier</button>
     <button type="button" class="btn btn-publish-preview" id="btn_publish">Publish</button>
   </div>
