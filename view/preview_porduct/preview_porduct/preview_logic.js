@@ -39,8 +39,12 @@ class PreviewLogic {
 
   }
   MsnSupplier(){
-    const url = "../../view/messages/index.php";
-      window.location = url;
+    const params = new URLSearchParams(window.location.search);
+    const sku = params.get("sku");
+
+       window.location.href =
+         `../../view/category/index.php?sku=${encodeURIComponent(sku)}`;
+
   }
   publishBtn(){
     const params = new URLSearchParams(window.location.search);
