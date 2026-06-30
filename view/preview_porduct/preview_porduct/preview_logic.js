@@ -43,7 +43,7 @@ class PreviewLogic {
     const sku = params.get("sku");
 
        window.location.href =
-         `../../view/category/index.php?sku=${encodeURIComponent(sku)}`;
+         `../../view/messages/index.php?sku=${encodeURIComponent(sku)}`;
 
   }
   publishBtn(){
