@@ -19,40 +19,9 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
       <p>Live conversation</p>
     </div>
 
-    <!-- Create Case Section -->
-    <section class="msg-create-case" aria-label="Create new case">
-      <h3>Create Case</h3>
-
-      <form id="create-case-form" class="msg-case-form" autocomplete="off">
-
-        <label class="msg-case-field">
-          <span>Case name</span>
-          <input
-            id="case-name"
-            name="case_name"
-            type="text"
-            placeholder="Example: Approval request"
-            required
-          >
-        </label>
-
-        <label class="msg-case-field">
-          <span>Supplier ID</span>
-          <input
-            id="case-supplier"
-            name="id_supplier"
-            type="number"
-            placeholder="Supplier ID"
-            required
-          >
-        </label>
-
-        <button id="create_case_btn" class="msg-btn msg-btn-primary" type="submit">
-          Create Case
-        </button>
-
-      </form>
-    </section>
+    <button id="open-create-case" class="msg-btn msg-btn-primary" type="button">
+      + Create Case
+    </button>
 
     <nav class="msg-folders" aria-label="Conversations">
       <button class="msg-folder is-active" type="button" aria-current="page">
@@ -100,6 +69,59 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
   </main>
 
 </section>
+
+<!-- Create Case Modal -->
+<div id="create-case-modal" class="msg-case-modal" hidden>
+  <div class="msg-case-modal-card" role="dialog" aria-modal="true" aria-labelledby="create-case-title">
+
+    <div class="msg-case-modal-header">
+      <h3 id="create-case-title">Create New Case</h3>
+
+      <button id="close-create-case" class="msg-btn msg-btn-close" type="button" aria-label="Close">
+        ✕
+      </button>
+    </div>
+
+    <form id="create-case-form" class="msg-case-form" autocomplete="off">
+
+      <label class="msg-case-field">
+        <span>Case name</span>
+        <input
+          id="case-name"
+          name="case_name"
+          type="text"
+          placeholder="Example: Approval request"
+          required
+        >
+      </label>
+
+      <label class="msg-case-field">
+        <span>Supplier</span>
+
+        <select id="case-supplier" name="id_supplier" required>
+          <option value="">Select supplier</option>
+
+          <!-- Estos datos luego pueden venir desde la base de datos -->
+          <option value="1">Supplier One - supplier1@email.com</option>
+          <option value="2">Supplier Two - supplier2@email.com</option>
+          <option value="3">Supplier Three - supplier3@email.com</option>
+        </select>
+      </label>
+
+      <div class="msg-case-modal-footer">
+        <button id="cancel-create-case" class="msg-btn" type="button">
+          Cancel
+        </button>
+
+        <button id="create_case_btn" class="msg-btn msg-btn-primary" type="submit">
+          Create Case
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
 
 <script defer src="<?= $jsPathLogic ?>?v=<?= $jsVLogic ?>"></script>
 <script defer src="<?= $jsPath ?>?v=<?= $jsV ?>"></script>

@@ -81,6 +81,77 @@ class MessagesSection {
   }
 }
 
+class CreateCaseModal {
+  constructor() {
+    this.modal = document.getElementById("create-case-modal");
+    this.openButton = document.getElementById("open-create-case");
+    this.closeButton = document.getElementById("close-create-case");
+    this.cancelButton = document.getElementById("cancel-create-case");
+    this.form = document.getElementById("create-case-form");
+    this.caseNameInput = document.getElementById("case-name");
+    this.supplierSelect = document.getElementById("case-supplier");
+
+    this.init();
+  }
+
+  init() {
+    this.openButton?.addEventListener("click", () => {
+      this.openModal();
+    });
+
+    this.closeButton?.addEventListener("click", () => {
+      this.closeModal();
+    });
+
+    this.cancelButton?.addEventListener("click", () => {
+      this.closeModal();
+    });
+
+    this.modal?.addEventListener("click", (event) => {
+      if (event.target === this.modal) {
+        this.closeModal();
+      }
+    });
+
+    this.form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.createCase();
+    });
+  }
+
+  openModal() {
+    if (!this.modal) return;
+
+    this.modal.hidden = false;
+    this.caseNameInput?.focus();
+  }
+
+  closeModal() {
+    if (!this.modal) return;
+
+    this.modal.hidden = true;
+  }
+
+  createCase() {
+    const caseName = this.caseNameInput.value.trim();
+    const supplierId = this.supplierSelect.value;
+    const supplierText = this.supplierSelect.options[this.supplierSelect.selectedIndex].text;
+
+    if (!caseName || !supplierId) {
+      alert("Please complete all fields.");
+      return;
+    }
+
+    console.log("Case name:", caseName);
+    console.log("Supplier ID:", supplierId);
+    console.log("Supplier:", supplierText);
+
+    this.form.reset();
+    this.closeModal();
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   new MessagesSection();
+  new CreateCaseModal();
 });

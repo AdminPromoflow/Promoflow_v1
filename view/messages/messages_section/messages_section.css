@@ -32,8 +32,7 @@
 
 .msg-sidebar,
 .msg-topbar,
-.msg-reader,
-.msg-create-case {
+.msg-reader {
   background: var(--msg-panel);
   border: 1px solid var(--msg-border);
   border-radius: var(--msg-radius);
@@ -66,50 +65,6 @@
 
 .msg-brand p {
   margin: 6px 0 0;
-}
-
-/* Create Case */
-
-.msg-create-case {
-  padding: 14px;
-  background: rgba(0, 0, 0, .10);
-}
-
-.msg-create-case h3 {
-  margin: 0 0 12px;
-  color: var(--msg-text);
-  font-size: 1rem;
-}
-
-.msg-case-form {
-  display: grid;
-  gap: 10px;
-}
-
-.msg-case-field {
-  display: grid;
-  gap: 6px;
-}
-
-.msg-case-field span {
-  color: var(--msg-muted);
-  font-size: .85rem;
-  font-weight: 700;
-}
-
-.msg-case-field input {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid rgba(255, 255, 255, .14);
-  background: rgba(255, 255, 255, .06);
-  color: var(--msg-text);
-  border-radius: 12px;
-  padding: 10px 12px;
-  outline: none;
-}
-
-.msg-case-field input::placeholder {
-  color: rgba(255, 255, 255, .55);
 }
 
 /* Folders */
@@ -279,6 +234,15 @@
   font-weight: 700;
 }
 
+.msg-btn-close {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
 /* Message bubbles */
 
 .msg-row {
@@ -318,6 +282,92 @@
   margin: 0;
 }
 
+/* Create Case Modal */
+
+.msg-case-modal[hidden] {
+  display: none;
+}
+
+.msg-case-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, .55);
+}
+
+.msg-case-modal-card {
+  width: min(520px, 100%);
+  background: #253a54;
+  border: 1px solid var(--msg-border);
+  border-radius: var(--msg-radius);
+  box-shadow: var(--msg-shadow);
+  overflow: hidden;
+}
+
+.msg-case-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, .16);
+  border-bottom: 1px solid rgba(255, 255, 255, .10);
+}
+
+.msg-case-modal-header h3 {
+  margin: 0;
+  color: var(--msg-text);
+  font-size: 1.15rem;
+}
+
+.msg-case-form {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.msg-case-field {
+  display: grid;
+  gap: 7px;
+}
+
+.msg-case-field span {
+  color: var(--msg-muted);
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.msg-case-field input,
+.msg-case-field select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .06);
+  color: var(--msg-text);
+  border-radius: 14px;
+  padding: 12px;
+  outline: none;
+}
+
+.msg-case-field select option {
+  color: #111;
+  background: #fff;
+}
+
+.msg-case-field input::placeholder {
+  color: rgba(255, 255, 255, .55);
+}
+
+.msg-case-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+}
+
 /* Responsive */
 
 @media (max-width: 900px) {
@@ -346,8 +396,13 @@
     grid-template-columns: 1fr;
   }
 
-  .msg-inputbar .msg-btn {
+  .msg-inputbar .msg-btn,
+  .msg-case-modal-footer .msg-btn {
     width: 100%;
+  }
+
+  .msg-case-modal-footer {
+    flex-direction: column;
   }
 
   .msg-bubble {
