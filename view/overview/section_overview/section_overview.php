@@ -20,32 +20,32 @@
         <h2>Approbals</h2>
 
         <div class="details-tabs">
-          <div class="details-tab-item">
+          <div class="details-tab-item pending_to_construction">
             <h4>W3P</h4>
             <div class="details-tab-count"><p>3</p></div>
           </div>
 
-          <div class="details-tab-item is-active">
+          <div class="details-tab-item pending_to_construction is-active">
             <h4>.63</h4>
             <div class="details-tab-count"><p>0</p></div>
           </div>
 
-          <div class="details-tab-item">
+          <div class="details-tab-item pending_to_construction">
             <h4>Amazon</h4>
             <div class="details-tab-count"><p>0</p></div>
           </div>
 
-          <div class="details-tab-item">
+          <div class="details-tab-item pending_to_construction">
             <h4>eBay</h4>
             <div class="details-tab-count"><p>0</p></div>
           </div>
 
-          <div class="details-tab-item">
+          <div class="details-tab-item pending_to_construction">
             <h4>Ullman Sails</h4>
             <div class="details-tab-count"><p>0</p></div>
           </div>
 
-          <div class="details-tab-item">
+          <div class="details-tab-item pending_to_construction">
             <h4>Hello Print</h4>
             <div class="details-tab-count"><p>0</p></div>
           </div>

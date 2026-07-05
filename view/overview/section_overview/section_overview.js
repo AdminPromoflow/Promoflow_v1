@@ -1,9 +1,9 @@
 class SectionOverview {
   constructor() {
-    const details_tab_item = document.getElementById("details-tab-item");
+    const  pending_to_construction = document.getElementById(" pending_to_construction");
 
-    for (let i = 0; i < details_tab_item.length; i++) {
-      details_tab_item[i].addEventListener("click", function(){
+    for (let i = 0; i <  pending_to_construction.length; i++) {
+       pending_to_construction[i].addEventListener("click", function(){
         alert("This page is not available yet. We are working on building it soon.");
       })
     }
