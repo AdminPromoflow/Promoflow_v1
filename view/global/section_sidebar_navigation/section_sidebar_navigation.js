@@ -2,6 +2,13 @@ class SideNavigation {
 
   constructor() {
 
+    const open_user_manager = document.getElementById("open_user_manager");
+
+    open_user_manager.addEventListener("click", function(){
+      window.open("../../view/user_manager/index.php", "_self");
+    })
+
+
     sidebar.classList.add("side-open");
     sidebar.classList.remove("side-close");
     btnOpen.classList.add("is-hidden"); // opcional
