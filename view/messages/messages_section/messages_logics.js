@@ -3,6 +3,4 @@ class Messages_Logic {
   //  alert("buenas");
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
-  new Messages_Logic();
-});
+const messages_logic =  new Messages_Logic();
