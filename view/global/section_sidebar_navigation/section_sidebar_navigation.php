@@ -32,28 +32,28 @@
     <div class="sidebar-left-menu-item has-sub is-open">
       <h3>Messages</h3>
 
-      <div class="sidebar-right">
+      <!-- <div class="sidebar-right">
         <span class="sidebar-count">2</span>
         <span class="sidebar-chev">▾</span>
-      </div>
+      </div> -->
     </div>
 
     <div class="sidebar-left-menu-item has-sub">
       <h3>Approbals</h3>
 
-      <div class="sidebar-right">
+      <!-- <div class="sidebar-right">
         <span class="sidebar-count">7</span>
         <span class="sidebar-chev">▾</span>
-      </div>
+      </div> -->
     </div>
 
     <div class="sidebar-left-menu-item has-sub is-open">
       <h3>Orders</h3>
 
-      <div class="sidebar-right">
+      <!-- <div class="sidebar-right">
         <span class="sidebar-count">5</span>
         <span class="sidebar-chev">▴</span>
-      </div>
+      </div> -->
     </div>
 
     <!-- Subcontainer ejemplo (para Orders) -->
