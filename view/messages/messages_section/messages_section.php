@@ -1,9 +1,13 @@
 <?php
 $cssPath = '../../view/messages/messages_section/messages_section.css';
 $jsPath  = '../../view/messages/messages_section/messages_section.js';
+$jsPathLogic  = '../../view/messages/messages_section/messages_logics.js';
+
+
 
 $cssV = is_file($cssPath) ? filemtime($cssPath) : time();
 $jsV  = is_file($jsPath)  ? filemtime($jsPath)  : time();
+$jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
 ?>
 
 <link rel="stylesheet" href="<?= $cssPath ?>?v=<?= $cssV ?>">
@@ -62,4 +66,5 @@ $jsV  = is_file($jsPath)  ? filemtime($jsPath)  : time();
 
 </section>
 
-<script defer src="<?= $jsPath ?>?v=<?= $jsV ?>"></script>
+
+<script defer src="<?= $jsPathLogic ?>?v=<?= $jsVLogic ?>"></script>
