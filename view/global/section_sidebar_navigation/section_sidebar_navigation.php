@@ -53,8 +53,9 @@
         <span class="sidebar-chev">▴</span>
       </div> -->
     </div>
-    <div class="sidebar-left-menu-item is-active">
-      <h3>User Manager</h3>
+    <div class="sidebar-left-menu-item is-active" id="open_user_manager">
+      <h3><a href="../../view/user_manager/index.php">User manager</a></h3>
+
     </div>
 
     <!-- Subcontainer ejemplo (para Orders) -->
