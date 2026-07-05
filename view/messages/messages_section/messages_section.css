@@ -245,6 +245,20 @@
   margin: 0;
 }
 
+.msg-bubble-sender {
+  display: block;
+  margin-bottom: 6px;
+  font-size: .82rem;
+  color: var(--msg-muted);
+}
+
+.msg-row.is-other {
+  justify-content: flex-start;
+}
+
+.msg-row.is-mine {
+  justify-content: flex-end;
+}
 /* Responsive */
 
 @media (max-width: 900px) {

@@ -9,7 +9,28 @@ class MessagesSection {
   }
 
   init() {
+    this.renderInitialMessages();
     this.listenFormSubmit();
+  }
+
+  renderInitialMessages() {
+    this.addMessageToView(
+      "Hello, we have reviewed the product and need a few changes before approval.",
+      "other",
+      "Supplier"
+    );
+
+    this.addMessageToView(
+      "Sure, please let me know what changes are needed.",
+      "mine",
+      "Admin"
+    );
+
+    this.addMessageToView(
+      "Please update the product description and upload a clearer main image.",
+      "other",
+      "Supplier"
+    );
   }
 
   listenFormSubmit() {
@@ -24,15 +45,14 @@ class MessagesSection {
   sendMessage() {
     const message = this.input.value.trim();
 
-    if (message === "") {
-      return;
-    }
+    if (!message) return;
 
-    this.addMessageToView(message, "mine");
+    this.addMessageToView(message, "mine", "Admin");
+
     this.input.value = "";
   }
 
-  addMessageToView(message, type = "mine") {
+  addMessageToView(message, type = "mine", sender = "") {
     if (!this.previewBody) return;
 
     const emptyMessage = this.previewBody.querySelector(".msg-empty");
@@ -42,6 +62,11 @@ class MessagesSection {
     }
 
     const row = document.createElement("div");
+    const bubble = document.createElement("div");
+    const senderName = document.createElement("strong");
+    const text = document.createElement("p");
+    const meta = document.createElement("span");
+
     row.classList.add("msg-row");
 
     if (type === "mine") {
@@ -50,18 +75,30 @@ class MessagesSection {
       row.classList.add("is-other");
     }
 
-    row.innerHTML = `
-      <div class="msg-bubble">
-        <p class="msg-bubble-text">${message}</p>
-        <span class="msg-bubble-meta">Just now</span>
-      </div>
-    `;
+    bubble.classList.add("msg-bubble");
+    senderName.classList.add("msg-bubble-sender");
+    text.classList.add("msg-bubble-text");
+    meta.classList.add("msg-bubble-meta");
+
+    senderName.textContent = sender;
+    text.textContent = message;
+    meta.textContent = "Just now";
+
+    if (sender) {
+      bubble.appendChild(senderName);
+    }
+
+    bubble.appendChild(text);
+    bubble.appendChild(meta);
+    row.appendChild(bubble);
 
     this.previewBody.appendChild(row);
     this.scrollToBottom();
   }
 
   scrollToBottom() {
+    if (!this.previewBody) return;
+
     this.previewBody.scrollTop = this.previewBody.scrollHeight;
   }
 }
