@@ -5,6 +5,7 @@ class SideNavigation {
     const open_user_manager = document.getElementById("open_user_manager");
 
     open_user_manager.addEventListener("click", function(){
+      alert("buenas ");
       window.open("../../view/user_manager/index.php", "_self");
     })
 
