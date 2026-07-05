@@ -57,13 +57,13 @@
     </div>
 
     <!-- Subcontainer ejemplo (para Orders) -->
-    <div class="sidebar-left-subcontainer is-open">
+    <!-- <div class="sidebar-left-subcontainer is-open">
       <div class="subitem"><h4>Overview</h4></div>
       <div class="subitem"><h4>.63</h4></div>
       <div class="subitem"><h4>W3P</h4></div>
       <div class="subitem"><h4>Amazon</h4></div>
       <div class="subitem"><h4>eBay</h4></div>
-    </div>
+    </div> -->
   </div>
 </section>
 
