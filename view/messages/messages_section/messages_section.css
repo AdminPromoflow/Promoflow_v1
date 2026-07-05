@@ -32,7 +32,8 @@
 
 .msg-sidebar,
 .msg-topbar,
-.msg-reader {
+.msg-reader,
+.msg-create-case {
   background: var(--msg-panel);
   border: 1px solid var(--msg-border);
   border-radius: var(--msg-radius);
@@ -66,6 +67,52 @@
 .msg-brand p {
   margin: 6px 0 0;
 }
+
+/* Create Case */
+
+.msg-create-case {
+  padding: 14px;
+  background: rgba(0, 0, 0, .10);
+}
+
+.msg-create-case h3 {
+  margin: 0 0 12px;
+  color: var(--msg-text);
+  font-size: 1rem;
+}
+
+.msg-case-form {
+  display: grid;
+  gap: 10px;
+}
+
+.msg-case-field {
+  display: grid;
+  gap: 6px;
+}
+
+.msg-case-field span {
+  color: var(--msg-muted);
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.msg-case-field input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .06);
+  color: var(--msg-text);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.msg-case-field input::placeholder {
+  color: rgba(255, 255, 255, .55);
+}
+
+/* Folders */
 
 .msg-folders {
   display: grid;
@@ -213,6 +260,8 @@
 .msg-input::placeholder {
   color: rgba(255, 255, 255, .55);
 }
+
+/* Buttons */
 
 .msg-btn {
   border: 1px solid rgba(255, 255, 255, .14);

@@ -3,8 +3,6 @@ $cssPath = '../../view/messages/messages_section/messages_section.css';
 $jsPath  = '../../view/messages/messages_section/messages_section.js';
 $jsPathLogic  = '../../view/messages/messages_section/messages_logics.js';
 
-
-
 $cssV = is_file($cssPath) ? filemtime($cssPath) : time();
 $jsV  = is_file($jsPath)  ? filemtime($jsPath)  : time();
 $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
@@ -15,10 +13,46 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
 <section class="msg-shell">
 
   <aside class="msg-sidebar" aria-label="Message conversation">
+
     <div class="msg-brand">
       <h2>Messaging</h2>
       <p>Live conversation</p>
     </div>
+
+    <!-- Create Case Section -->
+    <section class="msg-create-case" aria-label="Create new case">
+      <h3>Create Case</h3>
+
+      <form id="create-case-form" class="msg-case-form" autocomplete="off">
+
+        <label class="msg-case-field">
+          <span>Case name</span>
+          <input
+            id="case-name"
+            name="case_name"
+            type="text"
+            placeholder="Example: Approval request"
+            required
+          >
+        </label>
+
+        <label class="msg-case-field">
+          <span>Supplier ID</span>
+          <input
+            id="case-supplier"
+            name="id_supplier"
+            type="number"
+            placeholder="Supplier ID"
+            required
+          >
+        </label>
+
+        <button id="create_case_btn" class="msg-btn msg-btn-primary" type="submit">
+          Create Case
+        </button>
+
+      </form>
+    </section>
 
     <nav class="msg-folders" aria-label="Conversations">
       <button class="msg-folder is-active" type="button" aria-current="page">
@@ -26,6 +60,7 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
         <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
       </button>
     </nav>
+
   </aside>
 
   <main class="msg-main">
@@ -65,6 +100,6 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
   </main>
 
 </section>
-<script defer src="<?= $jsPathLogic ?>?v=<?= $jsVLogic ?>"></script>
 
+<script defer src="<?= $jsPathLogic ?>?v=<?= $jsVLogic ?>"></script>
 <script defer src="<?= $jsPath ?>?v=<?= $jsV ?>"></script>
