@@ -1,6 +1,6 @@
 class SectionOverview {
   constructor() {
-    const  pending_to_construction = document.getElementById(" pending_to_construction");
+    const  pending_to_construction = document.querySelectorAll(".pending_to_construction");
 
     for (let i = 0; i <  pending_to_construction.length; i++) {
        pending_to_construction[i].addEventListener("click", function(){
