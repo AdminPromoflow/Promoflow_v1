@@ -25,9 +25,9 @@
 
   <!-- Menu -->
   <div class="sidebar-left-menu">
-    <div class="sidebar-left-menu-item is-active">
+    <!-- <div class="sidebar-left-menu-item is-active">
       <h3>Overview</h3>
-    </div>
+    </div> -->
 
     <div class="sidebar-left-menu-item has-sub is-open">
       <h3>Messages</h3>
