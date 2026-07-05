@@ -65,6 +65,6 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
   </main>
 
 </section>
-
-
 <script defer src="<?= $jsPathLogic ?>?v=<?= $jsVLogic ?>"></script>
+
+<script defer src="<?= $jsPath ?>?v=<?= $jsV ?>"></script>
