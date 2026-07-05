@@ -1,6 +1,6 @@
 class Messages_Logic {
   constructor() {
-    alert("buenas");
+  //  alert("buenas");
   }
 }
 document.addEventListener("DOMContentLoaded", () => {
