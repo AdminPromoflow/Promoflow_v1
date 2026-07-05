@@ -25,9 +25,7 @@
 
   <!-- Menu -->
   <div class="sidebar-left-menu">
-    <!-- <div class="sidebar-left-menu-item is-active">
-      <h3>Overview</h3>
-    </div> -->
+
 
     <div class="sidebar-left-menu-item has-sub is-open">
       <h3>Messages</h3>
@@ -54,6 +52,9 @@
         <span class="sidebar-count">5</span>
         <span class="sidebar-chev">▴</span>
       </div> -->
+    </div>
+    <div class="sidebar-left-menu-item is-active">
+      <h3>User Manager</h3>
     </div>
 
     <!-- Subcontainer ejemplo (para Orders) -->
