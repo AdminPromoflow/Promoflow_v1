@@ -108,7 +108,9 @@
 
 .msg-topbar {
   padding: 16px;
-  max-height: 80px;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
 }
 
 .msg-title {
@@ -119,16 +121,20 @@
 
 .msg-reader {
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 14px;
   padding: 14px;
   min-height: 460px;
 }
 
 .msg-preview {
+  min-height: 0;
   border: 1px solid rgba(255, 255, 255, .10);
   background: rgba(0, 0, 0, .10);
   border-radius: 16px;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .msg-preview-head {
@@ -148,6 +154,7 @@
 }
 
 .msg-preview-body {
+  min-height: 0;
   max-height: 420px;
   overflow-y: auto;
   padding: 14px;
@@ -202,8 +209,8 @@
 /* Message bubbles */
 
 .msg-row {
-  display: flex;
   width: 100%;
+  display: flex;
 }
 
 .msg-row.is-mine {
@@ -234,32 +241,10 @@
   color: var(--msg-text);
 }
 
-.msg-bubble-meta {
-  display: block;
-  margin-top: 8px;
-  font-size: .78rem;
-  opacity: .72;
-  color: var(--msg-muted);
-}
-
 .msg-empty {
   margin: 0;
 }
 
-.msg-bubble-sender {
-  display: block;
-  margin-bottom: 6px;
-  font-size: .82rem;
-  color: var(--msg-muted);
-}
-
-.msg-row.is-other {
-  justify-content: flex-start;
-}
-
-.msg-row.is-mine {
-  justify-content: flex-end;
-}
 /* Responsive */
 
 @media (max-width: 900px) {
