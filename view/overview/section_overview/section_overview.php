@@ -27,12 +27,12 @@
 
           <div class="details-tab-item is-active">
             <h4>.63</h4>
-            <div class="details-tab-count"><p>1</p></div>
+            <div class="details-tab-count"><p>0</p></div>
           </div>
 
           <div class="details-tab-item">
             <h4>Amazon</h4>
-            <div class="details-tab-count"><p>2</p></div>
+            <div class="details-tab-count"><p>0</p></div>
           </div>
 
           <div class="details-tab-item">
@@ -42,12 +42,12 @@
 
           <div class="details-tab-item">
             <h4>Ullman Sails</h4>
-            <div class="details-tab-count"><p>1</p></div>
+            <div class="details-tab-count"><p>0</p></div>
           </div>
 
           <div class="details-tab-item">
             <h4>Hello Print</h4>
-            <div class="details-tab-count"><p>4</p></div>
+            <div class="details-tab-count"><p>0</p></div>
           </div>
         </div>
       </div>
