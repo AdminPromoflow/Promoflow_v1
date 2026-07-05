@@ -16,7 +16,6 @@ class SideNavigation {
 
 
 
-
     sidebar.classList.add("side-open");
     sidebar.classList.remove("side-close");
     btnOpen.classList.add("is-hidden"); // opcional
