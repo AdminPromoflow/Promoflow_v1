@@ -6,7 +6,14 @@
 
 SET FOREIGN_KEY_CHECKS=0
 ;
+
 /* Drop Tables */
+
+DROP TABLE IF EXISTS `Messages` CASCADE
+;
+
+DROP TABLE IF EXISTS `Cases` CASCADE
+;
 
 DROP TABLE IF EXISTS `Addresses` CASCADE
 ;
@@ -74,7 +81,7 @@ CREATE TABLE `Customers`
 	`name` VARCHAR(50) NULL,
 	`email` VARCHAR(50) NULL,
 	`platform` VARCHAR(50) NULL,
-	CONSTRAINT `PK_Users` PRIMARY KEY (`id_customers` ASC)
+	CONSTRAINT `PK_Customers` PRIMARY KEY (`id_customers` ASC)
 )
 
 ;
@@ -181,7 +188,7 @@ CREATE TABLE `Orders`
 	`shipping_price` FLOAT(7,3) NULL,
 	`total` FLOAT(7,3) NULL,
 	`id_customers` INT NULL,
-	CONSTRAINT `PK_Table1` PRIMARY KEY (`id_order` ASC)
+	CONSTRAINT `PK_Orders` PRIMARY KEY (`id_order` ASC)
 )
 
 ;
@@ -229,10 +236,50 @@ CREATE TABLE `Users`
 
 ;
 
+CREATE TABLE `Cases`
+(
+	`id_case` INT NOT NULL AUTO_INCREMENT,
+	`id_admin` INT NOT NULL,
+	`id_supplier` INT NOT NULL,
+	`name` VARCHAR(100) NULL,
+	`status` VARCHAR(50) NULL DEFAULT 'open',
+	`created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `PK_Cases` PRIMARY KEY (`id_case` ASC)
+)
+
+;
+
+CREATE TABLE `Messages`
+(
+	`id_message` INT NOT NULL AUTO_INCREMENT,
+	`id_case` INT NOT NULL,
+	`sender_type` ENUM('admin','supplier') NOT NULL,
+	`sender_id` INT NOT NULL,
+	`message` TEXT NOT NULL,
+	`is_read` BOOL NULL DEFAULT FALSE,
+	`created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT `PK_Messages` PRIMARY KEY (`id_message` ASC)
+)
+
+;
+
 /* Create Primary Keys, Indexes, Uniques, Checks */
 
 ALTER TABLE `Jobs`
  ADD INDEX `IXFK_Jobs_Supplier` (`idSupplier` ASC)
+;
+
+ALTER TABLE `Cases`
+ ADD INDEX `IXFK_Cases_Users` (`id_admin` ASC)
+;
+
+ALTER TABLE `Cases`
+ ADD INDEX `IXFK_Cases_Supplier` (`id_supplier` ASC)
+;
+
+ALTER TABLE `Messages`
+ ADD INDEX `IXFK_Messages_Cases` (`id_case` ASC)
 ;
 
 /* Create Foreign Key Constraints */
@@ -270,6 +317,21 @@ ALTER TABLE `Orders`
 ALTER TABLE `Text`
  ADD CONSTRAINT `FK_Text_Jobs`
 	FOREIGN KEY (`id_jobs`) REFERENCES `Jobs` (`id_jobs`) ON DELETE Restrict ON UPDATE Restrict
+;
+
+ALTER TABLE `Cases`
+ ADD CONSTRAINT `FK_Cases_Users`
+	FOREIGN KEY (`id_admin`) REFERENCES `Users` (`idUser`) ON DELETE Restrict ON UPDATE Restrict
+;
+
+ALTER TABLE `Cases`
+ ADD CONSTRAINT `FK_Cases_Supplier`
+	FOREIGN KEY (`id_supplier`) REFERENCES `Supplier` (`idSupplier`) ON DELETE Restrict ON UPDATE Restrict
+;
+
+ALTER TABLE `Messages`
+ ADD CONSTRAINT `FK_Messages_Cases`
+	FOREIGN KEY (`id_case`) REFERENCES `Cases` (`id_case`) ON DELETE Restrict ON UPDATE Restrict
 ;
 
 SET FOREIGN_KEY_CHECKS=1
