@@ -27,7 +27,7 @@
   <div class="sidebar-left-menu">
 
 
-    <div class="sidebar-left-menu-item has-sub is-open">
+    <div class="sidebar-left-menu-item has-sub is-open" id="open_messages">
       <h3>Messages</h3>
 
       <!-- <div class="sidebar-right">

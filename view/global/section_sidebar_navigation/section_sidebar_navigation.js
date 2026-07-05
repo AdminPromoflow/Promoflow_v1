@@ -8,6 +8,14 @@ class SideNavigation {
       window.open("../../view/user_manager/index.php", "_self");
     })
 
+    const open_messages = document.getElementById("open_messages");
+
+    open_messages.addEventListener("click", function(){
+      window.open("../../view/messages/index.php", "_self");
+    })
+
+
+
 
     sidebar.classList.add("side-open");
     sidebar.classList.remove("side-close");
