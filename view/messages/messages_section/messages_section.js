@@ -121,7 +121,7 @@ class CreateCaseModal {
 
 
 
-   openModal() {
+  async openModal() {
 
     if (!this.modal) return;
 
