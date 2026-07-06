@@ -10,6 +10,11 @@ class Messages {
       case 'get_data_messages':
         $this->getDataMessages($data);
         break;
+
+      case 'get_suppliers':
+        $this->getSuppliers($data);
+        break;
+
         case 'save_messages':
           $this->saveMessages($data);
           break;
@@ -20,6 +25,18 @@ class Messages {
         echo json_encode(['response' => false, 'error' => 'Unsupported action']);
         break;
     }
+  }
+
+
+  private function getSuppliers($data) {
+
+    $request = new Resques63API();
+
+    $payload = [
+        "action" => "get_suppliers"
+    ];
+
+    $request->sendToDot63($payload);
   }
 
   private function getDataMessages($data) {
@@ -54,6 +71,7 @@ class Messages {
 
 include "../../controller/config/database.php";
 include "../../model/message.php";
+include "../../controller/dot63/requests_63_api.php";
 
 $messagesClass = new Messages(); // instancia
 $messagesClass->handleMessages();

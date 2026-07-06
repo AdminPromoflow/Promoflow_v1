@@ -119,12 +119,51 @@ class CreateCaseModal {
     });
   }
 
-  openModal() {
-    alert("Acá hago el request");
+
+
+  async openModal() {
+
     if (!this.modal) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const sku = params.get('sku');
+
+    const url = "../../controller/products/group.php";
+    const data = {
+      action: "get_suppliers",
+      sku: sku
+    };
+
+    const response = await this.makeRequest(url, data);
+
+    if (!response) return;
 
     this.modal.hidden = false;
     this.caseNameInput?.focus();
+
+  }
+
+
+  async makeRequest(url, data) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error("Network error.");
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error("Error:", error);
+      return null;
+    }
   }
 
   closeModal() {
