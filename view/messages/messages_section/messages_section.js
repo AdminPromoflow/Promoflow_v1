@@ -121,9 +121,24 @@ class CreateCaseModal {
 
 
 
-  async openModal() {
+   openModal() {
 
-     messages_logic.requestSuppliers();
+    if (!this.modal) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const sku = params.get('sku');
+
+    const url = "../../controller/messages/messages.php";
+    const data = {
+      action: "get_suppliers",
+      sku: sku
+    };
+
+    const response = await this.makeRequest(url, data);
+
+    if (!response) return;
+
+    alert(JSON.stringify(response));
 
     this.modal.hidden = false;
     this.caseNameInput?.focus();
@@ -131,7 +146,27 @@ class CreateCaseModal {
   }
 
 
+  async makeRequest(url, data) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
 
+      if (!response.ok) {
+        throw new Error("Network error.");
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error("Error:", error);
+      return null;
+    }
+  }
 
   closeModal() {
     if (!this.modal) return;
