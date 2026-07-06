@@ -156,7 +156,7 @@ class CreateCaseModal {
 
     `
 
-    //  alert(JSON.stringify(response));
+      alert(JSON.stringify(response));
 
   }
 
