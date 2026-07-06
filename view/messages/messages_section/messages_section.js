@@ -121,24 +121,9 @@ class CreateCaseModal {
 
 
 
-  async openModal() {
+   openModal() {
 
-    if (!this.modal) return;
-
-    const params = new URLSearchParams(window.location.search);
-    const sku = params.get('sku');
-
-    const url = "../../controller/messages/messages.php";
-    const data = {
-      action: "get_suppliers",
-      sku: sku
-    };
-
-    const response = await this.makeRequest(url, data);
-
-    if (!response) return;
-
-    alert(JSON.stringify(response));
+     messages_logic.requestSuppliers();
 
     this.modal.hidden = false;
     this.caseNameInput?.focus();
