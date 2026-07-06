@@ -49,15 +49,32 @@ class Messages {
     $user->setEmail($email ?? '');
     $idUser = $user->getIdUserByEmail();
 
-    echo json_encode($idUser);
-    exit;
+    $idSupplier = $data["supplierId"];
+    $name = $data["caseName"];
+
+    date_default_timezone_set("Europe/London");
+    $datetime = date("Y-m-d H:i:s");
+
+    $updateAt = date("Y-m-d H:i:s");
+
+
 
 
     $connection = new Database();
     $message = new Message($connection);
 
-    $result = $message->getMessages();
+    $message->setIdAdmin();
+    $message->setIdSupplier();
+    $message->setName();
+    $message->setStatus();
+    $message->setCreatedAt();
+    $message->setUpdatedAt();
 
+    $result = $message->saveCase();
+
+
+    echo json_encode($result);
+    exit;
 
   }
 
