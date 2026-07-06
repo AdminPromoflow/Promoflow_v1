@@ -121,7 +121,7 @@ class CreateCaseModal {
 
 
 
-   openModal() {
+  async openModal() {
 
      messages_logic.requestSuppliers();
 
