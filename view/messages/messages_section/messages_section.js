@@ -217,8 +217,11 @@ class CreateCaseModal {
 
     const response = await this.makeRequest(url, data);
 
-    alert(JSON.stringify(response));
+    if (response.response === true) {
 
+      alert(response.message);
+
+    }
     // console.log("Case name:", caseName);
     // console.log("Supplier ID:", supplierId);
 
