@@ -133,6 +133,7 @@ class CreateCaseModal {
   }
 
   createCase() {
+    alert("jhah ");
     const caseName = this.caseNameInput.value.trim();
     const supplierId = this.supplierSelect.value;
     const supplierText = this.supplierSelect.options[this.supplierSelect.selectedIndex].text;
