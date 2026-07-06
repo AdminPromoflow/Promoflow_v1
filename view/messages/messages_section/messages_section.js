@@ -198,7 +198,7 @@ class CreateCaseModal {
     this.modal.hidden = true;
   }
 
-  createCase() {
+  async createCase() {
     const caseName = this.caseNameInput.value.trim();
     const supplierId = this.supplierSelect.value;
     const supplierText = this.supplierSelect.options[this.supplierSelect.selectedIndex].text;
