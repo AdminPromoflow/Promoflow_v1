@@ -146,6 +146,7 @@ class Messages {
 
 include "../../controller/config/database.php";
 include "../../model/message.php";
+include "../../model/promoflow/user.php";
 
 $messagesClass = new Messages(); // instancia
 $messagesClass->handleMessages();
