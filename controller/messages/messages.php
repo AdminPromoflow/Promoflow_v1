@@ -63,12 +63,12 @@ class Messages {
     $connection = new Database();
     $message = new Message($connection);
 
-    $message->setIdAdmin();
-    $message->setIdSupplier();
-    $message->setName();
-    $message->setStatus();
-    $message->setCreatedAt();
-    $message->setUpdatedAt();
+    $message->setIdAdmin($idUser ?? '');
+    $message->setIdSupplier($idSupplier ?? '');
+    $message->setName($name ?? '');
+    $message->setStatus("open");
+    $message->setCreatedAt($datetime ?? '');
+    $message->setUpdatedAt($updateAt ?? '');
 
     $result = $message->saveCase();
 
