@@ -29,7 +29,7 @@ class Messages {
 
 
   private function getSuppliers($data) {
-
+    echo json_encode("hi");exit;
     $request = new Resques63API();
 
     $payload = [
