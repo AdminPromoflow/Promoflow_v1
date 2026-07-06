@@ -136,6 +136,8 @@ class CreateCaseModal {
 
     const response = await this.makeRequest(url, data);
 
+    this.drawSuppliersCreateCase(response);
+
     if (!response) return;
 
     this.modal.hidden = false;
