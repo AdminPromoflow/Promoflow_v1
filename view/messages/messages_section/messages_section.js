@@ -144,6 +144,7 @@ class CreateCaseModal {
   }
 
   drawSuppliersCreateCase(response){
+    alert(JSON.stringify(response));
 
     const case_supplier = document.getElementById("case-supplier");
 
@@ -156,7 +157,6 @@ class CreateCaseModal {
 
     `
 
-      alert(JSON.stringify(response));
 
   }
 
