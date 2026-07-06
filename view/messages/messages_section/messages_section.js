@@ -138,6 +138,8 @@ class CreateCaseModal {
 
     if (!response) return;
 
+    alert(JSON.stringify(response));
+
     this.modal.hidden = false;
     this.caseNameInput?.focus();
 
