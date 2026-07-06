@@ -138,12 +138,28 @@ class CreateCaseModal {
 
     if (!response) return;
 
-    alert(JSON.stringify(response));
-
     this.modal.hidden = false;
     this.caseNameInput?.focus();
 
   }
+
+  drawSuppliersCreateCase(response){
+
+    const case_supplier = document.getElementById("case-supplier");
+
+    case_supplier.innerHTML =
+    `
+    <option value="">Select supplier</option>
+
+    <!-- Estos datos luego pueden venir desde la base de datos -->
+    <option value="1">Supplier One - supplier1@email.com</option>
+
+    `
+
+    //  alert(JSON.stringify(response));
+
+  }
+
 
 
   async makeRequest(url, data) {

@@ -99,12 +99,12 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
         <span>Supplier</span>
 
         <select id="case-supplier" name="id_supplier" required>
-          <option value="">Select supplier</option>
+          <!-- <option value="">Select supplier</option>
 
           <!-- Estos datos luego pueden venir desde la base de datos -->
-          <option value="1">Supplier One - supplier1@email.com</option>
+          <!-- <option value="1">Supplier One - supplier1@email.com</option>
           <option value="2">Supplier Two - supplier2@email.com</option>
-          <option value="3">Supplier Three - supplier3@email.com</option>
+          <option value="3">Supplier Three - supplier3@email.com</option> --> -->
         </select>
       </label>
 
