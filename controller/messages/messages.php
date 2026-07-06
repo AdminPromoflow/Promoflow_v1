@@ -12,8 +12,6 @@ class Messages {
         break;
 
       case 'get_suppliers':
-      echo json_encode("hi");exit;
-
         $this->getSuppliers($data);
         break;
 
