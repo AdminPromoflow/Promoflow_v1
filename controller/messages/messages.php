@@ -18,9 +18,13 @@ class Messages {
         $this->getSuppliers($data);
         break;
 
-        case 'save_messages':
-          $this->saveMessages($data);
-          break;
+      case 'save_messages':
+        $this->saveMessages($data);
+        break;
+
+      case 'create_case':
+        $this->createCase($data);
+        break;
 
 
       default:
@@ -29,7 +33,33 @@ class Messages {
         break;
     }
   }
+  private function createCase($data) {
+    header('Content-Type: application/json; charset=utf-8');
 
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // save global session variables
+    $email = $_SESSION['user_email'];
+
+    $connection = new Database();
+    $user = new Users($connection);
+    $user->setEmail($email ?? '');
+    $idUser = $user->getIdUserByEmail();
+
+    echo json_encode($idUser);
+    exit;
+
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+    $result = $message->getMessages();
+
+
+  }
 
   private function getSuppliers($data) {
 

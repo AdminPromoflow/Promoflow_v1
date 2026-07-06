@@ -20,7 +20,34 @@ class Users
     public function setRole(string $role): void { $this->role = $role; }
     public function setAvatar(?string $avatar): void { $this->avatar = $avatar; }
 
-    // ✅ SOLO: verificar si email y password existen en la BD
+
+    public function getIdUserByEmail(): int
+    {
+        if (empty($this->email)) {
+            return 0;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
+                SELECT `idSupplier`
+                FROM `Supplier`
+                WHERE `email` = :email
+                LIMIT 1
+            ");
+
+            $stmt->bindValue(':email', $this->email, PDO::PARAM_STR);
+            $stmt->execute();
+
+            $idSupplier = $stmt->fetchColumn();
+
+            return $idSupplier ? (int)$idSupplier : 0;
+
+        } catch (PDOException $e) {
+            echo "Error getting supplier ID by email: " . $e->getMessage();
+            return 0;
+        }
+    }
+
     public function loginUser(): bool
     {
         try {
@@ -101,12 +128,17 @@ class Users
     }
 
     public function updateName(int $idUser, string $name): bool { return $this->updateField($idUser, 'name', $name); }
+
     public function updateEmail(int $idUser, string $email): bool { return $this->updateField($idUser, 'email', $email); }
+
     public function updateRole(int $idUser, string $role): bool { return $this->updateField($idUser, 'role', $role); }
+
     public function updatePassword(int $idUser, string $password): bool { return $this->updateField($idUser, 'password', $password); }
+
     public function updateAvatar(int $idUser, string $avatarDataUrl): bool { return $this->updateField($idUser, 'avatar', $avatarDataUrl); }
 
     public function deleteUser(int $idUser): bool
+
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM Users WHERE idUser = :idUser");

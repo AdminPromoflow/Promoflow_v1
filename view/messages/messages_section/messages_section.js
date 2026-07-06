@@ -208,9 +208,21 @@ class CreateCaseModal {
       return;
     }
 
-    console.log("Case name:", caseName);
-    console.log("Supplier ID:", supplierId);
-    console.log("Supplier:", supplierText);
+    const url = "../../controller/messages/messages.php";
+    const data = {
+      action: "create_case",
+      caseName: caseName,
+      supplierId: supplierId
+    };
+
+    const response = await this.makeRequest(url, data);
+
+    alert(JSON.stringify(response));
+
+    // console.log("Case name:", caseName);
+    // console.log("Supplier ID:", supplierId);
+
+
 
     this.form.reset();
     this.closeModal();

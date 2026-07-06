@@ -70,7 +70,6 @@ class Message {
   }
 
 
-
   public function getMessages() {
     try {
       $pdo = $this->connection->getConnection();
