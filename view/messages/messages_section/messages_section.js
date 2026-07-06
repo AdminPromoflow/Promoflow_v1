@@ -145,21 +145,27 @@ class CreateCaseModal {
 
   }
 
-  drawSuppliersCreateCase(response){
-    alert(JSON.stringify(response));
+  drawSuppliersCreateCase(response) {
+    const caseSupplier = document.getElementById("case-supplier");
 
-    const case_supplier = document.getElementById("case-supplier");
+    if (!caseSupplier) return;
 
-    case_supplier.innerHTML =
-    `
-    <option value="">Select supplier</option>
+    caseSupplier.innerHTML = `
+      <option value="">Select supplier</option>
+    `;
 
-    <!-- Estos datos luego pueden venir desde la base de datos -->
-    <option value="1">Supplier One - supplier1@email.com</option>
+    if (!response || response.response !== true || !Array.isArray(response.result)) {
+      return;
+    }
 
-    `
+    response.result.forEach((supplier) => {
+      const option = document.createElement("option");
 
+      option.value = supplier.supplier_id;
+      option.textContent = `${supplier.contact_name} - ${supplier.email}`;
 
+      caseSupplier.appendChild(option);
+    });
   }
 
 
