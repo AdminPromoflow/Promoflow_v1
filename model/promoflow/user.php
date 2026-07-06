@@ -29,8 +29,8 @@ class Users
 
         try {
             $stmt = $this->db->prepare("
-                SELECT `idSupplier`
-                FROM `Supplier`
+                SELECT `idUser`
+                FROM `Users`
                 WHERE `email` = :email
                 LIMIT 1
             ");
@@ -38,16 +38,16 @@ class Users
             $stmt->bindValue(':email', $this->email, PDO::PARAM_STR);
             $stmt->execute();
 
-            $idSupplier = $stmt->fetchColumn();
+            $idUser = $stmt->fetchColumn();
 
-            return $idSupplier ? (int)$idSupplier : 0;
+            return $idUser ? (int)$idUser : 0;
 
         } catch (PDOException $e) {
-            echo "Error getting supplier ID by email: " . $e->getMessage();
+            echo "Error getting user ID by email: " . $e->getMessage();
             return 0;
         }
     }
-
+    
     public function loginUser(): bool
     {
         try {
