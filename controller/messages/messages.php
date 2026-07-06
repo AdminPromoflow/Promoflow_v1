@@ -12,6 +12,8 @@ class Messages {
         break;
 
       case 'get_suppliers':
+      echo json_encode("hi");exit;
+
         $this->getSuppliers($data);
         break;
 
@@ -29,14 +31,14 @@ class Messages {
 
 
   private function getSuppliers($data) {
-    echo json_encode("hi");exit;
     $payload = [
         "action" => "get_suppliers"
     ];
 
     $this->sendToDot63($payload);
   }
-  public function sendToDot63($payload)
+
+  private function sendToDot63($payload)
   {
       $ch = curl_init($this->dot63WebhookUrl);
 
@@ -78,6 +80,7 @@ class Messages {
       echo $response;
       exit;
   }
+
   private function getDataMessages($data) {
     header('Content-Type: application/json; charset=utf-8');
 

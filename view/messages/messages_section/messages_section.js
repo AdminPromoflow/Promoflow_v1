@@ -128,7 +128,7 @@ class CreateCaseModal {
     const params = new URLSearchParams(window.location.search);
     const sku = params.get('sku');
 
-    const url = "../../controller/products/group.php";
+    const url = "../../controller/messages/messages.php";
     const data = {
       action: "get_suppliers",
       sku: sku
