@@ -30,15 +30,54 @@ class Messages {
 
   private function getSuppliers($data) {
     echo json_encode("hi");exit;
-    $request = new Resques63API();
-
     $payload = [
         "action" => "get_suppliers"
     ];
 
-    $request->sendToDot63($payload);
+    $this->sendToDot63($payload);
   }
+  public function sendToDot63($payload)
+  {
+      $ch = curl_init($this->dot63WebhookUrl);
 
+      curl_setopt_array($ch, [
+          CURLOPT_POST => true,
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_HTTPHEADER => [
+              'Content-Type: application/json; charset=utf-8',
+          ],
+          CURLOPT_POSTFIELDS => json_encode($payload),
+          CURLOPT_TIMEOUT => 20,
+      ]);
+
+      $response = curl_exec($ch);
+      $curlError = curl_error($ch);
+      $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+      curl_close($ch);
+
+      if ($response === false || !empty($curlError)) {
+          echo json_encode([
+              'success' => false,
+              'error' => 'Could not connect to DOT63 API.',
+              'curl_error' => $curlError
+          ]);
+          exit;
+      }
+
+      if ($httpCode < 200 || $httpCode >= 300) {
+          echo json_encode([
+              'success' => false,
+              'error' => 'DOT63 API returned an invalid HTTP response.',
+              'http_code' => $httpCode,
+              'response' => $response
+          ]);
+          exit;
+      }
+
+      echo $response;
+      exit;
+  }
   private function getDataMessages($data) {
     header('Content-Type: application/json; charset=utf-8');
 
@@ -71,7 +110,6 @@ class Messages {
 
 include "../../controller/config/database.php";
 include "../../model/message.php";
-include "../../controller/dot63/requests_63_api.php";
 
 $messagesClass = new Messages(); // instancia
 $messagesClass->handleMessages();

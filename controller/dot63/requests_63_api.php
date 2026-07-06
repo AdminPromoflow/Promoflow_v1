@@ -55,7 +55,7 @@ class Resques63API
         exit;
     }
 
-    public function sendToDot63($payload)
+    private function sendToDot63($payload)
     {
         $ch = curl_init($this->dot63WebhookUrl);
 
