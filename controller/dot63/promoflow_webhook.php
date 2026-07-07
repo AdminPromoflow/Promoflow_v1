@@ -61,11 +61,15 @@ class PromoflowWebhook
 
   private function getCases($data)
   {
-    echo json_encode([
-      "response" => true,
-      "message" => "hola solo Cases",
-      "data_received" => $data
-    ]);
+    header('Content-Type: application/json; charset=utf-8');
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+
+    $result = $message->getCases();
+
+    echo json_encode($result);
     exit;
   }
 
@@ -101,16 +105,8 @@ class PromoflowWebhook
 }
 
 include "../../controller/config/database.php";
-
-// include "../../model/products.php";
-// include "../../model/users.php";
-// include "../../model/categories.php";
-// include "../../model/groups.php";
-// include "../../model/variations.php";
-// include "../../model/prices.php";
-//
-// include "../../controller/products/variations.php";
-// include "../../controller/emails/emails_sender.php";
+include "../../model/message.php";
+include "../../model/promoflow/user.php";
 
 $payload = json_decode(file_get_contents("php://input"), true);
 
