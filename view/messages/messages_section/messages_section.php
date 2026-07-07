@@ -23,7 +23,7 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
       + Create Case
     </button>
 
-    <nav id="group_cases" class="msg-folders" aria-label="Conversations">
+    <nav id="group_cases"  class="msg-folders" aria-label="Conversations">
       <!-- <button class="msg-folder is-active" type="button" aria-current="page">
         <span class="msg-folder-dot" aria-hidden="true"></span>
         <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>

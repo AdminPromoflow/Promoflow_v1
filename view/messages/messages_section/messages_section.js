@@ -176,12 +176,12 @@ class CreateCaseModal {
     for (var i = 0; i < result.length; i++) {
 
       group_cases.innerHTML += `
-      <button class="msg-folder is-active" type="button" aria-current="page">
+      <button id="case_${result[i]["id_case"]}" class="msg-folder is-active" type="button" aria-current="page">
         <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
+        <span class="msg-folder-name">${result[i]["name"]}</span>
       </button>
       `
-      // result[i]
+      //
     }
 
 
