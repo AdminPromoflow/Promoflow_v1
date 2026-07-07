@@ -171,7 +171,7 @@ class CreateCaseModal {
   }
 
   drawCases(result){
-    alert(JSON.stringify(result));
+    // alert(JSON.stringify(result));
 
     const group_cases = document.getElementById("group_cases");
     group_cases.innerHTML = '' ;
