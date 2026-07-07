@@ -208,6 +208,12 @@
   gap: 12px;
 }
 
+.msg-preview-body-empty {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
 /* Input */
 
 .msg-inputbar {
@@ -220,6 +226,10 @@
   border-radius: 16px;
 }
 
+.msg-inputbar.is-disabled {
+  opacity: .65;
+}
+
 .msg-input {
   width: 100%;
   min-width: 0;
@@ -229,6 +239,10 @@
   border-radius: 14px;
   padding: 12px;
   outline: none;
+}
+
+.msg-input:disabled {
+  cursor: not-allowed;
 }
 
 .msg-input::placeholder {
@@ -260,6 +274,12 @@
 
 .msg-btn:active {
   transform: translateY(0) scale(.98);
+}
+
+.msg-btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .msg-btn-primary {

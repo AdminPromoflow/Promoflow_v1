@@ -4,31 +4,80 @@ class MessagesSection {
     this.input = document.getElementById("msg-input-promoflow");
     this.previewBody = document.getElementById("msg-preview-body");
     this.sendButton = document.getElementById("send_promoflow");
+    this.caseTitle = document.getElementById("selected-case-title");
+    this.caseSubtitle = document.getElementById("selected-case-subtitle");
 
     this.init();
   }
 
   init() {
-    this.renderInitialMessages();
     this.listenFormSubmit();
 
+    const params = new URLSearchParams(window.location.search);
+    const caseId = params.get("case");
+
+    if (!caseId) {
+      this.showNoCaseSelected();
+    }
   }
 
-  renderInitialMessages() {
-    this.addMessageToView(
-      "Hello, we have reviewed the product and need a few changes before approval.",
-      "other"
-    );
+  showNoCaseSelected() {
+    if (this.caseTitle) {
+      this.caseTitle.textContent = "No case selected";
+    }
 
-    this.addMessageToView(
-      "Sure, please let me know what changes are needed.",
-      "mine"
-    );
+    if (this.caseSubtitle) {
+      this.caseSubtitle.textContent = "Select a case to view the conversation.";
+    }
 
-    this.addMessageToView(
-      "Please update the product description and upload a clearer main image.",
-      "other"
-    );
+    if (this.previewBody) {
+      this.previewBody.classList.add("msg-preview-body-empty");
+      this.previewBody.innerHTML = `
+        <p class="msg-empty">Select a case to view the conversation.</p>
+      `;
+    }
+
+    this.disableMessageForm();
+  }
+
+  setSelectedCaseHeader(caseName) {
+    if (this.caseTitle) {
+      this.caseTitle.textContent = caseName || "Selected case";
+    }
+
+    if (this.caseSubtitle) {
+      this.caseSubtitle.textContent = "Live conversation";
+    }
+  }
+
+  enableMessageForm() {
+    if (this.form) {
+      this.form.classList.remove("is-disabled");
+    }
+
+    if (this.input) {
+      this.input.disabled = false;
+      this.input.placeholder = "Write a message…";
+    }
+
+    if (this.sendButton) {
+      this.sendButton.disabled = false;
+    }
+  }
+
+  disableMessageForm() {
+    if (this.form) {
+      this.form.classList.add("is-disabled");
+    }
+
+    if (this.input) {
+      this.input.disabled = true;
+      this.input.placeholder = "Select a case before writing a message…";
+    }
+
+    if (this.sendButton) {
+      this.sendButton.disabled = true;
+    }
   }
 
   listenFormSubmit() {
@@ -41,6 +90,16 @@ class MessagesSection {
   }
 
   sendMessage() {
+    if (!this.input) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const caseId = params.get("case");
+
+    if (!caseId) {
+      alert("Please select a case first.");
+      return;
+    }
+
     const message = this.input.value.trim();
 
     if (!message) return;
@@ -51,6 +110,8 @@ class MessagesSection {
 
   addMessageToView(message, type = "mine") {
     if (!this.previewBody) return;
+
+    this.previewBody.classList.remove("msg-preview-body-empty");
 
     const emptyMessage = this.previewBody.querySelector(".msg-empty");
 
@@ -75,6 +136,26 @@ class MessagesSection {
     this.scrollToBottom();
   }
 
+  drawMessages(messages) {
+    if (!this.previewBody) return;
+
+    this.previewBody.classList.remove("msg-preview-body-empty");
+    this.previewBody.innerHTML = "";
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      this.previewBody.classList.add("msg-preview-body-empty");
+      this.previewBody.innerHTML = `<p class="msg-empty">No messages yet.</p>`;
+      return;
+    }
+
+    messages.forEach((messageItem) => {
+      const type = messageItem.sender_type === "admin" ? "mine" : "other";
+      this.addMessageToView(messageItem.message, type);
+    });
+
+    this.scrollToBottom();
+  }
+
   scrollToBottom() {
     if (!this.previewBody) return;
 
@@ -83,7 +164,9 @@ class MessagesSection {
 }
 
 class CreateCaseModal {
-  constructor() {
+  constructor(messagesSection) {
+    this.messagesSection = messagesSection;
+
     this.modal = document.getElementById("create-case-modal");
     this.openButton = document.getElementById("open-create-case");
     this.closeButton = document.getElementById("close-create-case");
@@ -91,23 +174,18 @@ class CreateCaseModal {
     this.form = document.getElementById("create-case-form");
     this.caseNameInput = document.getElementById("case-name");
     this.supplierSelect = document.getElementById("case-supplier");
+    this.groupCases = document.getElementById("group_cases");
 
     this.init();
 
-  //  this.readCases();
+    const params = new URLSearchParams(window.location.search);
+    const caseId = params.get("case");
 
-
-    // const params = new URLSearchParams(window.location.search);
-    // const caseId = params.get("case");
-    //
-    //
-    // if (caseId) {
-    //   this.readCasesAndMessages();
-    //
-    // } else {
+    if (caseId) {
+      this.readCasesAndMessages();
+    } else {
       this.readCases();
-    // }
-
+    }
   }
 
   init() {
@@ -135,92 +213,174 @@ class CreateCaseModal {
     });
   }
 
-  async readCasesAndMessages(){
+  async readCasesAndMessages() {
     const params = new URLSearchParams(window.location.search);
     const caseId = params.get("case");
 
-    if (!this.modal) return;
+    if (!caseId) {
+      this.messagesSection.showNoCaseSelected();
+      return;
+    }
 
     const data = {
       action: "get_cases_and_messages",
       caseId: caseId
     };
+
     const url = "../../controller/messages/messages.php";
     const response = await this.makeRequest(url, data);
-    if (!response) return
 
-    // alert(JSON.stringify(response));
+    if (!response) return;
+
+    if (response.response === true) {
+      if (Array.isArray(response.cases)) {
+        this.drawCases(response.cases);
+      }
+
+      if (response.case && response.case.name) {
+        this.messagesSection.setSelectedCaseHeader(response.case.name);
+      } else {
+        const activeCase = document.getElementById(`case_${caseId}`);
+        const activeCaseName = activeCase?.querySelector(".msg-folder-name")?.textContent;
+        this.messagesSection.setSelectedCaseHeader(activeCaseName || `Case #${caseId}`);
+      }
+
+      this.messagesSection.enableMessageForm();
+      this.setActiveCase(caseId);
+
+      if (Array.isArray(response.messages)) {
+        this.messagesSection.drawMessages(response.messages);
+      } else if (Array.isArray(response.result)) {
+        this.messagesSection.drawMessages(response.result);
+      } else {
+        this.messagesSection.drawMessages([]);
+      }
+
+      return;
+    }
+
+    alert(response.message || "Unable to load case.");
+    this.messagesSection.showNoCaseSelected();
   }
 
-  async readCases(){
-
-
-    if (!this.modal) return;
-
+  async readCases() {
     const data = {
       action: "get_cases"
     };
+
     const url = "../../controller/messages/messages.php";
     const response = await this.makeRequest(url, data);
-    if (!response) return
+
+    if (!response) return;
 
     if (response.response === true) {
-      this.drawCases(response.result);
+      this.drawCases(response.result || []);
     }
 
+    this.messagesSection.showNoCaseSelected();
   }
 
-  drawCases(result){
-    // alert(JSON.stringify(result));
+  drawCases(result) {
+    if (!this.groupCases) return;
 
-    const group_cases = document.getElementById("group_cases");
-    group_cases.innerHTML = '' ;
+    this.groupCases.innerHTML = "";
 
-    for (var i = 0; i < result.length; i++) {
+    const params = new URLSearchParams(window.location.search);
+    const currentCaseId = params.get("case");
 
-      group_cases.innerHTML += `
-      <button id="case_${result[i]["id_case"]}" class="msg-folder is-active" type="button" aria-current="page">
-        <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">${result[i]["id_case"]}</span>
-      </button>
-      `
-      //
+    if (!Array.isArray(result) || result.length === 0) {
+      this.groupCases.innerHTML = `
+        <p class="msg-empty">No cases yet.</p>
+      `;
+      return;
     }
 
+    result.forEach((caseItem) => {
+      const button = document.createElement("button");
+      const dot = document.createElement("span");
+      const name = document.createElement("span");
 
+      const idCase = String(caseItem.id_case);
 
+      button.id = `case_${idCase}`;
+      button.classList.add("msg-folder");
+      button.type = "button";
+      button.dataset.caseId = idCase;
+
+      if (currentCaseId === idCase) {
+        button.classList.add("is-active");
+        button.setAttribute("aria-current", "page");
+      }
+
+      dot.classList.add("msg-folder-dot");
+      dot.setAttribute("aria-hidden", "true");
+
+      name.classList.add("msg-folder-name");
+      name.textContent = caseItem.name || `Case #${idCase}`;
+
+      button.appendChild(dot);
+      button.appendChild(name);
+
+      button.addEventListener("click", () => {
+        this.handleCaseClick(idCase);
+      });
+
+      this.groupCases.appendChild(button);
+    });
+  }
+
+  handleCaseClick(caseId) {
+    this.setActiveCase(caseId);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("case", caseId);
+
+    window.location.href = url.toString();
+  }
+
+  setActiveCase(caseId) {
+    const allFolders = document.querySelectorAll(".msg-folder");
+
+    allFolders.forEach((folder) => {
+      folder.classList.remove("is-active");
+      folder.removeAttribute("aria-current");
+    });
+
+    const activeFolder = document.getElementById(`case_${caseId}`);
+
+    if (activeFolder) {
+      activeFolder.classList.add("is-active");
+      activeFolder.setAttribute("aria-current", "page");
+    }
   }
 
   async openModal() {
-
     if (!this.modal) return;
 
     const params = new URLSearchParams(window.location.search);
-    const sku = params.get('sku');
+    const sku = params.get("sku");
 
     const url = "../../controller/messages/messages.php";
+
     const data = {
       action: "get_suppliers",
       sku: sku
     };
 
     const response = await this.makeRequest(url, data);
+
     if (!response) return;
 
     this.drawSuppliersCreateCase(response);
 
-
     this.modal.hidden = false;
     this.caseNameInput?.focus();
-
   }
 
   drawSuppliersCreateCase(response) {
-    const caseSupplier = document.getElementById("case-supplier");
+    if (!this.supplierSelect) return;
 
-    if (!caseSupplier) return;
-
-    caseSupplier.innerHTML = `
+    this.supplierSelect.innerHTML = `
       <option value="">Select supplier</option>
     `;
 
@@ -234,11 +394,58 @@ class CreateCaseModal {
       option.value = supplier.supplier_id;
       option.textContent = `${supplier.contact_name} - ${supplier.email}`;
 
-      caseSupplier.appendChild(option);
+      this.supplierSelect.appendChild(option);
     });
   }
 
+  closeModal() {
+    if (!this.modal) return;
 
+    this.modal.hidden = true;
+  }
+
+  async createCase() {
+    if (!this.caseNameInput || !this.supplierSelect || !this.form) return;
+
+    const caseName = this.caseNameInput.value.trim();
+    const supplierId = this.supplierSelect.value;
+
+    if (!caseName || !supplierId) {
+      alert("Please complete all fields.");
+      return;
+    }
+
+    const url = "../../controller/messages/messages.php";
+
+    const data = {
+      action: "create_case",
+      caseName: caseName,
+      supplierId: supplierId
+    };
+
+    const response = await this.makeRequest(url, data);
+
+    if (!response) return;
+
+    if (response.response === true) {
+      alert(response.message);
+
+      this.form.reset();
+      this.closeModal();
+
+      if (response.id_case) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("case", response.id_case);
+        window.location.href = currentUrl.toString();
+        return;
+      }
+
+      this.readCases();
+      return;
+    }
+
+    alert(response.message || "Unable to create case.");
+  }
 
   async makeRequest(url, data) {
     try {
@@ -261,51 +468,9 @@ class CreateCaseModal {
       return null;
     }
   }
-
-  closeModal() {
-    if (!this.modal) return;
-
-    this.modal.hidden = true;
-  }
-
-  async createCase() {
-    const caseName = this.caseNameInput.value.trim();
-    const supplierId = this.supplierSelect.value;
-    const supplierText = this.supplierSelect.options[this.supplierSelect.selectedIndex].text;
-
-    if (!caseName || !supplierId) {
-      alert("Please complete all fields.");
-      return;
-    }
-
-    const url = "../../controller/messages/messages.php";
-    const data = {
-      action: "create_case",
-      caseName: caseName,
-      supplierId: supplierId
-    };
-
-    const response = await this.makeRequest(url, data);
-
-    if (response.response === true) {
-
-      alert(response.message);
-
-      this.readCases();
-
-
-    }
-    // console.log("Case name:", caseName);
-    // console.log("Supplier ID:", supplierId);
-
-
-
-    this.form.reset();
-    this.closeModal();
-  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new MessagesSection();
-  new CreateCaseModal();
+  const messagesSection = new MessagesSection();
+  new CreateCaseModal(messagesSection);
 });

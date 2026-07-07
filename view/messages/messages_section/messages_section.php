@@ -23,16 +23,8 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
       + Create Case
     </button>
 
-    <nav id="group_cases"  class="msg-folders" aria-label="Conversations">
-      <!-- <button class="msg-folder is-active" type="button" aria-current="page">
-        <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
-      </button>
-
-      <button class="msg-folder is-active" type="button" aria-current="page">
-        <span class="msg-folder-dot" aria-hidden="true"></span>
-        <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
-      </button> -->
+    <nav id="group_cases" class="msg-folders" aria-label="Conversations">
+      <p class="msg-empty">Loading cases...</p>
     </nav>
 
   </aside>
@@ -47,24 +39,27 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
 
       <article class="msg-preview">
         <div class="msg-preview-head">
-          <h3>Approval request: SKU PRD-20251211</h3>
-          <p class="msg-muted">Live conversation</p>
+          <h3 id="selected-case-title">No case selected</h3>
+          <p id="selected-case-subtitle" class="msg-muted">
+            Select a case to view the conversation.
+          </p>
         </div>
 
-        <div class="msg-preview-body" id="msg-preview-body">
-          <p class="msg-empty">No messages yet.</p>
+        <div class="msg-preview-body msg-preview-body-empty" id="msg-preview-body">
+          <p class="msg-empty">Select a case to view the conversation.</p>
         </div>
       </article>
 
-      <form class="msg-inputbar" id="msg-form-promoflow" autocomplete="off">
+      <form class="msg-inputbar is-disabled" id="msg-form-promoflow" autocomplete="off">
         <input
           id="msg-input-promoflow"
           class="msg-input"
           type="text"
-          placeholder="Write a message…"
+          placeholder="Select a case before writing a message…"
+          disabled
         >
 
-        <button id="send_promoflow" class="msg-btn msg-btn-primary" type="submit">
+        <button id="send_promoflow" class="msg-btn msg-btn-primary" type="submit" disabled>
           Send
         </button>
       </form>
@@ -104,12 +99,7 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
         <span>Supplier</span>
 
         <select id="case-supplier" name="id_supplier" required>
-          <!-- <option value="">Select supplier</option>
-
-          <!-- Estos datos luego pueden venir desde la base de datos -->
-          <!-- <option value="1">Supplier One - supplier1@email.com</option>
-          <option value="2">Supplier Two - supplier2@email.com</option>
-          <option value="3">Supplier Three - supplier3@email.com</option> --> -->
+          <option value="">Select supplier</option>
         </select>
       </label>
 
