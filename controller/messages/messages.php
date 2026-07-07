@@ -9,7 +9,6 @@ class Messages {
     $input = file_get_contents('php://input');
     $data  = json_decode($input, true);
 
-    echo json_encode($data["action"]);exit;
 
     switch ($data["action"] ?? null) {
 
@@ -46,7 +45,6 @@ class Messages {
     $connection = new Database();
     $message = new Message($connection);
 
-    echo json_encode("hola");exit;
 
     $result = $message->getCases();
 
