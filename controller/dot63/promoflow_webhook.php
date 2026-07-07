@@ -20,11 +20,23 @@ class PromoflowWebhook
     switch ($data["action"] ?? null) {
       case 'get_cases_and_messages':
         $this->getCasesAndMessages($data);
-      break;
+        break;
 
       case 'get_cases':
         $this->getCases($data);
-      break;
+        break;
+
+      case 'create_case':
+        $this->createCase($data);
+        break;
+
+      case 'send_message':
+        $this->sendMessage($data);
+        break;
+
+      case 'get_suppliers':
+        $this->getSuppliers($data);
+        break;
 
       default:
         echo json_encode([
@@ -39,27 +51,52 @@ class PromoflowWebhook
 
   private function getCasesAndMessages($data)
   {
-    // $connection = new Database();
-    // $user = new Users($connection);
-    //
-    // $result = $user->getAllUsers();
-    //
-    // echo json_encode($result);
-    // exit;
-    echo json_encode("hola Cases and Messages");
-     exit;
+    echo json_encode([
+      "response" => true,
+      "message" => "hola Cases and Messages",
+      "data_received" => $data
+    ]);
+    exit;
   }
+
   private function getCases($data)
   {
-    // $connection = new Database();
-    // $user = new Users($connection);
-    //
-    // $result = $user->getAllUsers();
-    //
-    // echo json_encode($result);
-    // exit;
-    echo json_encode("hola solo Cases");
-     exit;
+    echo json_encode([
+      "response" => true,
+      "message" => "hola solo Cases",
+      "data_received" => $data
+    ]);
+    exit;
+  }
+
+  private function createCase($data)
+  {
+    echo json_encode([
+      "response" => true,
+      "message" => "hola Create Case",
+      "data_received" => $data
+    ]);
+    exit;
+  }
+
+  private function sendMessage($data)
+  {
+    echo json_encode([
+      "response" => true,
+      "message" => "hola Send Message",
+      "data_received" => $data
+    ]);
+    exit;
+  }
+
+  private function getSuppliers($data)
+  {
+    echo json_encode([
+      "response" => true,
+      "message" => "hola Get Suppliers",
+      "data_received" => $data
+    ]);
+    exit;
   }
 }
 
