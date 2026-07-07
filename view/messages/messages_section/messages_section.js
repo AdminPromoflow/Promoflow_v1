@@ -90,12 +90,9 @@ class MessagesSection {
   }
 
   async sendMessage() {
-    if (!this.input) return;
-
-
+    const message = this.input.value.trim();
     if (!message) return;
 
-    const message = this.input.value.trim();
 
     const params = new URLSearchParams(window.location.search);
     const caseId = params.get("case");
