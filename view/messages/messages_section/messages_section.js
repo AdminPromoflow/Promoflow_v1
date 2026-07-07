@@ -136,7 +136,8 @@ class CreateCaseModal {
   }
 
   async readCasesAndMessages(){
-
+    const params = new URLSearchParams(window.location.search);
+    const caseId = params.get("case");
 
     if (!this.modal) return;
 
