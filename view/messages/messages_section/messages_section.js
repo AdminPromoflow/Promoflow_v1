@@ -170,6 +170,8 @@ class CreateCaseModal {
   }
 
   drawCases(result){
+    alert(JSON.stringify(result));
+
     const group_cases = document.getElementById("group_cases");
     group_cases.innerHTML = '' ;
 
@@ -185,7 +187,6 @@ class CreateCaseModal {
     }
 
 
-    alert(JSON.stringify(result));
 
   }
 
