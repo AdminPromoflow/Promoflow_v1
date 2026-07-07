@@ -113,7 +113,7 @@ class MessagesSection {
 
     if (!response) return;
 
-    alert(JSON.stringify(response));
+    // alert(JSON.stringify(response));
 
 
     this.addMessageToView(message, "mine");
