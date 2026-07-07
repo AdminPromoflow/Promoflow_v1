@@ -102,13 +102,24 @@ class PromoflowWebhook
     $connection = new Database();
     $message = new Message($connection);
 
+
     $message->setIdCase($data["caseId"]);
     $message->setSenderType("supplier");
     $message->setSenderId($idUser);
     $message->setMessage($data["message"]);
     $message->setMessageCreatedAt($created_at);
 
-
+    echo json_encode([
+        "response" => true,
+        "debug" => true,
+        "caseId" => $data["caseId"] ?? null,
+        "sender_type" => "supplier",
+        "sender_id" => $idUser ?? null,
+        "message" => $data["message"] ?? null,
+        "message_created_at" => $created_at ?? null,
+        "all_data_received" => $data
+    ]);
+    exit;
     $resultMessages = $message->sendMessage();
 
     echo json_encode($resultMessages);
