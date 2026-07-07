@@ -170,6 +170,21 @@ class CreateCaseModal {
   }
 
   drawCases(result){
+    const group_cases = document.getElementById("group_cases");
+    group_cases.innerHTML = '' ;
+
+    for (var i = 0; i < result.length; i++) {
+
+      group_cases.innerHTML += `
+      <button class="msg-folder is-active" type="button" aria-current="page">
+        <span class="msg-folder-dot" aria-hidden="true"></span>
+        <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
+      </button>
+      `
+      // result[i]
+    }
+
+
     alert(JSON.stringify(result));
 
   }
