@@ -243,6 +243,72 @@ class Message {
       ];
     }
   }
+
+  public function getCasesAndMessages() {
+    try {
+      $pdo = $this->connection->getConnection();
+
+      if (empty($this->id_case)) {
+        return [
+          'response' => false,
+          'message' => 'Case ID is required'
+        ];
+      }
+
+      // 1. Obtener todos los cases
+      $sqlCases = $pdo->prepare("
+        SELECT
+          `id_case`,
+          `id_admin`,
+          `id_supplier`,
+          `name`,
+          `status`,
+          `created_at`,
+          `updated_at`
+        FROM `Cases`
+        ORDER BY `updated_at` DESC
+      ");
+
+      $sqlCases->execute();
+      $cases = $sqlCases->fetchAll(PDO::FETCH_ASSOC);
+
+      // 2. Obtener los messages correspondientes al case seleccionado
+      $sqlMessages = $pdo->prepare("
+        SELECT
+          `id_message`,
+          `id_case`,
+          `sender_type`,
+          `sender_id`,
+          `message`,
+          `is_read`,
+          `created_at`
+        FROM `Messages`
+        WHERE `id_case` = :id_case
+        ORDER BY `created_at` ASC
+      ");
+
+      $sqlMessages->bindParam(':id_case', $this->id_case, PDO::PARAM_INT);
+      $sqlMessages->execute();
+
+      $messages = $sqlMessages->fetchAll(PDO::FETCH_ASSOC);
+
+      return [
+        'response' => true,
+        'message' => 'Cases and messages loaded successfully',
+        'cases' => $cases,
+        'messages' => $messages
+      ];
+
+    } catch (PDOException $e) {
+      return [
+        'response' => false,
+        'message' => 'Unable to get cases and messages',
+        'error' => $e->getMessage()
+      ];
+    }
+  }
+
+
 }
 
 ?>

@@ -32,11 +32,31 @@ class Messages {
         $this->getCases($data);
         break;
 
+      case 'get_cases_and_messages':
+        $this->getCasesAndMessages($data);
+        break;
+
+
       default:
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['response' => false, 'error' => 'Unsupported action']);
         break;
     }
+  }
+
+
+  private function getCasesAndMessages($data) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+    $message->setIdCase($data["caseId"]);
+
+    $resultMessages = $message->getCasesAndMessages();
+
+    echo json_encode($resultMessages);
+    exit;
   }
 
   private function getCases($data) {
