@@ -235,32 +235,38 @@ class CreateCaseModal {
     if (response.response === true) {
       if (Array.isArray(response.cases)) {
         this.drawCases(response.cases);
+        this.renderSelectedCase(response, caseId);
+
       }
 
-      if (response.case && response.case.name) {
-        this.messagesSection.setSelectedCaseHeader(response.case.name);
-      } else {
-        const activeCase = document.getElementById(`case_${caseId}`);
-        const activeCaseName = activeCase?.querySelector(".msg-folder-name")?.textContent;
-        this.messagesSection.setSelectedCaseHeader(activeCaseName || `Case #${caseId}`);
-      }
-
-      this.messagesSection.enableMessageForm();
-      this.setActiveCase(caseId);
-
-      if (Array.isArray(response.messages)) {
-        this.messagesSection.drawMessages(response.messages);
-      } else if (Array.isArray(response.result)) {
-        this.messagesSection.drawMessages(response.result);
-      } else {
-        this.messagesSection.drawMessages([]);
-      }
 
       return;
     }
 
     alert(response.message || "Unable to load case.");
     this.messagesSection.showNoCaseSelected();
+  }
+
+  renderSelectedCase(response, caseId) {
+    if (response.case && response.case.name) {
+      this.messagesSection.setSelectedCaseHeader(response.case.name);
+    } else {
+      const activeCase = document.getElementById(`case_${caseId}`);
+      const activeCaseName = activeCase?.querySelector(".msg-folder-name")?.textContent;
+
+      this.messagesSection.setSelectedCaseHeader(activeCaseName || `Case #${caseId}`);
+    }
+
+    this.messagesSection.enableMessageForm();
+    this.setActiveCase(caseId);
+
+    if (Array.isArray(response.messages)) {
+      this.messagesSection.drawMessages(response.messages);
+    } else if (Array.isArray(response.result)) {
+      this.messagesSection.drawMessages(response.result);
+    } else {
+      this.messagesSection.drawMessages([]);
+    }
   }
 
   async readCases() {
