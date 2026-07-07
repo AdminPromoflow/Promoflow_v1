@@ -158,7 +158,8 @@ class CreateCaseModal {
     if (!this.modal) return;
 
     const data = {
-      action: "get_cases"    };
+      action: "get_cases"
+    };
     const url = "../../controller/messages/messages.php";
     const response = await this.makeRequest(url, data);
     if (!response) return
