@@ -80,6 +80,53 @@ class Message {
     $this->message_created_at = $created_at;
   }
 
+
+  public function sendMessage() {
+    try {
+      $pdo = $this->connection->getConnection();
+
+      $createdAt = !empty($this->message_created_at)
+        ? $this->message_created_at
+        : date('Y-m-d H:i:s');
+
+      $isRead = isset($this->is_read) ? (int)$this->is_read : 0;
+
+      $sql = $pdo->prepare("
+        INSERT INTO `Messages`
+          (`id_case`, `sender_type`, `sender_id`, `message`, `is_read`, `created_at`)
+        VALUES
+          (:id_case, :sender_type, :sender_id, :message, :is_read, :created_at)
+      ");
+
+      $sql->bindParam(':id_case', $this->id_case, PDO::PARAM_INT);
+      $sql->bindParam(':sender_type', $this->sender_type, PDO::PARAM_STR);
+      $sql->bindParam(':sender_id', $this->sender_id, PDO::PARAM_INT);
+      $sql->bindParam(':message', $this->message, PDO::PARAM_STR);
+      $sql->bindParam(':is_read', $isRead, PDO::PARAM_INT);
+      $sql->bindParam(':created_at', $createdAt, PDO::PARAM_STR);
+
+      $sql->execute();
+
+      $idMessage = $pdo->lastInsertId();
+
+      return [
+        'response' => true,
+        'message' => 'Message sent successfully',
+        'id_message' => $idMessage,
+        'id_case' => $this->id_case,
+        'sender_type' => $this->sender_type,
+        'sender_id' => $this->sender_id,
+        'created_at' => $createdAt
+      ];
+
+    } catch (PDOException $e) {
+      return [
+        'response' => false,
+        'message' => 'Unable to send message',
+        'error' => $e->getMessage()
+      ];
+    }
+  }
   // Crear un case
 
   public function saveCase() {

@@ -89,8 +89,13 @@ class MessagesSection {
     });
   }
 
-  sendMessage() {
+  async sendMessage() {
     if (!this.input) return;
+
+
+    if (!message) return;
+
+    const message = this.input.value.trim();
 
     const params = new URLSearchParams(window.location.search);
     const caseId = params.get("case");
@@ -100,12 +105,44 @@ class MessagesSection {
       return;
     }
 
-    const message = this.input.value.trim();
+    const data = {
+      action: "send_message",
+      caseId: caseId,
+      message: message
+    };
 
-    if (!message) return;
+    const url = "../../controller/messages/messages.php";
+    const response = await this.makeRequest(url, data);
+
+    if (!response) return;
+
+    alert(JSON.stringify(response));
+
 
     this.addMessageToView(message, "mine");
     this.input.value = "";
+  }
+
+  async makeRequest(url, data) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error("Network error.");
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error("Error:", error);
+      return null;
+    }
   }
 
   addMessageToView(message, type = "mine") {
@@ -236,7 +273,7 @@ class CreateCaseModal {
       if (Array.isArray(response.cases)) {
         this.drawCases(response.cases);
         this.renderSelectedCase(response, caseId);
-
+        this.renderMessages();
       }
 
 
@@ -245,6 +282,10 @@ class CreateCaseModal {
 
     alert(response.message || "Unable to load case.");
     this.messagesSection.showNoCaseSelected();
+  }
+
+  renderMessages(){
+
   }
 
   renderSelectedCase(response, caseId) {

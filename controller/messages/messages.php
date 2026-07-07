@@ -37,6 +37,9 @@ class Messages {
         break;
 
 
+      case 'send_message':
+        $this->sendMessage($data);
+        break;
       default:
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['response' => false, 'error' => 'Unsupported action']);
@@ -45,6 +48,40 @@ class Messages {
   }
 
 
+  private function sendMessage($data) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // save global session variables
+    $email = $_SESSION['user_email'];
+
+    $connection = new Database();
+    $user = new Users($connection);
+    $user->setEmail($email ?? '');
+    $idUser = $user->getIdUserByEmail();
+
+    date_default_timezone_set("Europe/London");
+    $created_at = date("Y-m-d H:i:s");
+
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+    $message->setIdCase($data["caseId"]);
+    $message->setSenderType("admin");
+    $message->setSenderId($idUser);
+    $message->setMessage($data["message"]);
+    $message->setMessageCreatedAt($created_at);
+
+
+    $resultMessages = $message->sendMessage();
+
+    echo json_encode($resultMessages);
+    exit;
+  }
   private function getCasesAndMessages($data) {
     header('Content-Type: application/json; charset=utf-8');
 
