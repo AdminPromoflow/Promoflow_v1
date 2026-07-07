@@ -177,11 +177,15 @@ class CreateCaseModal {
 
       group_cases.innerHTML += `
       <button id="case_${result[i]["id_case"]}" class="msg-folder is-active" type="button" aria-current="page">
-        <span class="msg-folder-dot" aria-hidden="false"></span>
-        <span class="msg-folder-name">${result[i]["name"]}</span>
+        <span class="msg-folder-dot" aria-hidden="true"></span>
+        <span class="msg-folder-name">${result[i]["id_case"]}</span>
       </button>
       `
+      //
     }
+
+
+    alert(JSON.stringify(result));
 
   }
 
