@@ -97,16 +97,16 @@ class CreateCaseModal {
   //  this.readCases();
 
 
-    const params = new URLSearchParams(window.location.search);
-    const caseId = params.get("case");
-
-
-    if (caseId) {
-      this.readCasesAndMessages();
-
-    } else {
+    // const params = new URLSearchParams(window.location.search);
+    // const caseId = params.get("case");
+    //
+    //
+    // if (caseId) {
+    //   this.readCasesAndMessages();
+    //
+    // } else {
       this.readCases();
-    }
+    // }
 
   }
 
@@ -149,7 +149,7 @@ class CreateCaseModal {
     const response = await this.makeRequest(url, data);
     if (!response) return
 
-    alert(JSON.stringify(response));
+    // alert(JSON.stringify(response));
   }
 
   async readCases(){
@@ -290,6 +290,9 @@ class CreateCaseModal {
     if (response.response === true) {
 
       alert(response.message);
+
+      this.readCases();
+
 
     }
     // console.log("Case name:", caseName);
