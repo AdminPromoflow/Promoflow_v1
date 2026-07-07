@@ -163,7 +163,15 @@ class CreateCaseModal {
     const response = await this.makeRequest(url, data);
     if (!response) return
 
-    alert(JSON.stringify(response));
+    if (response.response === true) {
+      this.drawCases(response.result);
+    }
+
+  }
+
+  drawCases(result){
+    alert(JSON.stringify(result));
+
   }
 
   async openModal() {

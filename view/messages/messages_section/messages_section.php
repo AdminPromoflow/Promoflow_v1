@@ -28,6 +28,11 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
         <span class="msg-folder-dot" aria-hidden="true"></span>
         <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
       </button>
+
+      <button class="msg-folder is-active" type="button" aria-current="page">
+        <span class="msg-folder-dot" aria-hidden="true"></span>
+        <span class="msg-folder-name">Approval request: SKU PRD-20251211</span>
+      </button>
     </nav>
 
   </aside>
