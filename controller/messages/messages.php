@@ -43,6 +43,8 @@ class Messages {
     $connection = new Database();
     $message = new Message($connection);
 
+    echo json_encode("hola");exit;
+
     $result = $message->getCases();
 
     echo json_encode($result);
