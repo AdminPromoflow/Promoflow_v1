@@ -217,6 +217,11 @@ class CreateCaseModal {
 
     if (caseId) {
       this.readCasesAndMessages();
+
+      setInterval(() => {
+        this.readCasesAndMessages();
+      }, 3000);
+
     } else {
       this.readCases();
     }
