@@ -51,11 +51,16 @@ class PromoflowWebhook
 
   private function getCasesAndMessages($data)
   {
-    echo json_encode([
-      "response" => true,
-      "message" => "hola Cases and Messages",
-      "data_received" => $data
-    ]);
+    header('Content-Type: application/json; charset=utf-8');
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+    $message->setIdCase($data["caseId"]);
+
+    $resultMessages = $message->getCasesAndMessages();
+
+    echo json_encode($resultMessages);
     exit;
   }
 
