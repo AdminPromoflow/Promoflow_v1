@@ -67,12 +67,13 @@
   margin: 6px 0 0;
 }
 
-/* Folders */
+/* Folders / Cases */
 
 .msg-folders {
   display: grid;
   gap: 8px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .msg-folder {
@@ -87,17 +88,34 @@
   gap: 10px;
   cursor: pointer;
   text-align: left;
-  transition: filter .2s ease, background .2s ease, border-color .2s ease;
+  transition:
+    transform .18s ease,
+    background .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
 }
 
-.msg-folder:hover,
-.msg-btn:hover {
-  filter: brightness(1.08);
+.msg-folder:hover {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .35);
+  transform: translateX(4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+}
+
+.msg-folder:active {
+  transform: translateX(4px) scale(.98);
 }
 
 .msg-folder.is-active {
-  background: rgba(0, 0, 0, .22);
-  border-color: rgba(255, 255, 255, .22);
+  background: rgba(0, 0, 0, .32);
+  border-color: rgba(255, 255, 255, .45);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+
+.msg-folder.is-active .msg-folder-dot {
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, .16);
 }
 
 .msg-folder-dot {
@@ -106,6 +124,7 @@
   height: 10px;
   border-radius: 50%;
   background: rgba(255, 255, 255, .55);
+  transition: background .18s ease, box-shadow .18s ease;
 }
 
 .msg-folder-name {
@@ -225,13 +244,32 @@
   border-radius: 12px;
   padding: 10px 14px;
   cursor: pointer;
-  transition: filter .2s ease;
+  transition:
+    filter .18s ease,
+    background .18s ease,
+    border-color .18s ease,
+    transform .18s ease;
+}
+
+.msg-btn:hover {
+  filter: brightness(1.08);
+  background: rgba(255, 255, 255, .10);
+  border-color: rgba(255, 255, 255, .28);
+  transform: translateY(-1px);
+}
+
+.msg-btn:active {
+  transform: translateY(0) scale(.98);
 }
 
 .msg-btn-primary {
   background: rgba(0, 0, 0, .20);
   border-color: rgba(255, 255, 255, .18);
   font-weight: 700;
+}
+
+.msg-btn-primary:hover {
+  background: rgba(0, 0, 0, .30);
 }
 
 .msg-btn-close {
