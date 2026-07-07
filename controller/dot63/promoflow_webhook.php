@@ -90,11 +90,28 @@ class PromoflowWebhook
 
   private function sendMessage($data)
   {
-    echo json_encode([
-      "response" => true,
-      "message" => "hola Send Message",
-      "data_received" => $data
-    ]);
+    header('Content-Type: application/json; charset=utf-8');
+
+
+    $idUser = $data["user_id"];
+
+    date_default_timezone_set("Europe/London");
+    $created_at = date("Y-m-d H:i:s");
+
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+    $message->setIdCase($data["caseId"]);
+    $message->setSenderType("supplier");
+    $message->setSenderId($idUser);
+    $message->setMessage($data["message"]);
+    $message->setMessageCreatedAt($created_at);
+
+
+    $resultMessages = $message->sendMessage();
+
+    echo json_encode($resultMessages);
     exit;
   }
 
