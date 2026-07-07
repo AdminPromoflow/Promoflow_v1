@@ -11,6 +11,7 @@ class MessagesSection {
   init() {
     this.renderInitialMessages();
     this.listenFormSubmit();
+
   }
 
   renderInitialMessages() {
@@ -92,6 +93,21 @@ class CreateCaseModal {
     this.supplierSelect = document.getElementById("case-supplier");
 
     this.init();
+
+  //  this.readCases();
+
+
+    const params = new URLSearchParams(window.location.search);
+    const caseId = params.get("case");
+
+
+    if (caseId) {
+      this.readCasesAndMessages();
+
+    } else {
+      this.readCases();
+    }
+
   }
 
   init() {
@@ -119,7 +135,37 @@ class CreateCaseModal {
     });
   }
 
+  async readCasesAndMessages(){
 
+
+    if (!this.modal) return;
+
+    const data = {
+      action: "get_cases_and_messages",
+      caseId: caseId
+    };
+    const url = "../../controller/messages/messages.php";
+    const response = await this.makeRequest(url, data);
+    if (!response) return
+
+    alert(JSON.stringify(response));
+  }
+
+  async readCases(){
+
+
+    if (!this.modal) return;
+
+    const data = {
+      action: "get_cases",
+      caseId: caseId
+    };
+    const url = "../../controller/messages/messages.php";
+    const response = await this.makeRequest(url, data);
+    if (!response) return
+
+    alert(JSON.stringify(response));
+  }
 
   async openModal() {
 
@@ -135,10 +181,10 @@ class CreateCaseModal {
     };
 
     const response = await this.makeRequest(url, data);
+    if (!response) return;
 
     this.drawSuppliersCreateCase(response);
 
-    if (!response) return;
 
     this.modal.hidden = false;
     this.caseNameInput?.focus();

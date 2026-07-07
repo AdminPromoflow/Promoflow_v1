@@ -26,6 +26,9 @@ class Messages {
         $this->createCase($data);
         break;
 
+      case 'get_cases':
+        $this->getCases($data);
+        break;
 
       default:
         header('Content-Type: application/json; charset=utf-8');
@@ -33,6 +36,19 @@ class Messages {
         break;
     }
   }
+
+  private function getCases($data) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $connection = new Database();
+    $message = new Message($connection);
+
+    $result = $message->getCases();
+
+    echo json_encode($result);
+    exit;
+  }
+
   private function createCase($data) {
     header('Content-Type: application/json; charset=utf-8');
 
