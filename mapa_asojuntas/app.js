@@ -15,8 +15,8 @@ const map = L.map("map", {
     dragging: true,
 
     /*
-     * Evita algunos clics fantasma
-     * después de gestos táctiles.
+     * Evita clics táctiles fantasma
+     * en algunos navegadores móviles.
      */
     tap: false
 }).setView(
@@ -38,10 +38,10 @@ const mapaCalles = L.tileLayer(
     }
 );
 
-// Mapa satelital activo por defecto
+// Imagen satelital activa por defecto
 const mapaSatelital = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/" +
-    "World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        "World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
         maxZoom: 20,
         attribution: "Imágenes &copy; Esri",
@@ -54,11 +54,7 @@ const mapaSatelital = L.tileLayer(
 ========================================= */
 
 let fondoVeredas = null;
-
-// Guarda los límites completos de las veredas.
 let limitesCompletosVeredas = null;
-
-// Guarda el último polígono creado o modificado.
 let ultimaAreaDibujada = null;
 
 /* =========================================
@@ -93,17 +89,11 @@ const coloresVeredas = [
 ========================================= */
 
 function obtenerColor(nombre) {
-    const texto = String(
-        nombre || "Sin nombre"
-    );
+    const texto = String(nombre || "Sin nombre");
 
     let numero = 0;
 
-    for (
-        let i = 0;
-        i < texto.length;
-        i++
-    ) {
+    for (let i = 0; i < texto.length; i++) {
         numero += texto.charCodeAt(i);
     }
 
@@ -138,7 +128,7 @@ function esDispositivoMovil() {
 
 /*
  * Espera a que Leaflet termine de ajustar
- * el mapa y que las imágenes estén cargadas.
+ * el mapa y las imágenes estén cargadas.
  */
 async function esperarCargaMapa() {
     await esperar(700);
@@ -160,22 +150,16 @@ async function esperarCargaMapa() {
                 (imagen) => {
                     return new Promise(
                         (resolve) => {
-                            let terminado =
-                                false;
+                            let terminado = false;
 
-                            const terminar =
-                                () => {
-                                    if (
-                                        terminado
-                                    ) {
-                                        return;
-                                    }
+                            const terminar = () => {
+                                if (terminado) {
+                                    return;
+                                }
 
-                                    terminado =
-                                        true;
-
-                                    resolve();
-                                };
+                                terminado = true;
+                                resolve();
+                            };
 
                             imagen.addEventListener(
                                 "load",
@@ -212,8 +196,8 @@ async function esperarCargaMapa() {
 }
 
 /*
- * Espera a que el mapa termine
- * de moverse o cambiar de zoom.
+ * Espera a que termine un movimiento
+ * o cambio de zoom del mapa.
  */
 function esperarMovimientoMapa(
     tiempoMaximo = 1800
@@ -249,8 +233,8 @@ function esperarMovimientoMapa(
 }
 
 /*
- * Ajusta una imagen al espacio disponible
- * en el PDF manteniendo su proporción.
+ * Ajustar una imagen al espacio disponible
+ * del PDF sin deformarla.
  */
 function calcularTamanoImagenPDF(
     anchoOriginal,
@@ -276,7 +260,7 @@ function calcularTamanoImagenPDF(
 }
 
 /*
- * Obtiene las coordenadas del centro
+ * Obtener las coordenadas del centro
  * del área dibujada.
  *
  * X = longitud
@@ -289,8 +273,7 @@ function obtenerCoordenadasXYZ(
 ) {
     if (
         !layer ||
-        typeof layer.getBounds !==
-            "function"
+        typeof layer.getBounds !== "function"
     ) {
         throw new Error(
             "El área dibujada no tiene límites válidos."
@@ -415,10 +398,6 @@ const capaVeredas = L.geoJSON(
                 layer
             );
 
-            /*
-             * Resaltar al pasar el mouse
-             * en computador.
-             */
             layer.on(
                 "mouseover",
                 function () {
@@ -453,10 +432,6 @@ const capaVeredas = L.geoJSON(
                 }
             );
 
-            /*
-             * Resaltar al tocar una vereda
-             * en celular.
-             */
             layer.on(
                 "click",
                 function () {
@@ -489,6 +464,218 @@ const poligonosDibujados =
     new L.FeatureGroup();
 
 poligonosDibujados.addTo(map);
+
+/* =========================================
+   PARCHE MULTITÁCTIL PARA LEAFLET DRAW
+========================================= */
+
+/*
+ * Leaflet Draw normalmente interpreta
+ * un touchstart con dos dedos como un
+ * nuevo vértice del polígono.
+ *
+ * Este parche permite dibujar únicamente
+ * cuando existe exactamente un dedo.
+ */
+if (
+    window.L &&
+    L.Draw &&
+    L.Draw.Polyline &&
+    L.Draw.Polyline.prototype &&
+    typeof L.Draw.Polyline.prototype._onTouch ===
+        "function"
+) {
+    const funcionTouchOriginal =
+        L.Draw.Polyline.prototype._onTouch;
+
+    L.Draw.Polyline.prototype._onTouch =
+        function (evento) {
+            const eventoOriginal =
+                evento.originalEvent ||
+                evento;
+
+            const cantidadDedos =
+                eventoOriginal.touches
+                    ? eventoOriginal.touches.length
+                    : 0;
+
+            /*
+             * Solo un dedo puede agregar
+             * un vértice al polígono.
+             */
+            if (cantidadDedos !== 1) {
+                this._clickHandled = null;
+                this._touchHandled = null;
+
+                return;
+            }
+
+            return funcionTouchOriginal.call(
+                this,
+                evento
+            );
+        };
+}
+
+/*
+ * Parche adicional para rectángulos.
+ * Si se detectan dos dedos mientras se
+ * comienza a dibujar un rectángulo,
+ * Leaflet Draw ignora ese gesto.
+ */
+if (
+    window.L &&
+    L.Draw &&
+    L.Draw.SimpleShape &&
+    L.Draw.SimpleShape.prototype &&
+    typeof L.Draw.SimpleShape.prototype
+        ._onMouseDown === "function"
+) {
+    const mouseDownOriginal =
+        L.Draw.SimpleShape.prototype
+            ._onMouseDown;
+
+    L.Draw.SimpleShape.prototype
+        ._onMouseDown =
+        function (evento) {
+            const eventoOriginal =
+                evento.originalEvent ||
+                evento;
+
+            const cantidadDedos =
+                eventoOriginal.touches
+                    ? eventoOriginal.touches.length
+                    : 0;
+
+            if (cantidadDedos >= 2) {
+                this._isDrawing = false;
+                return;
+            }
+
+            return mouseDownOriginal.call(
+                this,
+                evento
+            );
+        };
+}
+
+/* =========================================
+   PROTECCIÓN ADICIONAL MULTITÁCTIL
+========================================= */
+
+const contenedorMapa =
+    map.getContainer();
+
+let gestoMultitactilActivo = false;
+let bloquearEventosHasta = 0;
+
+function activarBloqueoMultitactil() {
+    gestoMultitactilActivo = true;
+
+    bloquearEventosHasta =
+        Date.now() + 900;
+}
+
+contenedorMapa.addEventListener(
+    "touchstart",
+    function (evento) {
+        if (evento.touches.length >= 2) {
+            activarBloqueoMultitactil();
+        }
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+contenedorMapa.addEventListener(
+    "touchmove",
+    function (evento) {
+        if (evento.touches.length >= 2) {
+            activarBloqueoMultitactil();
+        }
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+contenedorMapa.addEventListener(
+    "touchend",
+    function (evento) {
+        if (!gestoMultitactilActivo) {
+            return;
+        }
+
+        bloquearEventosHasta =
+            Date.now() + 900;
+
+        if (evento.touches.length === 0) {
+            window.setTimeout(
+                function () {
+                    gestoMultitactilActivo =
+                        false;
+                },
+                900
+            );
+        }
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+contenedorMapa.addEventListener(
+    "touchcancel",
+    function () {
+        bloquearEventosHasta =
+            Date.now() + 900;
+
+        window.setTimeout(
+            function () {
+                gestoMultitactilActivo =
+                    false;
+            },
+            900
+        );
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+function bloquearClicFantasma(evento) {
+    if (
+        gestoMultitactilActivo ||
+        Date.now() < bloquearEventosHasta
+    ) {
+        evento.preventDefault();
+        evento.stopPropagation();
+        evento.stopImmediatePropagation();
+    }
+}
+
+contenedorMapa.addEventListener(
+    "click",
+    bloquearClicFantasma,
+    true
+);
+
+contenedorMapa.addEventListener(
+    "dblclick",
+    bloquearClicFantasma,
+    true
+);
+
+contenedorMapa.addEventListener(
+    "contextmenu",
+    bloquearClicFantasma,
+    true
+);
 
 /* =========================================
    HERRAMIENTAS DE DIBUJO
@@ -544,153 +731,6 @@ const controlDibujo =
 map.addControl(controlDibujo);
 
 /* =========================================
-   EVITAR DIBUJO CON DOS DEDOS EN MÓVIL
-========================================= */
-
-const contenedorMapa =
-    map.getContainer();
-
-let gestoDosDedosActivo = false;
-let bloquearClicHasta = 0;
-
-/*
- * Un toque sirve para agregar un vértice.
- * Dos dedos se usan únicamente para
- * mover o acercar el mapa.
- */
-contenedorMapa.addEventListener(
-    "touchstart",
-    function (evento) {
-        if (evento.touches.length >= 2) {
-            gestoDosDedosActivo = true;
-
-            bloquearClicHasta =
-                Date.now() + 800;
-        }
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-contenedorMapa.addEventListener(
-    "touchmove",
-    function (evento) {
-        if (evento.touches.length >= 2) {
-            gestoDosDedosActivo = true;
-
-            bloquearClicHasta =
-                Date.now() + 800;
-        }
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-contenedorMapa.addEventListener(
-    "touchend",
-    function (evento) {
-        if (!gestoDosDedosActivo) {
-            return;
-        }
-
-        bloquearClicHasta =
-            Date.now() + 800;
-
-        if (evento.touches.length === 0) {
-            window.setTimeout(
-                function () {
-                    gestoDosDedosActivo =
-                        false;
-                },
-                800
-            );
-        }
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-contenedorMapa.addEventListener(
-    "touchcancel",
-    function () {
-        bloquearClicHasta =
-            Date.now() + 800;
-
-        window.setTimeout(
-            function () {
-                gestoDosDedosActivo =
-                    false;
-            },
-            800
-        );
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-/*
- * Bloquear clics falsos que algunos
- * navegadores generan después de usar
- * dos dedos.
- */
-function bloquearClicMultitactil(
-    evento
-) {
-    if (
-        gestoDosDedosActivo ||
-        Date.now() < bloquearClicHasta
-    ) {
-        evento.preventDefault();
-        evento.stopPropagation();
-        evento.stopImmediatePropagation();
-    }
-}
-
-contenedorMapa.addEventListener(
-    "click",
-    bloquearClicMultitactil,
-    true
-);
-
-contenedorMapa.addEventListener(
-    "dblclick",
-    bloquearClicMultitactil,
-    true
-);
-
-contenedorMapa.addEventListener(
-    "contextmenu",
-    bloquearClicMultitactil,
-    true
-);
-
-/*
- * También se bloquean eventos de puntero
- * producidos por gestos multitáctiles.
- */
-contenedorMapa.addEventListener(
-    "pointerdown",
-    function (evento) {
-        if (
-            evento.pointerType === "touch" &&
-            gestoDosDedosActivo
-        ) {
-            evento.preventDefault();
-            evento.stopPropagation();
-        }
-    },
-    true
-);
-
-/* =========================================
    EVENTOS DE DIBUJO
 ========================================= */
 
@@ -699,14 +739,22 @@ map.on(
     function (evento) {
         const layer = evento.layer;
 
+        /*
+         * Evitar guardar una geometría
+         * creada accidentalmente durante
+         * un gesto con dos dedos.
+         */
+        if (
+            gestoMultitactilActivo ||
+            Date.now() < bloquearEventosHasta
+        ) {
+            return;
+        }
+
         poligonosDibujados.addLayer(
             layer
         );
 
-        /*
-         * La última área creada será
-         * la que se exporte al PDF.
-         */
         ultimaAreaDibujada = layer;
 
         layer.bindPopup(`
@@ -733,10 +781,6 @@ map.on(
     function (evento) {
         evento.layers.eachLayer(
             function (layer) {
-                /*
-                 * El último polígono editado
-                 * será exportado al PDF.
-                 */
                 ultimaAreaDibujada =
                     layer;
 
@@ -778,7 +822,7 @@ map.on(
                 capasRestantes.length > 0
                     ? capasRestantes[
                         capasRestantes.length -
-                        1
+                            1
                     ]
                     : null;
         }
@@ -800,8 +844,8 @@ fetch(
         if (!response.ok) {
             throw new Error(
                 "No se pudo cargar " +
-                "BG_veredas.geojson. " +
-                `Código: ${response.status}`
+                    "BG_veredas.geojson. " +
+                    `Código: ${response.status}`
             );
         }
 
@@ -815,9 +859,8 @@ fetch(
                     color: "#666666",
                     weight: 1,
                     opacity: 0.62,
-                    fillColor:
-                        "#9e9e9e",
-                    fillOpacity: 0.40
+                    fillColor: "#9e9e9e",
+                    fillOpacity: 0.4
                 },
 
                 interactive: false
@@ -844,8 +887,8 @@ fetch(
         if (!respuesta.ok) {
             throw new Error(
                 "No se pudo cargar " +
-                "Veredas.geojson. " +
-                `Código: ${respuesta.status}`
+                    "Veredas.geojson. " +
+                    `Código: ${respuesta.status}`
             );
         }
 
@@ -859,8 +902,7 @@ fetch(
             capaVeredas.getBounds();
 
         if (
-            limitesCompletosVeredas
-                .isValid()
+            limitesCompletosVeredas.isValid()
         ) {
             map.fitBounds(
                 limitesCompletosVeredas,
@@ -980,7 +1022,7 @@ if (botonDescargarPDF) {
 } else {
     console.error(
         "No se encontró el botón " +
-        "descargar_mapa_pdf."
+            "descargar_mapa_pdf."
     );
 }
 
@@ -990,8 +1032,31 @@ if (botonDescargarPDF) {
 
 async function descargarMapaPDF() {
     /*
-     * Solicitar datos del usuario.
+     * Comprobar el área antes de pedir
+     * los datos del usuario.
      */
+    if (!ultimaAreaDibujada) {
+        alert(
+            "Primero debes dibujar o modificar un área."
+        );
+
+        return;
+    }
+
+    if (
+        !poligonosDibujados.hasLayer(
+            ultimaAreaDibujada
+        )
+    ) {
+        ultimaAreaDibujada = null;
+
+        alert(
+            "El área seleccionada fue eliminada."
+        );
+
+        return;
+    }
+
     const nombreUsuario = window.prompt(
         "Ingrese su nombre completo:"
     );
@@ -1061,26 +1126,6 @@ async function descargarMapaPDF() {
     }
 
     try {
-        if (!ultimaAreaDibujada) {
-            throw new Error(
-                "Primero debes dibujar " +
-                "o modificar un área."
-            );
-        }
-
-        if (
-            !poligonosDibujados.hasLayer(
-                ultimaAreaDibujada
-            )
-        ) {
-            ultimaAreaDibujada = null;
-
-            throw new Error(
-                "El área seleccionada " +
-                "fue eliminada."
-            );
-        }
-
         if (
             typeof html2canvas ===
             "undefined"
@@ -1102,13 +1147,11 @@ async function descargarMapaPDF() {
         map.closePopup();
 
         const limitesArea =
-            ultimaAreaDibujada
-                .getBounds();
+            ultimaAreaDibujada.getBounds();
 
         if (!limitesArea.isValid()) {
             throw new Error(
-                "El área dibujada no tiene " +
-                "límites válidos."
+                "El área dibujada no tiene límites válidos."
             );
         }
 
@@ -1145,8 +1188,7 @@ async function descargarMapaPDF() {
 
         if (!elementoMapa) {
             throw new Error(
-                "No se encontró el " +
-                "contenedor del mapa."
+                "No se encontró el contenedor del mapa."
             );
         }
 
@@ -1172,13 +1214,10 @@ async function descargarMapaPDF() {
                             elemento
                         ) {
                             return (
-                                elemento
-                                    .classList &&
-                                elemento
-                                    .classList
-                                    .contains(
-                                        "leaflet-control-container"
-                                    )
+                                elemento.classList &&
+                                elemento.classList.contains(
+                                    "leaflet-control-container"
+                                )
                             );
                         },
 
@@ -1192,8 +1231,7 @@ async function descargarMapaPDF() {
                                 );
 
                         if (mapaClonado) {
-                            mapaClonado
-                                .style
+                            mapaClonado.style
                                 .transform =
                                 "none";
                         }
@@ -1261,9 +1299,10 @@ async function descargarMapaPDF() {
                 tamanoImagen.alto
             ) / 2;
 
-        /*
-         * Título.
-         */
+        /* =================================
+           TÍTULO
+        ================================= */
+
         pdf.setFont(
             "helvetica",
             "bold"
@@ -1290,9 +1329,10 @@ async function descargarMapaPDF() {
             18
         );
 
-        /*
-         * Imagen.
-         */
+        /* =================================
+           IMAGEN DEL MAPA
+        ================================= */
+
         pdf.addImage(
             imagen,
             "JPEG",
@@ -1304,9 +1344,10 @@ async function descargarMapaPDF() {
             "FAST"
         );
 
-        /*
-         * Información inferior.
-         */
+        /* =================================
+           INFORMACIÓN INFERIOR
+        ================================= */
+
         const posicionDatos =
             altoPagina -
             altoInformacion +
@@ -1464,7 +1505,7 @@ async function descargarMapaPDF() {
 
         alert(
             error.message ||
-            "No fue posible generar el PDF."
+                "No fue posible generar el PDF."
         );
     } finally {
         map.setView(
