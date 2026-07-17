@@ -47,7 +47,7 @@ class Users
             return 0;
         }
     }
-    
+
     public function loginUser(): bool
     {
         try {
