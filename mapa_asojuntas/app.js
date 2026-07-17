@@ -13,7 +13,12 @@ const map = L.map("map", {
     boxZoom: true,
     keyboard: true,
     dragging: true,
-    tap: true
+
+    /*
+     * Evita algunos clics fantasma
+     * después de gestos táctiles.
+     */
+    tap: false
 }).setView(
     [4.270625797339428, -74.41654400019608],
     13
@@ -54,7 +59,6 @@ let fondoVeredas = null;
 let limitesCompletosVeredas = null;
 
 // Guarda el último polígono creado o modificado.
-// Este será el área exportada al PDF.
 let ultimaAreaDibujada = null;
 
 /* =========================================
@@ -540,6 +544,153 @@ const controlDibujo =
 map.addControl(controlDibujo);
 
 /* =========================================
+   EVITAR DIBUJO CON DOS DEDOS EN MÓVIL
+========================================= */
+
+const contenedorMapa =
+    map.getContainer();
+
+let gestoDosDedosActivo = false;
+let bloquearClicHasta = 0;
+
+/*
+ * Un toque sirve para agregar un vértice.
+ * Dos dedos se usan únicamente para
+ * mover o acercar el mapa.
+ */
+contenedorMapa.addEventListener(
+    "touchstart",
+    function (evento) {
+        if (evento.touches.length >= 2) {
+            gestoDosDedosActivo = true;
+
+            bloquearClicHasta =
+                Date.now() + 800;
+        }
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+contenedorMapa.addEventListener(
+    "touchmove",
+    function (evento) {
+        if (evento.touches.length >= 2) {
+            gestoDosDedosActivo = true;
+
+            bloquearClicHasta =
+                Date.now() + 800;
+        }
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+contenedorMapa.addEventListener(
+    "touchend",
+    function (evento) {
+        if (!gestoDosDedosActivo) {
+            return;
+        }
+
+        bloquearClicHasta =
+            Date.now() + 800;
+
+        if (evento.touches.length === 0) {
+            window.setTimeout(
+                function () {
+                    gestoDosDedosActivo =
+                        false;
+                },
+                800
+            );
+        }
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+contenedorMapa.addEventListener(
+    "touchcancel",
+    function () {
+        bloquearClicHasta =
+            Date.now() + 800;
+
+        window.setTimeout(
+            function () {
+                gestoDosDedosActivo =
+                    false;
+            },
+            800
+        );
+    },
+    {
+        passive: true,
+        capture: true
+    }
+);
+
+/*
+ * Bloquear clics falsos que algunos
+ * navegadores generan después de usar
+ * dos dedos.
+ */
+function bloquearClicMultitactil(
+    evento
+) {
+    if (
+        gestoDosDedosActivo ||
+        Date.now() < bloquearClicHasta
+    ) {
+        evento.preventDefault();
+        evento.stopPropagation();
+        evento.stopImmediatePropagation();
+    }
+}
+
+contenedorMapa.addEventListener(
+    "click",
+    bloquearClicMultitactil,
+    true
+);
+
+contenedorMapa.addEventListener(
+    "dblclick",
+    bloquearClicMultitactil,
+    true
+);
+
+contenedorMapa.addEventListener(
+    "contextmenu",
+    bloquearClicMultitactil,
+    true
+);
+
+/*
+ * También se bloquean eventos de puntero
+ * producidos por gestos multitáctiles.
+ */
+contenedorMapa.addEventListener(
+    "pointerdown",
+    function (evento) {
+        if (
+            evento.pointerType === "touch" &&
+            gestoDosDedosActivo
+        ) {
+            evento.preventDefault();
+            evento.stopPropagation();
+        }
+    },
+    true
+);
+
+/* =========================================
    EVENTOS DE DIBUJO
 ========================================= */
 
@@ -663,14 +814,9 @@ fetch(
                 style: {
                     color: "#666666",
                     weight: 1,
-
-                    // Transparencia del borde
                     opacity: 0.62,
-
                     fillColor:
                         "#9e9e9e",
-
-                    // Transparencia del fondo gris
                     fillOpacity: 0.40
                 },
 
@@ -709,10 +855,6 @@ fetch(
         capaVeredas.addData(datos);
         capaVeredas.addTo(map);
 
-        /*
-         * Guardar los límites completos
-         * de todas las veredas.
-         */
         limitesCompletosVeredas =
             capaVeredas.getBounds();
 
@@ -847,6 +989,54 @@ if (botonDescargarPDF) {
 ========================================= */
 
 async function descargarMapaPDF() {
+    /*
+     * Solicitar datos del usuario.
+     */
+    const nombreUsuario = window.prompt(
+        "Ingrese su nombre completo:"
+    );
+
+    if (
+        nombreUsuario === null ||
+        nombreUsuario.trim() === ""
+    ) {
+        alert(
+            "Debes ingresar tu nombre."
+        );
+
+        return;
+    }
+
+    const celularUsuario = window.prompt(
+        "Ingrese su número de celular:"
+    );
+
+    if (
+        celularUsuario === null ||
+        celularUsuario.trim() === ""
+    ) {
+        alert(
+            "Debes ingresar tu número de celular."
+        );
+
+        return;
+    }
+
+    const nombreVereda = window.prompt(
+        "Ingrese el nombre de la vereda:"
+    );
+
+    if (
+        nombreVereda === null ||
+        nombreVereda.trim() === ""
+    ) {
+        alert(
+            "Debes ingresar el nombre de la vereda."
+        );
+
+        return;
+    }
+
     const textoBoton =
         botonDescargarPDF.querySelector(
             ".texto-boton"
@@ -857,10 +1047,6 @@ async function descargarMapaPDF() {
             ? textoBoton.textContent
             : "";
 
-    /*
-     * Guardar la posición actual
-     * para restaurarla al terminar.
-     */
     const centroAnterior =
         map.getCenter();
 
@@ -875,10 +1061,6 @@ async function descargarMapaPDF() {
     }
 
     try {
-        /*
-         * Verificar que exista
-         * un área dibujada.
-         */
         if (!ultimaAreaDibujada) {
             throw new Error(
                 "Primero debes dibujar " +
@@ -886,10 +1068,6 @@ async function descargarMapaPDF() {
             );
         }
 
-        /*
-         * Confirmar que el área no haya
-         * sido eliminada.
-         */
         if (
             !poligonosDibujados.hasLayer(
                 ultimaAreaDibujada
@@ -923,10 +1101,6 @@ async function descargarMapaPDF() {
 
         map.closePopup();
 
-        /*
-         * Obtener únicamente los límites
-         * del área dibujada.
-         */
         const limitesArea =
             ultimaAreaDibujada
                 .getBounds();
@@ -938,10 +1112,6 @@ async function descargarMapaPDF() {
             );
         }
 
-        /*
-         * Ajustar la vista solamente
-         * al área dibujada.
-         */
         map.fitBounds(
             limitesArea,
             {
@@ -959,20 +1129,9 @@ async function descargarMapaPDF() {
             animate: false
         });
 
-        /*
-         * Esperar el movimiento del mapa.
-         */
         await esperarMovimientoMapa();
-
-        /*
-         * Esperar las imágenes satelitales.
-         */
         await esperarCargaMapa();
 
-        /*
-         * Obtener XYZ después de ajustar
-         * el mapa al polígono.
-         */
         const coordenadas =
             obtenerCoordenadasXYZ(
                 ultimaAreaDibujada,
@@ -991,10 +1150,6 @@ async function descargarMapaPDF() {
             );
         }
 
-        /*
-         * En celular se reduce la escala
-         * para evitar errores de memoria.
-         */
         const escalaCaptura =
             esDispositivoMovil()
                 ? 1.25
@@ -1012,10 +1167,6 @@ async function descargarMapaPDF() {
                     logging: false,
                     imageTimeout: 20000,
 
-                    /*
-                     * Ocultar los controles
-                     * de Leaflet en el PDF.
-                     */
                     ignoreElements:
                         function (
                             elemento
@@ -1060,9 +1211,6 @@ async function descargarMapaPDF() {
             jsPDF
         } = window.jspdf;
 
-        /*
-         * PDF horizontal.
-         */
         const pdf = new jsPDF({
             orientation: "landscape",
             unit: "mm",
@@ -1079,15 +1227,8 @@ async function descargarMapaPDF() {
                 .getHeight();
 
         const margen = 10;
-
-        /*
-         * Espacio reservado para:
-         * - encabezado
-         * - mapa
-         * - coordenadas
-         */
         const altoEncabezado = 22;
-        const altoInformacion = 31;
+        const altoInformacion = 45;
 
         const anchoDisponible =
             anchoPagina -
@@ -1121,7 +1262,7 @@ async function descargarMapaPDF() {
             ) / 2;
 
         /*
-         * Título del PDF.
+         * Título.
          */
         pdf.setFont(
             "helvetica",
@@ -1144,13 +1285,13 @@ async function descargarMapaPDF() {
         pdf.setFontSize(9);
 
         pdf.text(
-            "Área seleccionada sobre las veredas de Arbeláez",
+            `Vereda: ${nombreVereda.trim()}`,
             margen,
             18
         );
 
         /*
-         * Imagen del mapa.
+         * Imagen.
          */
         pdf.addImage(
             imagen,
@@ -1164,12 +1305,12 @@ async function descargarMapaPDF() {
         );
 
         /*
-         * Coordenadas del centro del área.
+         * Información inferior.
          */
         const posicionDatos =
             altoPagina -
             altoInformacion +
-            4;
+            5;
 
         pdf.setFont(
             "helvetica",
@@ -1179,7 +1320,7 @@ async function descargarMapaPDF() {
         pdf.setFontSize(11);
 
         pdf.text(
-            "Coordenadas XYZ del centro del área",
+            "Información del solicitante",
             margen,
             posicionDatos
         );
@@ -1189,57 +1330,131 @@ async function descargarMapaPDF() {
             "normal"
         );
 
-        pdf.setFontSize(10);
+        pdf.setFontSize(9.5);
+
+        pdf.text(
+            `Nombre: ${nombreUsuario.trim()}`,
+            margen,
+            posicionDatos + 7
+        );
+
+        pdf.text(
+            `Celular: ${celularUsuario.trim()}`,
+            margen,
+            posicionDatos + 14
+        );
+
+        pdf.text(
+            `Vereda: ${nombreVereda.trim()}`,
+            margen,
+            posicionDatos + 21
+        );
+
+        const columnaCentro = 105;
+
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+
+        pdf.setFontSize(11);
+
+        pdf.text(
+            "Centro del área",
+            columnaCentro,
+            posicionDatos
+        );
+
+        pdf.setFont(
+            "helvetica",
+            "normal"
+        );
+
+        pdf.setFontSize(9.5);
 
         pdf.text(
             `X - Longitud: ${coordenadas.x.toFixed(8)}`,
-            margen,
+            columnaCentro,
             posicionDatos + 7
         );
 
         pdf.text(
             `Y - Latitud: ${coordenadas.y.toFixed(8)}`,
-            margen,
+            columnaCentro,
             posicionDatos + 14
         );
 
         pdf.text(
             `Z - Zoom: ${coordenadas.z}`,
-            margen,
+            columnaCentro,
             posicionDatos + 21
         );
 
-        /*
-         * Información adicional.
-         */
+        const columnaDerecha = 205;
+
         const fecha =
             new Date().toLocaleString(
                 "es-CO"
             );
 
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+
+        pdf.setFontSize(11);
+
         pdf.text(
-            `Fecha de exportación: ${fecha}`,
-            145,
+            "Información técnica",
+            columnaDerecha,
+            posicionDatos
+        );
+
+        pdf.setFont(
+            "helvetica",
+            "normal"
+        );
+
+        pdf.setFontSize(8.5);
+
+        pdf.text(
+            `Fecha: ${fecha}`,
+            columnaDerecha,
             posicionDatos + 7
         );
 
         pdf.text(
-            "Sistema de coordenadas: WGS 84 - EPSG:4326",
-            145,
+            "Sistema: WGS 84",
+            columnaDerecha,
             posicionDatos + 14
         );
 
         pdf.text(
-            "El valor Z corresponde al nivel de zoom de Leaflet.",
-            145,
+            "Código: EPSG:4326",
+            columnaDerecha,
             posicionDatos + 21
         );
 
-        /*
-         * Descargar PDF.
-         */
+        const nombreArchivo =
+            nombreVereda
+                .trim()
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(
+                    /[\u0300-\u036f]/g,
+                    ""
+                )
+                .replace(
+                    /[^a-z0-9]+/g,
+                    "-"
+                )
+                .replace(
+                    /^-+|-+$/g,
+                    ""
+                );
+
         pdf.save(
-            "area-dibujada-arbelaez.pdf"
+            `area-${nombreArchivo || "vereda"}.pdf`
         );
     } catch (error) {
         console.error(
@@ -1252,10 +1467,6 @@ async function descargarMapaPDF() {
             "No fue posible generar el PDF."
         );
     } finally {
-        /*
-         * Restaurar la vista que tenía
-         * el usuario antes de imprimir.
-         */
         map.setView(
             centroAnterior,
             zoomAnterior,
