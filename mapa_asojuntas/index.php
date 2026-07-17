@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
     >
 
-    <title>Mapa de veredas de Arbeláez</title>
+    <title>Mapa de juntas de acción comunal de Arbeláez</title>
 
     <!-- Leaflet -->
     <link
