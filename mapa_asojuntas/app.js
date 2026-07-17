@@ -20,120 +20,9 @@ const map = L.map("map", {
 );
 
 /* =========================================
-   ESTILOS GENERADOS DESDE JAVASCRIPT
-========================================= */
-
-const estilosAplicacion =
-    document.createElement("style");
-
-estilosAplicacion.textContent = `
-    .control-flechas-mapa {
-        display: none;
-        grid-template-areas:
-            ". arriba ."
-            "izquierda centro derecha"
-            ". abajo .";
-        grid-template-columns: 48px 48px 48px;
-        grid-template-rows: 48px 48px 48px;
-        gap: 4px;
-        padding: 7px;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 9px;
-        box-shadow: 0 1px 7px rgba(0, 0, 0, 0.45);
-    }
-
-    .flecha-mapa {
-        width: 48px;
-        height: 48px;
-        margin: 0;
-        padding: 0;
-        border: 1px solid #777;
-        border-radius: 7px;
-        background: #ffffff;
-        color: #222;
-        cursor: pointer;
-        font-size: 21px;
-        font-weight: bold;
-        line-height: 48px;
-        text-align: center;
-        touch-action: manipulation;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .flecha-mapa:hover {
-        background: #eeeeee;
-    }
-
-    .flecha-mapa:active {
-        background: #d5d5d5;
-        transform: scale(0.94);
-    }
-
-    .flecha-arriba {
-        grid-area: arriba;
-    }
-
-    .flecha-abajo {
-        grid-area: abajo;
-    }
-
-    .flecha-izquierda {
-        grid-area: izquierda;
-    }
-
-    .flecha-derecha {
-        grid-area: derecha;
-    }
-
-    .centro-flechas {
-        grid-area: centro;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #555;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    .mensaje-modo-mapa {
-        background: rgba(255, 255, 255, 0.96);
-        border-radius: 6px;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
-        color: #222;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        line-height: 1.4;
-        max-width: 215px;
-        padding: 8px 10px;
-        text-align: center;
-    }
-
-    @media (max-width: 768px) {
-        .control-flechas-mapa {
-            grid-template-columns: 54px 54px 54px;
-            grid-template-rows: 54px 54px 54px;
-            gap: 5px;
-        }
-
-        .flecha-mapa {
-            width: 54px;
-            height: 54px;
-            font-size: 25px;
-            line-height: 54px;
-        }
-    }
-`;
-
-document.head.appendChild(
-    estilosAplicacion
-);
-
-/* =========================================
    MAPAS BASE
 ========================================= */
 
-// Mapa de calles
 const mapaCalles = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -143,7 +32,6 @@ const mapaCalles = L.tileLayer(
     }
 );
 
-// Imagen satelital activa por defecto
 const mapaSatelital = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/" +
         "World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -155,25 +43,15 @@ const mapaSatelital = L.tileLayer(
 ).addTo(map);
 
 /* =========================================
-   VARIABLES GENERALES
+   VARIABLES
 ========================================= */
 
 let fondoVeredas = null;
-let limitesCompletosVeredas = null;
 let ultimaAreaDibujada = null;
 let modoDibujoOEdicionActivo = false;
 
-let estadoInteraccionAnterior = {
-    dragging: true,
-    touchZoom: true,
-    doubleClickZoom: true,
-    scrollWheelZoom: true,
-    boxZoom: true,
-    keyboard: true
-};
-
 /* =========================================
-   COLORES DE LAS VEREDAS
+   COLORES
 ========================================= */
 
 const coloresVeredas = [
@@ -210,11 +88,7 @@ function obtenerColor(nombre) {
 
     let numero = 0;
 
-    for (
-        let i = 0;
-        i < texto.length;
-        i++
-    ) {
+    for (let i = 0; i < texto.length; i++) {
         numero += texto.charCodeAt(i);
     }
 
@@ -250,58 +124,57 @@ function esDispositivoMovil() {
 async function esperarCargaMapa() {
     await esperar(700);
 
-    const imagenesMapa = Array.from(
-        document.querySelectorAll(
-            "#map .leaflet-tile"
-        )
-    );
+    const imagenes =
+        Array.from(
+            document.querySelectorAll(
+                "#map .leaflet-tile"
+            )
+        );
 
-    const imagenesPendientes =
-        imagenesMapa.filter((imagen) => {
+    const pendientes =
+        imagenes.filter((imagen) => {
             return !imagen.complete;
         });
 
-    if (imagenesPendientes.length > 0) {
+    if (pendientes.length > 0) {
         await Promise.all(
-            imagenesPendientes.map(
-                (imagen) => {
-                    return new Promise(
-                        (resolve) => {
-                            let terminado = false;
+            pendientes.map((imagen) => {
+                return new Promise(
+                    (resolve) => {
+                        let terminado = false;
 
-                            const finalizar = () => {
-                                if (terminado) {
-                                    return;
-                                }
+                        function finalizar() {
+                            if (terminado) {
+                                return;
+                            }
 
-                                terminado = true;
-                                resolve();
-                            };
-
-                            imagen.addEventListener(
-                                "load",
-                                finalizar,
-                                {
-                                    once: true
-                                }
-                            );
-
-                            imagen.addEventListener(
-                                "error",
-                                finalizar,
-                                {
-                                    once: true
-                                }
-                            );
-
-                            window.setTimeout(
-                                finalizar,
-                                5000
-                            );
+                            terminado = true;
+                            resolve();
                         }
-                    );
-                }
-            )
+
+                        imagen.addEventListener(
+                            "load",
+                            finalizar,
+                            {
+                                once: true
+                            }
+                        );
+
+                        imagen.addEventListener(
+                            "error",
+                            finalizar,
+                            {
+                                once: true
+                            }
+                        );
+
+                        window.setTimeout(
+                            finalizar,
+                            5000
+                        );
+                    }
+                );
+            })
         );
     }
 
@@ -318,7 +191,7 @@ function esperarMovimientoMapa(
     return new Promise((resolve) => {
         let terminado = false;
 
-        const finalizar = () => {
+        function finalizar() {
             if (terminado) {
                 return;
             }
@@ -331,7 +204,7 @@ function esperarMovimientoMapa(
             );
 
             resolve();
-        };
+        }
 
         map.once(
             "moveend",
@@ -362,6 +235,7 @@ function calcularTamanoImagenPDF(
 
     if (alto > altoMaximo) {
         alto = altoMaximo;
+
         ancho =
             alto *
             proporcion;
@@ -436,9 +310,8 @@ function mostrarAtributos(
     const propiedades =
         feature.properties || {};
 
-    let contenido = `
-        <h3>Información de la vereda</h3>
-    `;
+    let contenido =
+        "<h3>Información de la vereda</h3>";
 
     Object.entries(propiedades).forEach(
         ([campo, valor]) => {
@@ -469,7 +342,7 @@ function mostrarAtributos(
 }
 
 /* =========================================
-   CAPA DE VEREDAS
+   VEREDAS
 ========================================= */
 
 const capaVeredas = L.geoJSON(
@@ -488,12 +361,10 @@ const capaVeredas = L.geoJSON(
 
             return {
                 color: color,
-
                 weight:
                     esDispositivoMovil()
                         ? 1.5
                         : 2,
-
                 opacity: 0.9,
                 fillColor: color,
                 fillOpacity: 0.22
@@ -561,28 +432,6 @@ const capaVeredas = L.geoJSON(
                     );
                 }
             );
-
-            layer.on(
-                "click",
-                function () {
-                    if (
-                        !esDispositivoMovil() ||
-                        modoDibujoOEdicionActivo
-                    ) {
-                        return;
-                    }
-
-                    capaVeredas.resetStyle();
-
-                    layer.setStyle({
-                        weight: 3,
-                        opacity: 1,
-                        fillOpacity: 0.38
-                    });
-
-                    layer.bringToFront();
-                }
-            );
         }
     }
 );
@@ -597,7 +446,7 @@ const poligonosDibujados =
 poligonosDibujados.addTo(map);
 
 /* =========================================
-   HERRAMIENTAS DE DIBUJO
+   DIBUJO
 ========================================= */
 
 const controlDibujo =
@@ -619,7 +468,6 @@ const controlDibujo =
                 }
             },
 
-            // Se eliminó el rectángulo.
             rectangle: false,
             polyline: false,
             circle: false,
@@ -641,7 +489,7 @@ map.addControl(
 );
 
 /* =========================================
-   CONTROL DE FLECHAS
+   FLECHAS SIEMPRE VISIBLES
 ========================================= */
 
 const controlFlechas =
@@ -661,8 +509,7 @@ controlFlechas.onAdd =
             <button
                 type="button"
                 class="flecha-mapa flecha-arriba"
-                aria-label="Mover mapa hacia arriba"
-                title="Mover mapa hacia arriba"
+                aria-label="Mover hacia arriba"
             >
                 ▲
             </button>
@@ -670,8 +517,7 @@ controlFlechas.onAdd =
             <button
                 type="button"
                 class="flecha-mapa flecha-izquierda"
-                aria-label="Mover mapa hacia la izquierda"
-                title="Mover mapa hacia la izquierda"
+                aria-label="Mover hacia la izquierda"
             >
                 ◀
             </button>
@@ -683,8 +529,7 @@ controlFlechas.onAdd =
             <button
                 type="button"
                 class="flecha-mapa flecha-derecha"
-                aria-label="Mover mapa hacia la derecha"
-                title="Mover mapa hacia la derecha"
+                aria-label="Mover hacia la derecha"
             >
                 ▶
             </button>
@@ -692,8 +537,7 @@ controlFlechas.onAdd =
             <button
                 type="button"
                 class="flecha-mapa flecha-abajo"
-                aria-label="Mover mapa hacia abajo"
-                title="Mover mapa hacia abajo"
+                aria-label="Mover hacia abajo"
             >
                 ▼
             </button>
@@ -707,86 +551,61 @@ controlFlechas.onAdd =
             contenedor
         );
 
-        const distanciaMovimiento =
+        const distancia =
             esDispositivoMovil()
-                ? 110
-                : 160;
+                ? 100
+                : 150;
 
-        function moverMapa(
-            desplazamientoX,
-            desplazamientoY
-        ) {
-            map.panBy(
-                [
-                    desplazamientoX,
-                    desplazamientoY
-                ],
-                {
-                    animate: true,
-                    duration: 0.25
-                }
-            );
-        }
-
-        const configuracionBotones = [
+        const movimientos = [
             {
                 selector:
                     ".flecha-arriba",
-
                 x: 0,
-                y: -distanciaMovimiento
+                y: -distancia
             },
             {
                 selector:
                     ".flecha-abajo",
-
                 x: 0,
-                y: distanciaMovimiento
+                y: distancia
             },
             {
                 selector:
                     ".flecha-izquierda",
-
-                x: -distanciaMovimiento,
+                x: -distancia,
                 y: 0
             },
             {
                 selector:
                     ".flecha-derecha",
-
-                x: distanciaMovimiento,
+                x: distancia,
                 y: 0
             }
         ];
 
-        configuracionBotones.forEach(
-            (configuracion) => {
+        movimientos.forEach(
+            (movimiento) => {
                 const boton =
                     contenedor.querySelector(
-                        configuracion.selector
+                        movimiento.selector
                     );
 
-                const ejecutarMovimiento =
+                boton.addEventListener(
+                    "click",
                     function (evento) {
                         evento.preventDefault();
                         evento.stopPropagation();
 
-                        moverMapa(
-                            configuracion.x,
-                            configuracion.y
+                        map.panBy(
+                            [
+                                movimiento.x,
+                                movimiento.y
+                            ],
+                            {
+                                animate: true,
+                                duration: 0.25
+                            }
                         );
-                    };
-
-                boton.addEventListener(
-                    "click",
-                    ejecutarMovimiento
-                );
-
-                boton.addEventListener(
-                    "touchend",
-                    ejecutarMovimiento,
-                    {
-                        passive: false
                     }
                 );
             }
@@ -797,13 +616,8 @@ controlFlechas.onAdd =
 
 controlFlechas.addTo(map);
 
-const elementoFlechas =
-    document.querySelector(
-        ".control-flechas-mapa"
-    );
-
 /* =========================================
-   MENSAJE DEL MODO DE EDICIÓN
+   MENSAJE DE MODO
 ========================================= */
 
 const controlMensajeModo =
@@ -819,13 +633,8 @@ controlMensajeModo.onAdd =
                 "mensaje-modo-mapa"
             );
 
-        elemento.innerHTML = `
-            Usa las flechas para mover el mapa
-            mientras dibujas o editas.
-        `;
-
-        elemento.style.display =
-            "none";
+        elemento.textContent =
+            "Usa las flechas para mover el mapa mientras dibujas o editas.";
 
         L.DomEvent.disableClickPropagation(
             elemento
@@ -842,33 +651,11 @@ const elementoMensajeModo =
     );
 
 /* =========================================
-   ACTIVAR Y DESACTIVAR INTERACCIONES
+   ACTIVAR MODO DE DIBUJO O EDICIÓN
 ========================================= */
 
-function guardarEstadoInteracciones() {
-    estadoInteraccionAnterior = {
-        dragging:
-            map.dragging.enabled(),
-
-        touchZoom:
-            map.touchZoom.enabled(),
-
-        doubleClickZoom:
-            map.doubleClickZoom.enabled(),
-
-        scrollWheelZoom:
-            map.scrollWheelZoom.enabled(),
-
-        boxZoom:
-            map.boxZoom.enabled(),
-
-        keyboard:
-            map.keyboard.enabled()
-    };
-}
-
-function desactivarInteraccionesMapa() {
-    guardarEstadoInteracciones();
+function activarModoDibujoEdicion() {
+    modoDibujoOEdicionActivo = true;
 
     map.dragging.disable();
     map.touchZoom.disable();
@@ -876,61 +663,6 @@ function desactivarInteraccionesMapa() {
     map.scrollWheelZoom.disable();
     map.boxZoom.disable();
     map.keyboard.disable();
-}
-
-function restaurarInteraccionesMapa() {
-    if (
-        estadoInteraccionAnterior.dragging
-    ) {
-        map.dragging.enable();
-    }
-
-    if (
-        estadoInteraccionAnterior.touchZoom
-    ) {
-        map.touchZoom.enable();
-    }
-
-    if (
-        estadoInteraccionAnterior
-            .doubleClickZoom
-    ) {
-        map.doubleClickZoom.enable();
-    }
-
-    if (
-        estadoInteraccionAnterior
-            .scrollWheelZoom
-    ) {
-        map.scrollWheelZoom.enable();
-    }
-
-    if (
-        estadoInteraccionAnterior.boxZoom
-    ) {
-        map.boxZoom.enable();
-    }
-
-    if (
-        estadoInteraccionAnterior.keyboard
-    ) {
-        map.keyboard.enable();
-    }
-}
-
-function mostrarFlechasMapa() {
-    if (modoDibujoOEdicionActivo) {
-        return;
-    }
-
-    modoDibujoOEdicionActivo = true;
-
-    desactivarInteraccionesMapa();
-
-    if (elementoFlechas) {
-        elementoFlechas.style.display =
-            "grid";
-    }
 
     if (elementoMensajeModo) {
         elementoMensajeModo.style.display =
@@ -938,62 +670,54 @@ function mostrarFlechasMapa() {
     }
 }
 
-function ocultarFlechasMapa() {
-    if (!modoDibujoOEdicionActivo) {
-        return;
-    }
-
+function desactivarModoDibujoEdicion() {
     modoDibujoOEdicionActivo = false;
 
-    if (elementoFlechas) {
-        elementoFlechas.style.display =
-            "none";
-    }
+    map.dragging.enable();
+    map.touchZoom.enable();
+    map.doubleClickZoom.enable();
+    map.scrollWheelZoom.enable();
+    map.boxZoom.enable();
+    map.keyboard.enable();
 
     if (elementoMensajeModo) {
         elementoMensajeModo.style.display =
             "none";
     }
-
-    restaurarInteraccionesMapa();
 }
-
-/* =========================================
-   EVENTOS DE INICIO Y FIN DE MODOS
-========================================= */
 
 map.on(
     L.Draw.Event.DRAWSTART,
-    mostrarFlechasMapa
+    activarModoDibujoEdicion
 );
 
 map.on(
     L.Draw.Event.DRAWSTOP,
-    ocultarFlechasMapa
+    desactivarModoDibujoEdicion
 );
 
 map.on(
     L.Draw.Event.EDITSTART,
-    mostrarFlechasMapa
+    activarModoDibujoEdicion
 );
 
 map.on(
     L.Draw.Event.EDITSTOP,
-    ocultarFlechasMapa
+    desactivarModoDibujoEdicion
 );
 
 map.on(
     L.Draw.Event.DELETESTART,
-    mostrarFlechasMapa
+    activarModoDibujoEdicion
 );
 
 map.on(
     L.Draw.Event.DELETESTOP,
-    ocultarFlechasMapa
+    desactivarModoDibujoEdicion
 );
 
 /* =========================================
-   EVENTOS DE DIBUJO
+   EVENTOS DE POLÍGONOS
 ========================================= */
 
 map.on(
@@ -1010,19 +734,10 @@ map.on(
             layer;
 
         layer.bindPopup(`
-            <strong>
-                Área dibujada
-            </strong>
+            <strong>Área dibujada</strong>
             <br>
             Esta área será exportada al PDF.
-            Puedes editarla o eliminarla
-            usando las herramientas del mapa.
         `);
-
-        console.log(
-            "Polígono creado:",
-            layer.toGeoJSON()
-        );
 
         layer.openPopup();
     }
@@ -1035,11 +750,6 @@ map.on(
             function (layer) {
                 ultimaAreaDibujada =
                     layer;
-
-                console.log(
-                    "Polígono editado:",
-                    layer.toGeoJSON()
-                );
             }
         );
     }
@@ -1048,43 +758,36 @@ map.on(
 map.on(
     L.Draw.Event.DELETED,
     function (evento) {
-        let seEliminoUltimaArea =
-            false;
+        let ultimaEliminada = false;
 
         evento.layers.eachLayer(
-            function (layerEliminado) {
+            function (layer) {
                 if (
-                    layerEliminado ===
+                    layer ===
                     ultimaAreaDibujada
                 ) {
-                    seEliminoUltimaArea =
-                        true;
+                    ultimaEliminada = true;
                 }
             }
         );
 
-        if (seEliminoUltimaArea) {
-            const capasRestantes =
+        if (ultimaEliminada) {
+            const restantes =
                 poligonosDibujados
                     .getLayers();
 
             ultimaAreaDibujada =
-                capasRestantes.length > 0
-                    ? capasRestantes[
-                        capasRestantes.length -
-                            1
+                restantes.length > 0
+                    ? restantes[
+                        restantes.length - 1
                     ]
                     : null;
         }
-
-        console.log(
-            "Se eliminó uno o más polígonos."
-        );
     }
 );
 
 /* =========================================
-   CARGAR FONDO GRIS
+   FONDO GRIS
 ========================================= */
 
 fetch(
@@ -1093,9 +796,7 @@ fetch(
     .then((respuesta) => {
         if (!respuesta.ok) {
             throw new Error(
-                "No se pudo cargar " +
-                    "BG_veredas.geojson. " +
-                    `Código: ${respuesta.status}`
+                "No se pudo cargar BG_veredas.geojson."
             );
         }
 
@@ -1121,7 +822,7 @@ fetch(
     })
     .catch((error) => {
         console.error(
-            "Error cargando el fondo gris:",
+            "Error cargando el fondo:",
             error
         );
     });
@@ -1136,9 +837,7 @@ fetch(
     .then((respuesta) => {
         if (!respuesta.ok) {
             throw new Error(
-                "No se pudo cargar " +
-                    "Veredas.geojson. " +
-                    `Código: ${respuesta.status}`
+                "No se pudo cargar Veredas.geojson."
             );
         }
 
@@ -1153,15 +852,12 @@ fetch(
             map
         );
 
-        limitesCompletosVeredas =
+        const limites =
             capaVeredas.getBounds();
 
-        if (
-            limitesCompletosVeredas
-                .isValid()
-        ) {
+        if (limites.isValid()) {
             map.fitBounds(
-                limitesCompletosVeredas,
+                limites,
                 {
                     padding:
                         esDispositivoMovil()
@@ -1180,34 +876,30 @@ fetch(
     })
     .catch((error) => {
         console.error(
-            "Error cargando las veredas:",
+            "Error cargando veredas:",
             error
         );
     });
 
 /* =========================================
-   SELECTOR DE CAPAS
+   CAPAS
 ========================================= */
 
-const mapasBase = {
-    "Imagen satelital":
-        mapaSatelital,
-
-    "Mapa de calles":
-        mapaCalles
-};
-
-const capasSuperpuestas = {
-    "Veredas":
-        capaVeredas,
-
-    "Polígonos dibujados":
-        poligonosDibujados
-};
-
 L.control.layers(
-    mapasBase,
-    capasSuperpuestas,
+    {
+        "Imagen satelital":
+            mapaSatelital,
+
+        "Mapa de calles":
+            mapaCalles
+    },
+    {
+        "Veredas":
+            capaVeredas,
+
+        "Polígonos dibujados":
+            poligonosDibujados
+    },
     {
         collapsed:
             esDispositivoMovil(),
@@ -1216,10 +908,6 @@ L.control.layers(
     }
 ).addTo(map);
 
-/* =========================================
-   ESCALA
-========================================= */
-
 L.control.scale({
     metric: true,
     imperial: false,
@@ -1227,7 +915,7 @@ L.control.scale({
 }).addTo(map);
 
 /* =========================================
-   AJUSTAR MAPA A LA PANTALLA
+   TAMAÑO DEL MAPA
 ========================================= */
 
 function ajustarTamanoMapa() {
@@ -1253,16 +941,11 @@ window.addEventListener(
 
 window.addEventListener(
     "orientationchange",
-    function () {
-        window.setTimeout(
-            ajustarTamanoMapa,
-            300
-        );
-    }
+    ajustarTamanoMapa
 );
 
 /* =========================================
-   BOTÓN DESCARGAR PDF
+   PDF
 ========================================= */
 
 const botonDescargarPDF =
@@ -1275,35 +958,12 @@ if (botonDescargarPDF) {
         "click",
         descargarMapaPDF
     );
-} else {
-    console.error(
-        "No se encontró el botón " +
-            "descargar_mapa_pdf."
-    );
 }
-
-/* =========================================
-   DESCARGAR Y ENVIAR PDF
-========================================= */
 
 async function descargarMapaPDF() {
     if (!ultimaAreaDibujada) {
         alert(
-            "Primero debes dibujar o modificar un área."
-        );
-
-        return;
-    }
-
-    if (
-        !poligonosDibujados.hasLayer(
-            ultimaAreaDibujada
-        )
-    ) {
-        ultimaAreaDibujada = null;
-
-        alert(
-            "El área seleccionada fue eliminada."
+            "Primero debes dibujar un área."
         );
 
         return;
@@ -1318,10 +978,6 @@ async function descargarMapaPDF() {
         nombreUsuario === null ||
         nombreUsuario.trim() === ""
     ) {
-        alert(
-            "Debes ingresar tu nombre."
-        );
-
         return;
     }
 
@@ -1334,10 +990,6 @@ async function descargarMapaPDF() {
         celularUsuario === null ||
         celularUsuario.trim() === ""
     ) {
-        alert(
-            "Debes ingresar tu número de celular."
-        );
-
         return;
     }
 
@@ -1350,10 +1002,6 @@ async function descargarMapaPDF() {
         nombreVereda === null ||
         nombreVereda.trim() === ""
     ) {
-        alert(
-            "Debes ingresar el nombre de la vereda."
-        );
-
         return;
     }
 
@@ -1406,12 +1054,6 @@ async function descargarMapaPDF() {
             ultimaAreaDibujada
                 .getBounds();
 
-        if (!limitesArea.isValid()) {
-            throw new Error(
-                "El área dibujada no tiene límites válidos."
-            );
-        }
-
         map.fitBounds(
             limitesArea,
             {
@@ -1443,33 +1085,23 @@ async function descargarMapaPDF() {
                 "map"
             );
 
-        if (!elementoMapa) {
-            throw new Error(
-                "No se encontró el contenedor del mapa."
-            );
-        }
-
-        const escalaCaptura =
-            esDispositivoMovil()
-                ? 1.25
-                : 2;
-
         const canvas =
             await html2canvas(
                 elementoMapa,
                 {
                     useCORS: true,
                     allowTaint: false,
-                    scale: escalaCaptura,
+                    scale:
+                        esDispositivoMovil()
+                            ? 1.25
+                            : 2,
                     backgroundColor:
                         "#ffffff",
                     logging: false,
                     imageTimeout: 20000,
 
                     ignoreElements:
-                        function (
-                            elemento
-                        ) {
+                        function (elemento) {
                             return (
                                 elemento.classList &&
                                 elemento.classList
@@ -1477,24 +1109,6 @@ async function descargarMapaPDF() {
                                         "leaflet-control-container"
                                     )
                             );
-                        },
-
-                    onclone:
-                        function (
-                            documentoClonado
-                        ) {
-                            const mapaClonado =
-                                documentoClonado
-                                    .getElementById(
-                                        "map"
-                                    );
-
-                            if (mapaClonado) {
-                                mapaClonado
-                                    .style
-                                    .transform =
-                                    "none";
-                            }
                         }
                 }
             );
@@ -1513,7 +1127,6 @@ async function descargarMapaPDF() {
             new jsPDF({
                 orientation:
                     "landscape",
-
                 unit: "mm",
                 format: "a4",
                 compress: true
@@ -1531,22 +1144,16 @@ async function descargarMapaPDF() {
         const altoEncabezado = 22;
         const altoInformacion = 45;
 
-        const anchoDisponible =
-            anchoPagina -
-            margen * 2;
-
-        const altoDisponibleImagen =
-            altoPagina -
-            altoEncabezado -
-            altoInformacion -
-            margen;
-
         const tamanoImagen =
             calcularTamanoImagenPDF(
                 canvas.width,
                 canvas.height,
-                anchoDisponible,
-                altoDisponibleImagen
+                anchoPagina -
+                    margen * 2,
+                altoPagina -
+                    altoEncabezado -
+                    altoInformacion -
+                    margen
             );
 
         const posicionX =
@@ -1556,15 +1163,7 @@ async function descargarMapaPDF() {
             ) / 2;
 
         const posicionY =
-            altoEncabezado +
-            (
-                altoDisponibleImagen -
-                tamanoImagen.alto
-            ) / 2;
-
-        /* =================================
-           TÍTULO
-        ================================= */
+            altoEncabezado;
 
         pdf.setFont(
             "helvetica",
@@ -1592,10 +1191,6 @@ async function descargarMapaPDF() {
             18
         );
 
-        /* =================================
-           IMAGEN
-        ================================= */
-
         pdf.addImage(
             imagen,
             "JPEG",
@@ -1606,10 +1201,6 @@ async function descargarMapaPDF() {
             undefined,
             "FAST"
         );
-
-        /* =================================
-           INFORMACIÓN INFERIOR
-        ================================= */
 
         const posicionDatos =
             altoPagina -
@@ -1654,18 +1245,14 @@ async function descargarMapaPDF() {
             posicionDatos + 21
         );
 
-        const columnaCentro = 105;
-
         pdf.setFont(
             "helvetica",
             "bold"
         );
 
-        pdf.setFontSize(11);
-
         pdf.text(
             "Centro del área",
-            columnaCentro,
+            105,
             posicionDatos
         );
 
@@ -1674,82 +1261,53 @@ async function descargarMapaPDF() {
             "normal"
         );
 
-        pdf.setFontSize(9.5);
-
         pdf.text(
             `X - Longitud: ${coordenadas.x.toFixed(8)}`,
-            columnaCentro,
+            105,
             posicionDatos + 7
         );
 
         pdf.text(
             `Y - Latitud: ${coordenadas.y.toFixed(8)}`,
-            columnaCentro,
+            105,
             posicionDatos + 14
         );
 
         pdf.text(
             `Z - Zoom: ${coordenadas.z}`,
-            columnaCentro,
+            105,
             posicionDatos + 21
         );
-
-        const columnaDerecha = 205;
 
         const fecha =
             new Date().toLocaleString(
                 "es-CO"
             );
 
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(11);
-
-        pdf.text(
-            "Información técnica",
-            columnaDerecha,
-            posicionDatos
-        );
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(8.5);
-
         pdf.text(
             `Fecha: ${fecha}`,
-            columnaDerecha,
+            205,
             posicionDatos + 7
         );
 
         pdf.text(
             "Sistema: WGS 84",
-            columnaDerecha,
+            205,
             posicionDatos + 14
         );
 
         pdf.text(
             "Código: EPSG:4326",
-            columnaDerecha,
+            205,
             posicionDatos + 21
         );
 
-        /* =================================
-           PREPARAR ARCHIVO
-        ================================= */
-
-        const nombreLimpio =
-            crearNombreArchivo(
-                nombreVereda
-            );
-
         const nombreArchivo =
-            `area-${nombreLimpio || "vereda"}.pdf`;
+            `area-${
+                crearNombreArchivo(
+                    nombreVereda
+                ) || "vereda"
+            }.pdf`;
 
         const pdfBlob =
             pdf.output("blob");
@@ -1793,24 +1351,17 @@ async function descargarMapaPDF() {
             String(coordenadas.z)
         );
 
-        /*
-         * Descargar primero para que el usuario
-         * no pierda el archivo si el correo falla.
-         */
         pdf.save(
             nombreArchivo
         );
 
-        /*
-         * Enviar una copia al servidor.
-         */
         try {
             if (textoBoton) {
                 textoBoton.textContent =
                     "Enviando...";
             }
 
-            const respuestaCorreo =
+            const respuesta =
                 await fetch(
                     "enviar_pdf.php",
                     {
@@ -1819,29 +1370,16 @@ async function descargarMapaPDF() {
                     }
                 );
 
-            const textoRespuesta =
-                await respuestaCorreo.text();
-
-            let resultadoCorreo;
-
-            try {
-                resultadoCorreo =
-                    JSON.parse(
-                        textoRespuesta
-                    );
-            } catch (errorJSON) {
-                throw new Error(
-                    "El servidor no devolvió una respuesta JSON válida."
-                );
-            }
+            const resultado =
+                await respuesta.json();
 
             if (
-                !respuestaCorreo.ok ||
-                !resultadoCorreo.ok
+                !respuesta.ok ||
+                !resultado.ok
             ) {
                 throw new Error(
-                    resultadoCorreo.mensaje ||
-                    "No se pudo enviar el PDF por correo."
+                    resultado.mensaje ||
+                    "No se pudo enviar el correo."
                 );
             }
 
@@ -1850,18 +1388,17 @@ async function descargarMapaPDF() {
             );
         } catch (errorCorreo) {
             console.error(
-                "El PDF fue descargado, pero no se pudo enviar:",
+                "Error enviando PDF:",
                 errorCorreo
             );
 
             alert(
-                "El PDF fue descargado, pero no se pudo enviar por correo. " +
-                errorCorreo.message
+                "El PDF se descargó, pero no se pudo enviar por correo."
             );
         }
     } catch (error) {
         console.error(
-            "Error generando el PDF:",
+            "Error generando PDF:",
             error
         );
 
