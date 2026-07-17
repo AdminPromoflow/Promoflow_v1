@@ -13,15 +13,120 @@ const map = L.map("map", {
     boxZoom: true,
     keyboard: true,
     dragging: true,
-
-    /*
-     * Evita clics táctiles fantasma
-     * en algunos navegadores móviles.
-     */
     tap: false
 }).setView(
     [4.270625797339428, -74.41654400019608],
     13
+);
+
+/* =========================================
+   ESTILOS GENERADOS DESDE JAVASCRIPT
+========================================= */
+
+const estilosAplicacion =
+    document.createElement("style");
+
+estilosAplicacion.textContent = `
+    .control-flechas-mapa {
+        display: none;
+        grid-template-areas:
+            ". arriba ."
+            "izquierda centro derecha"
+            ". abajo .";
+        grid-template-columns: 48px 48px 48px;
+        grid-template-rows: 48px 48px 48px;
+        gap: 4px;
+        padding: 7px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 9px;
+        box-shadow: 0 1px 7px rgba(0, 0, 0, 0.45);
+    }
+
+    .flecha-mapa {
+        width: 48px;
+        height: 48px;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #777;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #222;
+        cursor: pointer;
+        font-size: 21px;
+        font-weight: bold;
+        line-height: 48px;
+        text-align: center;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .flecha-mapa:hover {
+        background: #eeeeee;
+    }
+
+    .flecha-mapa:active {
+        background: #d5d5d5;
+        transform: scale(0.94);
+    }
+
+    .flecha-arriba {
+        grid-area: arriba;
+    }
+
+    .flecha-abajo {
+        grid-area: abajo;
+    }
+
+    .flecha-izquierda {
+        grid-area: izquierda;
+    }
+
+    .flecha-derecha {
+        grid-area: derecha;
+    }
+
+    .centro-flechas {
+        grid-area: centro;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .mensaje-modo-mapa {
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 6px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+        color: #222;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
+        max-width: 215px;
+        padding: 8px 10px;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .control-flechas-mapa {
+            grid-template-columns: 54px 54px 54px;
+            grid-template-rows: 54px 54px 54px;
+            gap: 5px;
+        }
+
+        .flecha-mapa {
+            width: 54px;
+            height: 54px;
+            font-size: 25px;
+            line-height: 54px;
+        }
+    }
+`;
+
+document.head.appendChild(
+    estilosAplicacion
 );
 
 /* =========================================
@@ -56,6 +161,16 @@ const mapaSatelital = L.tileLayer(
 let fondoVeredas = null;
 let limitesCompletosVeredas = null;
 let ultimaAreaDibujada = null;
+let modoDibujoOEdicionActivo = false;
+
+let estadoInteraccionAnterior = {
+    dragging: true,
+    touchZoom: true,
+    doubleClickZoom: true,
+    scrollWheelZoom: true,
+    boxZoom: true,
+    keyboard: true
+};
 
 /* =========================================
    COLORES DE LAS VEREDAS
@@ -89,11 +204,17 @@ const coloresVeredas = [
 ========================================= */
 
 function obtenerColor(nombre) {
-    const texto = String(nombre || "Sin nombre");
+    const texto = String(
+        nombre || "Sin nombre"
+    );
 
     let numero = 0;
 
-    for (let i = 0; i < texto.length; i++) {
+    for (
+        let i = 0;
+        i < texto.length;
+        i++
+    ) {
         numero += texto.charCodeAt(i);
     }
 
@@ -126,10 +247,6 @@ function esDispositivoMovil() {
     ).matches;
 }
 
-/*
- * Espera a que Leaflet termine de ajustar
- * el mapa y las imágenes estén cargadas.
- */
 async function esperarCargaMapa() {
     await esperar(700);
 
@@ -152,7 +269,7 @@ async function esperarCargaMapa() {
                         (resolve) => {
                             let terminado = false;
 
-                            const terminar = () => {
+                            const finalizar = () => {
                                 if (terminado) {
                                     return;
                                 }
@@ -163,7 +280,7 @@ async function esperarCargaMapa() {
 
                             imagen.addEventListener(
                                 "load",
-                                terminar,
+                                finalizar,
                                 {
                                     once: true
                                 }
@@ -171,14 +288,14 @@ async function esperarCargaMapa() {
 
                             imagen.addEventListener(
                                 "error",
-                                terminar,
+                                finalizar,
                                 {
                                     once: true
                                 }
                             );
 
                             window.setTimeout(
-                                terminar,
+                                finalizar,
                                 5000
                             );
                         }
@@ -195,10 +312,6 @@ async function esperarCargaMapa() {
     );
 }
 
-/*
- * Espera a que termine un movimiento
- * o cambio de zoom del mapa.
- */
 function esperarMovimientoMapa(
     tiempoMaximo = 1800
 ) {
@@ -232,10 +345,6 @@ function esperarMovimientoMapa(
     });
 }
 
-/*
- * Ajustar una imagen al espacio disponible
- * del PDF sin deformarla.
- */
 function calcularTamanoImagenPDF(
     anchoOriginal,
     altoOriginal,
@@ -243,14 +352,19 @@ function calcularTamanoImagenPDF(
     altoMaximo
 ) {
     const proporcion =
-        anchoOriginal / altoOriginal;
+        anchoOriginal /
+        altoOriginal;
 
     let ancho = anchoMaximo;
-    let alto = ancho / proporcion;
+    let alto =
+        ancho /
+        proporcion;
 
     if (alto > altoMaximo) {
         alto = altoMaximo;
-        ancho = alto * proporcion;
+        ancho =
+            alto *
+            proporcion;
     }
 
     return {
@@ -259,28 +373,22 @@ function calcularTamanoImagenPDF(
     };
 }
 
-/*
- * Obtener las coordenadas del centro
- * del área dibujada.
- *
- * X = longitud
- * Y = latitud
- * Z = zoom de Leaflet
- */
 function obtenerCoordenadasXYZ(
     layer,
     zoom
 ) {
     if (
         !layer ||
-        typeof layer.getBounds !== "function"
+        typeof layer.getBounds !==
+            "function"
     ) {
         throw new Error(
             "El área dibujada no tiene límites válidos."
         );
     }
 
-    const limites = layer.getBounds();
+    const limites =
+        layer.getBounds();
 
     if (!limites.isValid()) {
         throw new Error(
@@ -288,13 +396,33 @@ function obtenerCoordenadasXYZ(
         );
     }
 
-    const centro = limites.getCenter();
+    const centro =
+        limites.getCenter();
 
     return {
         x: centro.lng,
         y: centro.lat,
         z: zoom
     };
+}
+
+function crearNombreArchivo(texto) {
+    return String(texto)
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        )
+        .replace(
+            /[^a-z0-9]+/g,
+            "-"
+        )
+        .replace(
+            /^-+|-+$/g,
+            ""
+        );
 }
 
 /* =========================================
@@ -402,7 +530,8 @@ const capaVeredas = L.geoJSON(
                 "mouseover",
                 function () {
                     if (
-                        esDispositivoMovil()
+                        esDispositivoMovil() ||
+                        modoDibujoOEdicionActivo
                     ) {
                         return;
                     }
@@ -421,7 +550,8 @@ const capaVeredas = L.geoJSON(
                 "mouseout",
                 function () {
                     if (
-                        esDispositivoMovil()
+                        esDispositivoMovil() ||
+                        modoDibujoOEdicionActivo
                     ) {
                         return;
                     }
@@ -436,7 +566,8 @@ const capaVeredas = L.geoJSON(
                 "click",
                 function () {
                     if (
-                        !esDispositivoMovil()
+                        !esDispositivoMovil() ||
+                        modoDibujoOEdicionActivo
                     ) {
                         return;
                     }
@@ -466,218 +597,6 @@ const poligonosDibujados =
 poligonosDibujados.addTo(map);
 
 /* =========================================
-   PARCHE MULTITÁCTIL PARA LEAFLET DRAW
-========================================= */
-
-/*
- * Leaflet Draw normalmente interpreta
- * un touchstart con dos dedos como un
- * nuevo vértice del polígono.
- *
- * Este parche permite dibujar únicamente
- * cuando existe exactamente un dedo.
- */
-if (
-    window.L &&
-    L.Draw &&
-    L.Draw.Polyline &&
-    L.Draw.Polyline.prototype &&
-    typeof L.Draw.Polyline.prototype._onTouch ===
-        "function"
-) {
-    const funcionTouchOriginal =
-        L.Draw.Polyline.prototype._onTouch;
-
-    L.Draw.Polyline.prototype._onTouch =
-        function (evento) {
-            const eventoOriginal =
-                evento.originalEvent ||
-                evento;
-
-            const cantidadDedos =
-                eventoOriginal.touches
-                    ? eventoOriginal.touches.length
-                    : 0;
-
-            /*
-             * Solo un dedo puede agregar
-             * un vértice al polígono.
-             */
-            if (cantidadDedos !== 1) {
-                this._clickHandled = null;
-                this._touchHandled = null;
-
-                return;
-            }
-
-            return funcionTouchOriginal.call(
-                this,
-                evento
-            );
-        };
-}
-
-/*
- * Parche adicional para rectángulos.
- * Si se detectan dos dedos mientras se
- * comienza a dibujar un rectángulo,
- * Leaflet Draw ignora ese gesto.
- */
-if (
-    window.L &&
-    L.Draw &&
-    L.Draw.SimpleShape &&
-    L.Draw.SimpleShape.prototype &&
-    typeof L.Draw.SimpleShape.prototype
-        ._onMouseDown === "function"
-) {
-    const mouseDownOriginal =
-        L.Draw.SimpleShape.prototype
-            ._onMouseDown;
-
-    L.Draw.SimpleShape.prototype
-        ._onMouseDown =
-        function (evento) {
-            const eventoOriginal =
-                evento.originalEvent ||
-                evento;
-
-            const cantidadDedos =
-                eventoOriginal.touches
-                    ? eventoOriginal.touches.length
-                    : 0;
-
-            if (cantidadDedos >= 2) {
-                this._isDrawing = false;
-                return;
-            }
-
-            return mouseDownOriginal.call(
-                this,
-                evento
-            );
-        };
-}
-
-/* =========================================
-   PROTECCIÓN ADICIONAL MULTITÁCTIL
-========================================= */
-
-const contenedorMapa =
-    map.getContainer();
-
-let gestoMultitactilActivo = false;
-let bloquearEventosHasta = 0;
-
-function activarBloqueoMultitactil() {
-    gestoMultitactilActivo = true;
-
-    bloquearEventosHasta =
-        Date.now() + 900;
-}
-
-contenedorMapa.addEventListener(
-    "touchstart",
-    function (evento) {
-        if (evento.touches.length >= 2) {
-            activarBloqueoMultitactil();
-        }
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-contenedorMapa.addEventListener(
-    "touchmove",
-    function (evento) {
-        if (evento.touches.length >= 2) {
-            activarBloqueoMultitactil();
-        }
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-contenedorMapa.addEventListener(
-    "touchend",
-    function (evento) {
-        if (!gestoMultitactilActivo) {
-            return;
-        }
-
-        bloquearEventosHasta =
-            Date.now() + 900;
-
-        if (evento.touches.length === 0) {
-            window.setTimeout(
-                function () {
-                    gestoMultitactilActivo =
-                        false;
-                },
-                900
-            );
-        }
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-contenedorMapa.addEventListener(
-    "touchcancel",
-    function () {
-        bloquearEventosHasta =
-            Date.now() + 900;
-
-        window.setTimeout(
-            function () {
-                gestoMultitactilActivo =
-                    false;
-            },
-            900
-        );
-    },
-    {
-        passive: true,
-        capture: true
-    }
-);
-
-function bloquearClicFantasma(evento) {
-    if (
-        gestoMultitactilActivo ||
-        Date.now() < bloquearEventosHasta
-    ) {
-        evento.preventDefault();
-        evento.stopPropagation();
-        evento.stopImmediatePropagation();
-    }
-}
-
-contenedorMapa.addEventListener(
-    "click",
-    bloquearClicFantasma,
-    true
-);
-
-contenedorMapa.addEventListener(
-    "dblclick",
-    bloquearClicFantasma,
-    true
-);
-
-contenedorMapa.addEventListener(
-    "contextmenu",
-    bloquearClicFantasma,
-    true
-);
-
-/* =========================================
    HERRAMIENTAS DE DIBUJO
 ========================================= */
 
@@ -700,19 +619,8 @@ const controlDibujo =
                 }
             },
 
-            rectangle: {
-                showArea: true,
-                metric: true,
-
-                shapeOptions: {
-                    color: "#0066ff",
-                    weight: 3,
-                    opacity: 1,
-                    fillColor: "#0066ff",
-                    fillOpacity: 0.25
-                }
-            },
-
+            // Se eliminó el rectángulo.
+            rectangle: false,
             polyline: false,
             circle: false,
             circlemarker: false,
@@ -728,7 +636,361 @@ const controlDibujo =
         }
     });
 
-map.addControl(controlDibujo);
+map.addControl(
+    controlDibujo
+);
+
+/* =========================================
+   CONTROL DE FLECHAS
+========================================= */
+
+const controlFlechas =
+    L.control({
+        position: "bottomright"
+    });
+
+controlFlechas.onAdd =
+    function () {
+        const contenedor =
+            L.DomUtil.create(
+                "div",
+                "control-flechas-mapa"
+            );
+
+        contenedor.innerHTML = `
+            <button
+                type="button"
+                class="flecha-mapa flecha-arriba"
+                aria-label="Mover mapa hacia arriba"
+                title="Mover mapa hacia arriba"
+            >
+                ▲
+            </button>
+
+            <button
+                type="button"
+                class="flecha-mapa flecha-izquierda"
+                aria-label="Mover mapa hacia la izquierda"
+                title="Mover mapa hacia la izquierda"
+            >
+                ◀
+            </button>
+
+            <div class="centro-flechas">
+                ✥
+            </div>
+
+            <button
+                type="button"
+                class="flecha-mapa flecha-derecha"
+                aria-label="Mover mapa hacia la derecha"
+                title="Mover mapa hacia la derecha"
+            >
+                ▶
+            </button>
+
+            <button
+                type="button"
+                class="flecha-mapa flecha-abajo"
+                aria-label="Mover mapa hacia abajo"
+                title="Mover mapa hacia abajo"
+            >
+                ▼
+            </button>
+        `;
+
+        L.DomEvent.disableClickPropagation(
+            contenedor
+        );
+
+        L.DomEvent.disableScrollPropagation(
+            contenedor
+        );
+
+        const distanciaMovimiento =
+            esDispositivoMovil()
+                ? 110
+                : 160;
+
+        function moverMapa(
+            desplazamientoX,
+            desplazamientoY
+        ) {
+            map.panBy(
+                [
+                    desplazamientoX,
+                    desplazamientoY
+                ],
+                {
+                    animate: true,
+                    duration: 0.25
+                }
+            );
+        }
+
+        const configuracionBotones = [
+            {
+                selector:
+                    ".flecha-arriba",
+
+                x: 0,
+                y: -distanciaMovimiento
+            },
+            {
+                selector:
+                    ".flecha-abajo",
+
+                x: 0,
+                y: distanciaMovimiento
+            },
+            {
+                selector:
+                    ".flecha-izquierda",
+
+                x: -distanciaMovimiento,
+                y: 0
+            },
+            {
+                selector:
+                    ".flecha-derecha",
+
+                x: distanciaMovimiento,
+                y: 0
+            }
+        ];
+
+        configuracionBotones.forEach(
+            (configuracion) => {
+                const boton =
+                    contenedor.querySelector(
+                        configuracion.selector
+                    );
+
+                const ejecutarMovimiento =
+                    function (evento) {
+                        evento.preventDefault();
+                        evento.stopPropagation();
+
+                        moverMapa(
+                            configuracion.x,
+                            configuracion.y
+                        );
+                    };
+
+                boton.addEventListener(
+                    "click",
+                    ejecutarMovimiento
+                );
+
+                boton.addEventListener(
+                    "touchend",
+                    ejecutarMovimiento,
+                    {
+                        passive: false
+                    }
+                );
+            }
+        );
+
+        return contenedor;
+    };
+
+controlFlechas.addTo(map);
+
+const elementoFlechas =
+    document.querySelector(
+        ".control-flechas-mapa"
+    );
+
+/* =========================================
+   MENSAJE DEL MODO DE EDICIÓN
+========================================= */
+
+const controlMensajeModo =
+    L.control({
+        position: "bottomleft"
+    });
+
+controlMensajeModo.onAdd =
+    function () {
+        const elemento =
+            L.DomUtil.create(
+                "div",
+                "mensaje-modo-mapa"
+            );
+
+        elemento.innerHTML = `
+            Usa las flechas para mover el mapa
+            mientras dibujas o editas.
+        `;
+
+        elemento.style.display =
+            "none";
+
+        L.DomEvent.disableClickPropagation(
+            elemento
+        );
+
+        return elemento;
+    };
+
+controlMensajeModo.addTo(map);
+
+const elementoMensajeModo =
+    document.querySelector(
+        ".mensaje-modo-mapa"
+    );
+
+/* =========================================
+   ACTIVAR Y DESACTIVAR INTERACCIONES
+========================================= */
+
+function guardarEstadoInteracciones() {
+    estadoInteraccionAnterior = {
+        dragging:
+            map.dragging.enabled(),
+
+        touchZoom:
+            map.touchZoom.enabled(),
+
+        doubleClickZoom:
+            map.doubleClickZoom.enabled(),
+
+        scrollWheelZoom:
+            map.scrollWheelZoom.enabled(),
+
+        boxZoom:
+            map.boxZoom.enabled(),
+
+        keyboard:
+            map.keyboard.enabled()
+    };
+}
+
+function desactivarInteraccionesMapa() {
+    guardarEstadoInteracciones();
+
+    map.dragging.disable();
+    map.touchZoom.disable();
+    map.doubleClickZoom.disable();
+    map.scrollWheelZoom.disable();
+    map.boxZoom.disable();
+    map.keyboard.disable();
+}
+
+function restaurarInteraccionesMapa() {
+    if (
+        estadoInteraccionAnterior.dragging
+    ) {
+        map.dragging.enable();
+    }
+
+    if (
+        estadoInteraccionAnterior.touchZoom
+    ) {
+        map.touchZoom.enable();
+    }
+
+    if (
+        estadoInteraccionAnterior
+            .doubleClickZoom
+    ) {
+        map.doubleClickZoom.enable();
+    }
+
+    if (
+        estadoInteraccionAnterior
+            .scrollWheelZoom
+    ) {
+        map.scrollWheelZoom.enable();
+    }
+
+    if (
+        estadoInteraccionAnterior.boxZoom
+    ) {
+        map.boxZoom.enable();
+    }
+
+    if (
+        estadoInteraccionAnterior.keyboard
+    ) {
+        map.keyboard.enable();
+    }
+}
+
+function mostrarFlechasMapa() {
+    if (modoDibujoOEdicionActivo) {
+        return;
+    }
+
+    modoDibujoOEdicionActivo = true;
+
+    desactivarInteraccionesMapa();
+
+    if (elementoFlechas) {
+        elementoFlechas.style.display =
+            "grid";
+    }
+
+    if (elementoMensajeModo) {
+        elementoMensajeModo.style.display =
+            "block";
+    }
+}
+
+function ocultarFlechasMapa() {
+    if (!modoDibujoOEdicionActivo) {
+        return;
+    }
+
+    modoDibujoOEdicionActivo = false;
+
+    if (elementoFlechas) {
+        elementoFlechas.style.display =
+            "none";
+    }
+
+    if (elementoMensajeModo) {
+        elementoMensajeModo.style.display =
+            "none";
+    }
+
+    restaurarInteraccionesMapa();
+}
+
+/* =========================================
+   EVENTOS DE INICIO Y FIN DE MODOS
+========================================= */
+
+map.on(
+    L.Draw.Event.DRAWSTART,
+    mostrarFlechasMapa
+);
+
+map.on(
+    L.Draw.Event.DRAWSTOP,
+    ocultarFlechasMapa
+);
+
+map.on(
+    L.Draw.Event.EDITSTART,
+    mostrarFlechasMapa
+);
+
+map.on(
+    L.Draw.Event.EDITSTOP,
+    ocultarFlechasMapa
+);
+
+map.on(
+    L.Draw.Event.DELETESTART,
+    mostrarFlechasMapa
+);
+
+map.on(
+    L.Draw.Event.DELETESTOP,
+    ocultarFlechasMapa
+);
 
 /* =========================================
    EVENTOS DE DIBUJO
@@ -737,25 +999,15 @@ map.addControl(controlDibujo);
 map.on(
     L.Draw.Event.CREATED,
     function (evento) {
-        const layer = evento.layer;
-
-        /*
-         * Evitar guardar una geometría
-         * creada accidentalmente durante
-         * un gesto con dos dedos.
-         */
-        if (
-            gestoMultitactilActivo ||
-            Date.now() < bloquearEventosHasta
-        ) {
-            return;
-        }
+        const layer =
+            evento.layer;
 
         poligonosDibujados.addLayer(
             layer
         );
 
-        ultimaAreaDibujada = layer;
+        ultimaAreaDibujada =
+            layer;
 
         layer.bindPopup(`
             <strong>
@@ -800,9 +1052,7 @@ map.on(
             false;
 
         evento.layers.eachLayer(
-            function (
-                layerEliminado
-            ) {
+            function (layerEliminado) {
                 if (
                     layerEliminado ===
                     ultimaAreaDibujada
@@ -840,20 +1090,20 @@ map.on(
 fetch(
     "geosons/BG_veredas.geojson"
 )
-    .then((response) => {
-        if (!response.ok) {
+    .then((respuesta) => {
+        if (!respuesta.ok) {
             throw new Error(
                 "No se pudo cargar " +
                     "BG_veredas.geojson. " +
-                    `Código: ${response.status}`
+                    `Código: ${respuesta.status}`
             );
         }
 
-        return response.json();
+        return respuesta.json();
     })
-    .then((data) => {
+    .then((datos) => {
         fondoVeredas = L.geoJSON(
-            data,
+            datos,
             {
                 style: {
                     color: "#666666",
@@ -877,7 +1127,7 @@ fetch(
     });
 
 /* =========================================
-   CARGAR VEREDAS DE ARBELÁEZ
+   CARGAR VEREDAS
 ========================================= */
 
 fetch(
@@ -895,14 +1145,20 @@ fetch(
         return respuesta.json();
     })
     .then((datos) => {
-        capaVeredas.addData(datos);
-        capaVeredas.addTo(map);
+        capaVeredas.addData(
+            datos
+        );
+
+        capaVeredas.addTo(
+            map
+        );
 
         limitesCompletosVeredas =
             capaVeredas.getBounds();
 
         if (
-            limitesCompletosVeredas.isValid()
+            limitesCompletosVeredas
+                .isValid()
         ) {
             map.fitBounds(
                 limitesCompletosVeredas,
@@ -1027,14 +1283,10 @@ if (botonDescargarPDF) {
 }
 
 /* =========================================
-   DESCARGAR ÁREA DIBUJADA EN PDF
+   DESCARGAR Y ENVIAR PDF
 ========================================= */
 
 async function descargarMapaPDF() {
-    /*
-     * Comprobar el área antes de pedir
-     * los datos del usuario.
-     */
     if (!ultimaAreaDibujada) {
         alert(
             "Primero debes dibujar o modificar un área."
@@ -1057,9 +1309,10 @@ async function descargarMapaPDF() {
         return;
     }
 
-    const nombreUsuario = window.prompt(
-        "Ingrese su nombre completo:"
-    );
+    const nombreUsuario =
+        window.prompt(
+            "Ingrese su nombre completo:"
+        );
 
     if (
         nombreUsuario === null ||
@@ -1072,9 +1325,10 @@ async function descargarMapaPDF() {
         return;
     }
 
-    const celularUsuario = window.prompt(
-        "Ingrese su número de celular:"
-    );
+    const celularUsuario =
+        window.prompt(
+            "Ingrese su número de celular:"
+        );
 
     if (
         celularUsuario === null ||
@@ -1087,9 +1341,10 @@ async function descargarMapaPDF() {
         return;
     }
 
-    const nombreVereda = window.prompt(
-        "Ingrese el nombre de la vereda:"
-    );
+    const nombreVereda =
+        window.prompt(
+            "Ingrese el nombre de la vereda:"
+        );
 
     if (
         nombreVereda === null ||
@@ -1118,7 +1373,8 @@ async function descargarMapaPDF() {
     const zoomAnterior =
         map.getZoom();
 
-    botonDescargarPDF.disabled = true;
+    botonDescargarPDF.disabled =
+        true;
 
     if (textoBoton) {
         textoBoton.textContent =
@@ -1147,7 +1403,8 @@ async function descargarMapaPDF() {
         map.closePopup();
 
         const limitesArea =
-            ultimaAreaDibujada.getBounds();
+            ultimaAreaDibujada
+                .getBounds();
 
         if (!limitesArea.isValid()) {
             throw new Error(
@@ -1215,27 +1472,30 @@ async function descargarMapaPDF() {
                         ) {
                             return (
                                 elemento.classList &&
-                                elemento.classList.contains(
-                                    "leaflet-control-container"
-                                )
+                                elemento.classList
+                                    .contains(
+                                        "leaflet-control-container"
+                                    )
                             );
                         },
 
-                    onclone: function (
-                        documentoClonado
-                    ) {
-                        const mapaClonado =
+                    onclone:
+                        function (
                             documentoClonado
-                                .getElementById(
-                                    "map"
-                                );
+                        ) {
+                            const mapaClonado =
+                                documentoClonado
+                                    .getElementById(
+                                        "map"
+                                    );
 
-                        if (mapaClonado) {
-                            mapaClonado.style
-                                .transform =
-                                "none";
+                            if (mapaClonado) {
+                                mapaClonado
+                                    .style
+                                    .transform =
+                                    "none";
+                            }
                         }
-                    }
                 }
             );
 
@@ -1249,12 +1509,15 @@ async function descargarMapaPDF() {
             jsPDF
         } = window.jspdf;
 
-        const pdf = new jsPDF({
-            orientation: "landscape",
-            unit: "mm",
-            format: "a4",
-            compress: true
-        });
+        const pdf =
+            new jsPDF({
+                orientation:
+                    "landscape",
+
+                unit: "mm",
+                format: "a4",
+                compress: true
+            });
 
         const anchoPagina =
             pdf.internal.pageSize
@@ -1330,7 +1593,7 @@ async function descargarMapaPDF() {
         );
 
         /* =================================
-           IMAGEN DEL MAPA
+           IMAGEN
         ================================= */
 
         pdf.addImage(
@@ -1476,27 +1739,126 @@ async function descargarMapaPDF() {
             posicionDatos + 21
         );
 
+        /* =================================
+           PREPARAR ARCHIVO
+        ================================= */
+
+        const nombreLimpio =
+            crearNombreArchivo(
+                nombreVereda
+            );
+
         const nombreArchivo =
-            nombreVereda
-                .trim()
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(
-                    /[\u0300-\u036f]/g,
-                    ""
-                )
-                .replace(
-                    /[^a-z0-9]+/g,
-                    "-"
-                )
-                .replace(
-                    /^-+|-+$/g,
-                    ""
+            `area-${nombreLimpio || "vereda"}.pdf`;
+
+        const pdfBlob =
+            pdf.output("blob");
+
+        const formulario =
+            new FormData();
+
+        formulario.append(
+            "pdf",
+            pdfBlob,
+            nombreArchivo
+        );
+
+        formulario.append(
+            "nombre",
+            nombreUsuario.trim()
+        );
+
+        formulario.append(
+            "celular",
+            celularUsuario.trim()
+        );
+
+        formulario.append(
+            "vereda",
+            nombreVereda.trim()
+        );
+
+        formulario.append(
+            "coordenada_x",
+            coordenadas.x.toFixed(8)
+        );
+
+        formulario.append(
+            "coordenada_y",
+            coordenadas.y.toFixed(8)
+        );
+
+        formulario.append(
+            "coordenada_z",
+            String(coordenadas.z)
+        );
+
+        /*
+         * Descargar primero para que el usuario
+         * no pierda el archivo si el correo falla.
+         */
+        pdf.save(
+            nombreArchivo
+        );
+
+        /*
+         * Enviar una copia al servidor.
+         */
+        try {
+            if (textoBoton) {
+                textoBoton.textContent =
+                    "Enviando...";
+            }
+
+            const respuestaCorreo =
+                await fetch(
+                    "enviar_pdf.php",
+                    {
+                        method: "POST",
+                        body: formulario
+                    }
                 );
 
-        pdf.save(
-            `area-${nombreArchivo || "vereda"}.pdf`
-        );
+            const textoRespuesta =
+                await respuestaCorreo.text();
+
+            let resultadoCorreo;
+
+            try {
+                resultadoCorreo =
+                    JSON.parse(
+                        textoRespuesta
+                    );
+            } catch (errorJSON) {
+                throw new Error(
+                    "El servidor no devolvió una respuesta JSON válida."
+                );
+            }
+
+            if (
+                !respuestaCorreo.ok ||
+                !resultadoCorreo.ok
+            ) {
+                throw new Error(
+                    resultadoCorreo.mensaje ||
+                    "No se pudo enviar el PDF por correo."
+                );
+            }
+
+            alert(
+                "El PDF fue descargado y enviado correctamente."
+            );
+        } catch (errorCorreo) {
+            console.error(
+                "El PDF fue descargado, pero no se pudo enviar:",
+                errorCorreo
+            );
+
+            alert(
+                "El PDF fue descargado, pero no se pudo enviar por correo. " +
+                errorCorreo.message
+            );
+        }
     } catch (error) {
         console.error(
             "Error generando el PDF:",
@@ -1505,7 +1867,7 @@ async function descargarMapaPDF() {
 
         alert(
             error.message ||
-                "No fue posible generar el PDF."
+            "No fue posible generar el PDF."
         );
     } finally {
         map.setView(

@@ -5,10 +5,10 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
     >
 
-    <title>Mapa Asojuntas</title>
+    <title>Mapa de veredas de Arbeláez</title>
 
     <!-- Leaflet -->
     <link
@@ -23,34 +23,41 @@
     >
 
     <!-- Estilos propios -->
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
 
     <header class="encabezado">
-        <div class="titulo-contenedor">
-            <h1>Mapa de veredas</h1>
+        <div class="encabezado-contenido">
+            <div>
+                <h1>Mapa de veredas de Arbeláez</h1>
 
-            <p>
-                Asojuntas
-            </p>
+                <p>
+                    Dibuja un polígono para seleccionar un área.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="descargar_mapa_pdf"
+                class="boton-descargar"
+            >
+                <span class="icono-boton">
+                    ↓
+                </span>
+
+                <span class="texto-boton">
+                    Descargar PDF
+                </span>
+            </button>
         </div>
-
-        <button
-            id="descargar_mapa_pdf"
-            class="boton-descargar"
-            type="button"
-            aria-label="Descargar mapa en PDF"
-        >
-            <span class="icono-descarga">⬇</span>
-            <span class="texto-boton">
-                Descargar PDF
-            </span>
-        </button>
     </header>
 
-    <main class="contenedor-mapa">
+    <main class="contenido-principal">
         <div id="map"></div>
     </main>
 
@@ -64,12 +71,12 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"
     ></script>
 
-    <!-- Captura del mapa -->
+    <!-- html2canvas -->
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
     ></script>
 
-    <!-- PDF -->
+    <!-- jsPDF -->
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
     ></script>
