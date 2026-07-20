@@ -17,6 +17,7 @@ class MapApp {
         this.showZoomControls();
         this.showMovementControls();
         this.showResetViewControl();
+        this.showPrintButtonEvent();
     }
 
     showMap() {
@@ -32,8 +33,8 @@ class MapApp {
                 boxZoom: false,
                 keyboard: false,
                 tap: false,
-                maxZoom: 18,
-                minZoom: 11
+                minZoom: 11,
+                maxZoom: 18
             }
         ).setView(
             this.initialPosition,
@@ -43,13 +44,12 @@ class MapApp {
         L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
-                maxZoom: 18,
                 minZoom: 11,
-                attribution: "Imagery © Esri"
+                maxZoom: 18,
+                attribution: "Imagery © Esri",
+                crossOrigin: "anonymous"
             }
-        ).addTo(
-            this.map
-        );
+        ).addTo(this.map);
     }
 
     showZoomControls() {
@@ -64,10 +64,6 @@ class MapApp {
                 "div",
                 "custom-zoom-control"
             );
-
-            container.style.display = "flex";
-            container.style.flexDirection = "column";
-            container.style.gap = "5px";
 
             container.innerHTML = `
                 <button
@@ -96,26 +92,6 @@ class MapApp {
             L.DomEvent.disableScrollPropagation(
                 container
             );
-
-            const buttons =
-                container.querySelectorAll(
-                    "button"
-                );
-
-            buttons.forEach((button) => {
-
-                button.style.width = "42px";
-                button.style.height = "42px";
-                button.style.border = "none";
-                button.style.borderRadius = "8px";
-                button.style.backgroundColor = "#ffffff";
-                button.style.color = "#222222";
-                button.style.fontSize = "26px";
-                button.style.fontWeight = "bold";
-                button.style.cursor = "pointer";
-                button.style.boxShadow =
-                    "0 2px 8px rgba(0, 0, 0, 0.25)";
-            });
 
             const zoomInButton =
                 container.querySelector(
@@ -157,121 +133,18 @@ class MapApp {
         );
     }
 
-    showResetViewControl() {
-
-        const mapContainer =
-            this.map.getContainer();
-
-        const resetButton =
-            document.createElement(
-                "button"
-            );
-
-        resetButton.type = "button";
-
-        resetButton.textContent = "⌂";
-
-        resetButton.title =
-            "Return to original view";
-
-        resetButton.setAttribute(
-            "aria-label",
-            "Return to original view"
-        );
-
-        resetButton.style.position =
-            "absolute";
-
-        resetButton.style.top =
-            "50%";
-
-        resetButton.style.right =
-            "10px";
-
-        resetButton.style.transform =
-            "translateY(-50%)";
-
-        resetButton.style.zIndex =
-            "1000";
-
-        resetButton.style.width =
-            "46px";
-
-        resetButton.style.height =
-            "46px";
-
-        resetButton.style.border =
-            "none";
-
-        resetButton.style.borderRadius =
-            "50%";
-
-        resetButton.style.backgroundColor =
-            "#ffffff";
-
-        resetButton.style.color =
-            "#222222";
-
-        resetButton.style.fontSize =
-            "24px";
-
-        resetButton.style.fontWeight =
-            "bold";
-
-        resetButton.style.cursor =
-            "pointer";
-
-        resetButton.style.boxShadow =
-            "0 2px 8px rgba(0, 0, 0, 0.25)";
-
-        resetButton.addEventListener(
-            "click",
-            (event) => {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                this.map.setView(
-                    this.initialPosition,
-                    this.initialZoom,
-                    {
-                        animate: true
-                    }
-                );
-            }
-        );
-
-        mapContainer.appendChild(
-            resetButton
-        );
-    }
-
     showMovementControls() {
 
-        const movementControl =
-            L.control({
-                position: "bottomright"
-            });
+        const movementControl = L.control({
+            position: "bottomright"
+        });
 
         movementControl.onAdd = () => {
 
-            const container =
-                L.DomUtil.create(
-                    "div",
-                    "movement-control"
-                );
-
-            container.style.display =
-                "grid";
-
-            container.style.gridTemplateColumns =
-                "42px 42px 42px";
-
-            container.style.gridTemplateRows =
-                "42px 42px 42px";
-
-            container.style.gap =
-                "4px";
+            const container = L.DomUtil.create(
+                "div",
+                "movement-control"
+            );
 
             container.innerHTML = `
                 <button
@@ -323,109 +196,26 @@ class MapApp {
                 container
             );
 
-            const movementButtons =
-                container.querySelectorAll(
-                    "button"
-                );
-
-            movementButtons.forEach(
-                (button) => {
-
-                    button.style.width =
-                        "42px";
-
-                    button.style.height =
-                        "42px";
-
-                    button.style.border =
-                        "none";
-
-                    button.style.borderRadius =
-                        "8px";
-
-                    button.style.backgroundColor =
-                        "#ffffff";
-
-                    button.style.color =
-                        "#222222";
-
-                    button.style.fontSize =
-                        "18px";
-
-                    button.style.cursor =
-                        "pointer";
-
-                    button.style.boxShadow =
-                        "0 2px 8px rgba(0, 0, 0, 0.25)";
-                }
-            );
-
-            const upButton =
-                container.querySelector(
-                    ".move-up-button"
-                );
-
-            const leftButton =
-                container.querySelector(
-                    ".move-left-button"
-                );
-
-            const center =
-                container.querySelector(
-                    ".movement-center"
-                );
-
-            const rightButton =
-                container.querySelector(
-                    ".move-right-button"
-                );
-
-            const downButton =
-                container.querySelector(
-                    ".move-down-button"
-                );
-
-            upButton.style.gridColumn = "2";
-            upButton.style.gridRow = "1";
-
-            leftButton.style.gridColumn = "1";
-            leftButton.style.gridRow = "2";
-
-            center.style.gridColumn = "2";
-            center.style.gridRow = "2";
-            center.style.display = "flex";
-            center.style.alignItems = "center";
-            center.style.justifyContent = "center";
-            center.style.borderRadius = "8px";
-            center.style.backgroundColor =
-                "rgba(255, 255, 255, 0.9)";
-
-            rightButton.style.gridColumn = "3";
-            rightButton.style.gridRow = "2";
-
-            downButton.style.gridColumn = "2";
-            downButton.style.gridRow = "3";
-
             const movementDistance = 150;
 
             const movements = [
                 {
-                    button: upButton,
+                    selector: ".move-up-button",
                     x: 0,
                     y: -movementDistance
                 },
                 {
-                    button: downButton,
+                    selector: ".move-down-button",
                     x: 0,
                     y: movementDistance
                 },
                 {
-                    button: leftButton,
+                    selector: ".move-left-button",
                     x: -movementDistance,
                     y: 0
                 },
                 {
-                    button: rightButton,
+                    selector: ".move-right-button",
                     x: movementDistance,
                     y: 0
                 }
@@ -434,7 +224,12 @@ class MapApp {
             movements.forEach(
                 (movement) => {
 
-                    movement.button.addEventListener(
+                    const button =
+                        container.querySelector(
+                            movement.selector
+                        );
+
+                    button.addEventListener(
                         "click",
                         (event) => {
 
@@ -461,6 +256,52 @@ class MapApp {
 
         movementControl.addTo(
             this.map
+        );
+    }
+
+    showResetViewControl() {
+
+        const mapContainer =
+            this.map.getContainer();
+
+        const resetButton =
+            document.createElement(
+                "button"
+            );
+
+        resetButton.type = "button";
+        resetButton.className =
+            "reset-view-button";
+
+        resetButton.textContent = "⌂";
+
+        resetButton.title =
+            "Return to original view";
+
+        resetButton.setAttribute(
+            "aria-label",
+            "Return to original view"
+        );
+
+        resetButton.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.map.setView(
+                    this.initialPosition,
+                    this.initialZoom,
+                    {
+                        animate: true
+                    }
+                );
+            }
+        );
+
+        mapContainer.appendChild(
+            resetButton
         );
     }
 
@@ -491,20 +332,14 @@ class MapApp {
         const colors =
             this.getVillageColors();
 
-        const text =
-            String(
-                name || "No name"
-            );
+        const text = String(
+            name || "No name"
+        );
 
         let number = 0;
 
-        for (
-            let i = 0;
-            i < text.length;
-            i++
-        ) {
-            number +=
-                text.charCodeAt(i);
+        for (let i = 0; i < text.length; i++) {
+            number += text.charCodeAt(i);
         }
 
         return colors[
@@ -611,33 +446,32 @@ class MapApp {
 
     createVillageLayer(data) {
 
-        this.villages =
-            L.geoJSON(
-                data,
-                {
-                    style: (feature) => {
+        this.villages = L.geoJSON(
+            data,
+            {
+                style: (feature) => {
 
-                        return this.getVillageStyle(
-                            feature
-                        );
-                    },
+                    return this.getVillageStyle(
+                        feature
+                    );
+                },
 
-                    onEachFeature: (
+                onEachFeature: (
+                    feature,
+                    layer
+                ) => {
+
+                    this.showVillageName(
                         feature,
                         layer
-                    ) => {
+                    );
 
-                        this.showVillageName(
-                            feature,
-                            layer
-                        );
-
-                        this.addVillageHighlight(
-                            layer
-                        );
-                    }
+                    this.addVillageHighlight(
+                        layer
+                    );
                 }
-            );
+            }
+        );
 
         this.villages.addTo(
             this.map
@@ -652,7 +486,6 @@ class MapApp {
             .then((response) => {
 
                 if (!response.ok) {
-
                     throw new Error(
                         "Could not load Veredas.geojson."
                     );
@@ -733,7 +566,291 @@ class MapApp {
             }
         );
     }
+
+    getDrawnPolygonBounds() {
+
+        const layers =
+            this.drawnPolygons.getLayers();
+
+        if (layers.length === 0) {
+            return null;
+        }
+
+        const bounds =
+            L.latLngBounds([]);
+
+        layers.forEach((layer) => {
+
+            if (
+                typeof layer.getBounds ===
+                "function"
+            ) {
+                bounds.extend(
+                    layer.getBounds()
+                );
+            }
+        });
+
+        if (!bounds.isValid()) {
+            return null;
+        }
+
+        return bounds;
+    }
+
+    waitForMapMovement() {
+
+        return new Promise((resolve) => {
+
+            let finished = false;
+
+            const finish = () => {
+
+                if (finished) {
+                    return;
+                }
+
+                finished = true;
+
+                this.map.off(
+                    "moveend",
+                    finish
+                );
+
+                resolve();
+            };
+
+            this.map.once(
+                "moveend",
+                finish
+            );
+
+            window.setTimeout(
+                finish,
+                1500
+            );
+        });
+    }
+
+    waitForMapTiles() {
+
+        return new Promise((resolve) => {
+
+            window.setTimeout(
+                resolve,
+                800
+            );
+        });
+    }
+
+    async zoomToDrawnPolygons() {
+
+        const bounds =
+            this.getDrawnPolygonBounds();
+
+        if (!bounds) {
+            throw new Error(
+                "Draw at least one polygon first."
+            );
+        }
+
+        const movement =
+            this.waitForMapMovement();
+
+        this.map.fitBounds(
+            bounds,
+            {
+                padding: [50, 50],
+                maxZoom: 18,
+                animate: false
+            }
+        );
+
+        await movement;
+        await this.waitForMapTiles();
+    }
+
+    hideMapControls() {
+
+        const controls =
+            document.querySelector(
+                "#map .leaflet-control-container"
+            );
+
+        if (controls) {
+            controls.style.display =
+                "none";
+        }
+
+        const resetButton =
+            document.querySelector(
+                ".reset-view-button"
+            );
+
+        if (resetButton) {
+            resetButton.style.display =
+                "none";
+        }
+    }
+
+    showMapControlsAgain() {
+
+        const controls =
+            document.querySelector(
+                "#map .leaflet-control-container"
+            );
+
+        if (controls) {
+            controls.style.display = "";
+        }
+
+        const resetButton =
+            document.querySelector(
+                ".reset-view-button"
+            );
+
+        if (resetButton) {
+            resetButton.style.display = "";
+        }
+    }
+
+    async downloadDrawnPolygonsImage() {
+
+        if (
+            typeof html2canvas ===
+            "undefined"
+        ) {
+            throw new Error(
+                "html2canvas is not available."
+            );
+        }
+
+        const mapElement =
+            document.getElementById(
+                "map"
+            );
+
+        if (!mapElement) {
+            throw new Error(
+                "The map element was not found."
+            );
+        }
+
+        this.hideMapControls();
+
+        try {
+
+            const canvas =
+                await html2canvas(
+                    mapElement,
+                    {
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor:
+                            "#ffffff",
+                        scale: 2,
+                        logging: false
+                    }
+                );
+
+            const imageUrl =
+                canvas.toDataURL(
+                    "image/png"
+                );
+
+            const downloadLink =
+                document.createElement(
+                    "a"
+                );
+
+            downloadLink.href =
+                imageUrl;
+
+            downloadLink.download =
+                "drawn-polygons.png";
+
+            document.body.appendChild(
+                downloadLink
+            );
+
+            downloadLink.click();
+            downloadLink.remove();
+
+        } finally {
+
+            this.showMapControlsAgain();
+        }
+    }
+
+    async handlePrintButtonClick() {
+
+        const printButton =
+            document.getElementById(
+                "print-drawn-polygons"
+            );
+
+        if (!printButton) {
+            return;
+        }
+
+        const originalText =
+            printButton.textContent;
+
+        printButton.disabled = true;
+        printButton.textContent =
+            "Creating image...";
+
+        try {
+
+            await this.zoomToDrawnPolygons();
+
+            await this.downloadDrawnPolygonsImage();
+
+        } catch (error) {
+
+            console.error(
+                "Error creating map image:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Could not create the map image."
+            );
+
+        } finally {
+
+            printButton.disabled = false;
+
+            printButton.textContent =
+                originalText;
+        }
+    }
+
+    showPrintButtonEvent() {
+
+        const printButton =
+            document.getElementById(
+                "print-drawn-polygons"
+            );
+
+        if (!printButton) {
+
+            console.error(
+                "The print button was not found."
+            );
+
+            return;
+        }
+
+        printButton.addEventListener(
+            "click",
+            () => {
+
+                this.handlePrintButtonClick();
+            }
+        );
+    }
 }
 
-const mapApp =
-    new MapApp();
+const mapApp = new MapApp();
