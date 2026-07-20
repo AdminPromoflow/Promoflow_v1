@@ -8,13 +8,21 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Mapa satelital</title>
+    <title>Mapa de Arbeláez</title>
 
+    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
+    <!-- Leaflet Draw -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+    >
+
+    <!-- Nuestro CSS -->
     <link
         rel="stylesheet"
         href="style.css"
@@ -29,10 +37,17 @@
 
     <div id="map"></div>
 
+    <!-- Leaflet primero -->
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
+    <!-- Leaflet Draw después -->
+    <script
+        src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"
+    ></script>
+
+    <!-- Nuestro JavaScript al final -->
     <script src="app.js"></script>
 
 </body>

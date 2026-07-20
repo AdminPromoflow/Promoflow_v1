@@ -20,6 +20,69 @@ class Mapa {
                 attribution: "Imágenes © Esri"
             }
         ).addTo(map);
+
+        const poligonosDibujados =
+            new L.FeatureGroup();
+
+        poligonosDibujados.addTo(map);
+
+        const controlDibujo =
+            new L.Control.Draw({
+                position: "topleft",
+
+                draw: {
+                    polygon: {
+                        allowIntersection: false,
+                        showArea: true,
+                        metric: true,
+
+                        shapeOptions: {
+                            color: "#ff0000",
+                            weight: 3,
+                            opacity: 1,
+                            fillColor: "#ff0000",
+                            fillOpacity: 0.25
+                        }
+                    },
+
+                    rectangle: {
+                        showArea: true,
+                        metric: true,
+
+                        shapeOptions: {
+                            color: "#0066ff",
+                            weight: 3,
+                            opacity: 1,
+                            fillColor: "#0066ff",
+                            fillOpacity: 0.25
+                        }
+                    },
+
+                    polyline: false,
+                    circle: false,
+                    circlemarker: false,
+                    marker: false
+                },
+
+                edit: {
+                    featureGroup:
+                        poligonosDibujados,
+
+                    edit: true,
+                    remove: true
+                }
+            });
+
+        map.addControl(controlDibujo);
+
+        map.on(
+            L.Draw.Event.CREATED,
+            function (evento) {
+                poligonosDibujados.addLayer(
+                    evento.layer
+                );
+            }
+        );
     }
 }
 
