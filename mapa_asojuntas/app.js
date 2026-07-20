@@ -12,17 +12,19 @@ class Mapa {
         this.map = L.map(
             "map",
             {
-                maxZoom: 18
+                maxZoom: 18,
+                minZoom: 10
             }
         ).setView(
             [4.270625797339428, -74.41654400019608],
-            18
+            14
         );
 
         L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
                 maxZoom: 18,
+                minZoom: 10,
                 attribution: "Imágenes © Esri"
             }
         ).addTo(this.map);
