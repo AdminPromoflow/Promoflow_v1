@@ -3,11 +3,20 @@
 class MapApp {
 
     constructor() {
+
+        this.initialPosition = [
+            4.234401078089235,
+            -74.41519745304102
+        ];
+
+        this.initialZoom = 13;
+
         this.showMap();
         this.showVillages();
         this.showDrawnPolygons();
         this.showZoomControls();
         this.showMovementControls();
+        this.showResetViewControl();
     }
 
     showMap() {
@@ -27,8 +36,8 @@ class MapApp {
                 minZoom: 11
             }
         ).setView(
-            [4.234401078089235, -74.41519745304102],
-            13
+            this.initialPosition,
+            this.initialZoom
         );
 
         L.tileLayer(
@@ -38,7 +47,9 @@ class MapApp {
                 minZoom: 11,
                 attribution: "Imagery © Esri"
             }
-        ).addTo(this.map);
+        ).addTo(
+            this.map
+        );
     }
 
     showZoomControls() {
@@ -54,10 +65,14 @@ class MapApp {
                 "custom-zoom-control"
             );
 
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.gap = "5px";
+
             container.innerHTML = `
                 <button
                     type="button"
-                    class="custom-zoom-button zoom-in-button"
+                    class="zoom-in-button"
                     aria-label="Zoom in"
                     title="Zoom in"
                 >
@@ -66,7 +81,7 @@ class MapApp {
 
                 <button
                     type="button"
-                    class="custom-zoom-button zoom-out-button"
+                    class="zoom-out-button"
                     aria-label="Zoom out"
                     title="Zoom out"
                 >
@@ -81,6 +96,26 @@ class MapApp {
             L.DomEvent.disableScrollPropagation(
                 container
             );
+
+            const buttons =
+                container.querySelectorAll(
+                    "button"
+                );
+
+            buttons.forEach((button) => {
+
+                button.style.width = "42px";
+                button.style.height = "42px";
+                button.style.border = "none";
+                button.style.borderRadius = "8px";
+                button.style.backgroundColor = "#ffffff";
+                button.style.color = "#222222";
+                button.style.fontSize = "26px";
+                button.style.fontWeight = "bold";
+                button.style.cursor = "pointer";
+                button.style.boxShadow =
+                    "0 2px 8px rgba(0, 0, 0, 0.25)";
+            });
 
             const zoomInButton =
                 container.querySelector(
@@ -122,23 +157,126 @@ class MapApp {
         );
     }
 
+    showResetViewControl() {
+
+        const mapContainer =
+            this.map.getContainer();
+
+        const resetButton =
+            document.createElement(
+                "button"
+            );
+
+        resetButton.type = "button";
+
+        resetButton.textContent = "⌂";
+
+        resetButton.title =
+            "Return to original view";
+
+        resetButton.setAttribute(
+            "aria-label",
+            "Return to original view"
+        );
+
+        resetButton.style.position =
+            "absolute";
+
+        resetButton.style.top =
+            "50%";
+
+        resetButton.style.right =
+            "10px";
+
+        resetButton.style.transform =
+            "translateY(-50%)";
+
+        resetButton.style.zIndex =
+            "1000";
+
+        resetButton.style.width =
+            "46px";
+
+        resetButton.style.height =
+            "46px";
+
+        resetButton.style.border =
+            "none";
+
+        resetButton.style.borderRadius =
+            "50%";
+
+        resetButton.style.backgroundColor =
+            "#ffffff";
+
+        resetButton.style.color =
+            "#222222";
+
+        resetButton.style.fontSize =
+            "24px";
+
+        resetButton.style.fontWeight =
+            "bold";
+
+        resetButton.style.cursor =
+            "pointer";
+
+        resetButton.style.boxShadow =
+            "0 2px 8px rgba(0, 0, 0, 0.25)";
+
+        resetButton.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.map.setView(
+                    this.initialPosition,
+                    this.initialZoom,
+                    {
+                        animate: true
+                    }
+                );
+            }
+        );
+
+        mapContainer.appendChild(
+            resetButton
+        );
+    }
+
     showMovementControls() {
 
-        const movementControl = L.control({
-            position: "bottomright"
-        });
+        const movementControl =
+            L.control({
+                position: "bottomright"
+            });
 
         movementControl.onAdd = () => {
 
-            const container = L.DomUtil.create(
-                "div",
-                "movement-control"
-            );
+            const container =
+                L.DomUtil.create(
+                    "div",
+                    "movement-control"
+                );
+
+            container.style.display =
+                "grid";
+
+            container.style.gridTemplateColumns =
+                "42px 42px 42px";
+
+            container.style.gridTemplateRows =
+                "42px 42px 42px";
+
+            container.style.gap =
+                "4px";
 
             container.innerHTML = `
                 <button
                     type="button"
-                    class="movement-button move-up-button"
+                    class="move-up-button"
                     aria-label="Move up"
                     title="Move up"
                 >
@@ -147,7 +285,7 @@ class MapApp {
 
                 <button
                     type="button"
-                    class="movement-button move-left-button"
+                    class="move-left-button"
                     aria-label="Move left"
                     title="Move left"
                 >
@@ -160,7 +298,7 @@ class MapApp {
 
                 <button
                     type="button"
-                    class="movement-button move-right-button"
+                    class="move-right-button"
                     aria-label="Move right"
                     title="Move right"
                 >
@@ -169,7 +307,7 @@ class MapApp {
 
                 <button
                     type="button"
-                    class="movement-button move-down-button"
+                    class="move-down-button"
                     aria-label="Move down"
                     title="Move down"
                 >
@@ -185,26 +323,109 @@ class MapApp {
                 container
             );
 
+            const movementButtons =
+                container.querySelectorAll(
+                    "button"
+                );
+
+            movementButtons.forEach(
+                (button) => {
+
+                    button.style.width =
+                        "42px";
+
+                    button.style.height =
+                        "42px";
+
+                    button.style.border =
+                        "none";
+
+                    button.style.borderRadius =
+                        "8px";
+
+                    button.style.backgroundColor =
+                        "#ffffff";
+
+                    button.style.color =
+                        "#222222";
+
+                    button.style.fontSize =
+                        "18px";
+
+                    button.style.cursor =
+                        "pointer";
+
+                    button.style.boxShadow =
+                        "0 2px 8px rgba(0, 0, 0, 0.25)";
+                }
+            );
+
+            const upButton =
+                container.querySelector(
+                    ".move-up-button"
+                );
+
+            const leftButton =
+                container.querySelector(
+                    ".move-left-button"
+                );
+
+            const center =
+                container.querySelector(
+                    ".movement-center"
+                );
+
+            const rightButton =
+                container.querySelector(
+                    ".move-right-button"
+                );
+
+            const downButton =
+                container.querySelector(
+                    ".move-down-button"
+                );
+
+            upButton.style.gridColumn = "2";
+            upButton.style.gridRow = "1";
+
+            leftButton.style.gridColumn = "1";
+            leftButton.style.gridRow = "2";
+
+            center.style.gridColumn = "2";
+            center.style.gridRow = "2";
+            center.style.display = "flex";
+            center.style.alignItems = "center";
+            center.style.justifyContent = "center";
+            center.style.borderRadius = "8px";
+            center.style.backgroundColor =
+                "rgba(255, 255, 255, 0.9)";
+
+            rightButton.style.gridColumn = "3";
+            rightButton.style.gridRow = "2";
+
+            downButton.style.gridColumn = "2";
+            downButton.style.gridRow = "3";
+
             const movementDistance = 150;
 
             const movements = [
                 {
-                    selector: ".move-up-button",
+                    button: upButton,
                     x: 0,
                     y: -movementDistance
                 },
                 {
-                    selector: ".move-down-button",
+                    button: downButton,
                     x: 0,
                     y: movementDistance
                 },
                 {
-                    selector: ".move-left-button",
+                    button: leftButton,
                     x: -movementDistance,
                     y: 0
                 },
                 {
-                    selector: ".move-right-button",
+                    button: rightButton,
                     x: movementDistance,
                     y: 0
                 }
@@ -213,12 +434,7 @@ class MapApp {
             movements.forEach(
                 (movement) => {
 
-                    const button =
-                        container.querySelector(
-                            movement.selector
-                        );
-
-                    button.addEventListener(
+                    movement.button.addEventListener(
                         "click",
                         (event) => {
 
@@ -275,14 +491,20 @@ class MapApp {
         const colors =
             this.getVillageColors();
 
-        const text = String(
-            name || "No name"
-        );
+        const text =
+            String(
+                name || "No name"
+            );
 
         let number = 0;
 
-        for (let i = 0; i < text.length; i++) {
-            number += text.charCodeAt(i);
+        for (
+            let i = 0;
+            i < text.length;
+            i++
+        ) {
+            number +=
+                text.charCodeAt(i);
         }
 
         return colors[
@@ -304,10 +526,14 @@ class MapApp {
     getVillageStyle(feature) {
 
         const name =
-            this.getVillageName(feature);
+            this.getVillageName(
+                feature
+            );
 
         const color =
-            this.getVillageColor(name);
+            this.getVillageColor(
+                name
+            );
 
         return {
             color: color,
@@ -318,10 +544,15 @@ class MapApp {
         };
     }
 
-    showVillageName(feature, layer) {
+    showVillageName(
+        feature,
+        layer
+    ) {
 
         const name =
-            this.getVillageName(feature);
+            this.getVillageName(
+                feature
+            );
 
         layer.bindTooltip(
             name,
@@ -380,32 +611,33 @@ class MapApp {
 
     createVillageLayer(data) {
 
-        this.villages = L.geoJSON(
-            data,
-            {
-                style: (feature) => {
+        this.villages =
+            L.geoJSON(
+                data,
+                {
+                    style: (feature) => {
 
-                    return this.getVillageStyle(
-                        feature
-                    );
-                },
+                        return this.getVillageStyle(
+                            feature
+                        );
+                    },
 
-                onEachFeature: (
-                    feature,
-                    layer
-                ) => {
-
-                    this.showVillageName(
+                    onEachFeature: (
                         feature,
                         layer
-                    );
+                    ) => {
 
-                    this.addVillageHighlight(
-                        layer
-                    );
+                        this.showVillageName(
+                            feature,
+                            layer
+                        );
+
+                        this.addVillageHighlight(
+                            layer
+                        );
+                    }
                 }
-            }
-        );
+            );
 
         this.villages.addTo(
             this.map
@@ -414,10 +646,13 @@ class MapApp {
 
     showVillages() {
 
-        fetch("geosons/Veredas.geojson")
+        fetch(
+            "geosons/Veredas.geojson"
+        )
             .then((response) => {
 
                 if (!response.ok) {
+
                     throw new Error(
                         "Could not load Veredas.geojson."
                     );
@@ -500,4 +735,5 @@ class MapApp {
     }
 }
 
-const mapApp = new MapApp();
+const mapApp =
+    new MapApp();
