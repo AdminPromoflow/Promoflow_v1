@@ -34,7 +34,7 @@
     <header class="encabezado">
         <div class="encabezado-contenido">
             <div>
-                <h1>Mapa de veredas de Arbeláez</h1>
+                <h1>Mapa de las juntas de acción comunal de Arbeláez</h1>
 
                 <p>
                     Dibuja un polígono para seleccionar un área.
