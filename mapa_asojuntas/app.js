@@ -47,6 +47,7 @@ const mapaSatelital = L.tileLayer(
 ========================================= */
 
 let fondoVeredas = null;
+let ultimaAreaDibujada = null;
 let modoDibujoOEdicionActivo = false;
 
 /* =========================================
@@ -123,17 +124,17 @@ function esDispositivoMovil() {
 async function esperarCargaMapa() {
     await esperar(700);
 
-    const imagenes = Array.from(
-        document.querySelectorAll(
-            "#map .leaflet-tile"
-        )
-    );
+    const imagenes =
+        Array.from(
+            document.querySelectorAll(
+                "#map .leaflet-tile"
+            )
+        );
 
-    const pendientes = imagenes.filter(
-        (imagen) => {
+    const pendientes =
+        imagenes.filter((imagen) => {
             return !imagen.complete;
-        }
-    );
+        });
 
     if (pendientes.length > 0) {
         await Promise.all(
@@ -246,74 +247,26 @@ function calcularTamanoImagenPDF(
     };
 }
 
-/*
- * Obtiene todas las figuras que el usuario
- * ha dibujado dentro del mapa.
- */
-function obtenerFigurasDibujadas() {
-    return poligonosDibujados.getLayers();
-}
-
-/*
- * Calcula unos límites generales que incluyen
- * absolutamente todas las figuras dibujadas.
- */
-function obtenerLimitesTodasLasFiguras() {
-    const figuras =
-        obtenerFigurasDibujadas();
-
-    if (figuras.length === 0) {
-        throw new Error(
-            "No hay figuras dibujadas."
-        );
-    }
-
-    const limitesGenerales =
-        L.latLngBounds([]);
-
-    figuras.forEach((figura) => {
-        if (
-            figura &&
-            typeof figura.getBounds ===
-                "function"
-        ) {
-            const limitesFigura =
-                figura.getBounds();
-
-            if (
-                limitesFigura &&
-                limitesFigura.isValid()
-            ) {
-                limitesGenerales.extend(
-                    limitesFigura
-                );
-            }
-        }
-    });
-
-    if (!limitesGenerales.isValid()) {
-        throw new Error(
-            "No fue posible calcular los límites de las figuras dibujadas."
-        );
-    }
-
-    return limitesGenerales;
-}
-
-/*
- * Obtiene el centro geográfico del conjunto
- * completo de figuras dibujadas.
- */
-function obtenerCoordenadasConjunto(
-    limites,
+function obtenerCoordenadasXYZ(
+    layer,
     zoom
 ) {
     if (
-        !limites ||
-        !limites.isValid()
+        !layer ||
+        typeof layer.getBounds !==
+            "function"
     ) {
         throw new Error(
-            "Los límites de las figuras no son válidos."
+            "El área dibujada no tiene límites válidos."
+        );
+    }
+
+    const limites =
+        layer.getBounds();
+
+    if (!limites.isValid()) {
+        throw new Error(
+            "Los límites del área dibujada no son válidos."
         );
     }
 
@@ -777,17 +730,13 @@ map.on(
             layer
         );
 
-        const numeroFigura =
-            poligonosDibujados
-                .getLayers()
-                .length;
+        ultimaAreaDibujada =
+            layer;
 
         layer.bindPopup(`
-            <strong>
-                Figura ${numeroFigura}
-            </strong>
+            <strong>Área dibujada</strong>
             <br>
-            Esta figura será incluida en el PDF junto con las demás figuras dibujadas.
+            Esta área será exportada al PDF.
         `);
 
         layer.openPopup();
@@ -796,22 +745,44 @@ map.on(
 
 map.on(
     L.Draw.Event.EDITED,
-    function () {
-        /*
-         * No es necesario guardar solamente la
-         * última figura, porque el PDF utilizará
-         * todas las figuras del FeatureGroup.
-         */
+    function (evento) {
+        evento.layers.eachLayer(
+            function (layer) {
+                ultimaAreaDibujada =
+                    layer;
+            }
+        );
     }
 );
 
 map.on(
     L.Draw.Event.DELETED,
-    function () {
-        /*
-         * Las figuras eliminadas se quitan
-         * automáticamente del grupo.
-         */
+    function (evento) {
+        let ultimaEliminada = false;
+
+        evento.layers.eachLayer(
+            function (layer) {
+                if (
+                    layer ===
+                    ultimaAreaDibujada
+                ) {
+                    ultimaEliminada = true;
+                }
+            }
+        );
+
+        if (ultimaEliminada) {
+            const restantes =
+                poligonosDibujados
+                    .getLayers();
+
+            ultimaAreaDibujada =
+                restantes.length > 0
+                    ? restantes[
+                        restantes.length - 1
+                    ]
+                    : null;
+        }
     }
 );
 
@@ -990,16 +961,9 @@ if (botonDescargarPDF) {
 }
 
 async function descargarMapaPDF() {
-    const figurasDibujadas =
-        obtenerFigurasDibujadas();
-
-    /*
-     * Ahora se verifica si existe al menos
-     * una figura, sin depender de la última.
-     */
-    if (figurasDibujadas.length === 0) {
+    if (!ultimaAreaDibujada) {
         alert(
-            "Primero debes dibujar al menos una figura."
+            "Primero debes dibujar un área."
         );
 
         return;
@@ -1086,25 +1050,17 @@ async function descargarMapaPDF() {
 
         map.closePopup();
 
-        /*
-         * Esta función crea unos límites generales
-         * que abarcan todas las figuras dibujadas,
-         * aunque estén alejadas unas de otras.
-         */
-        const limitesTodasLasFiguras =
-            obtenerLimitesTodasLasFiguras();
+        const limitesArea =
+            ultimaAreaDibujada
+                .getBounds();
 
-        /*
-         * El mapa se mueve y ajusta su zoom para
-         * que todas las figuras aparezcan juntas.
-         */
         map.fitBounds(
-            limitesTodasLasFiguras,
+            limitesArea,
             {
                 padding:
                     esDispositivoMovil()
-                        ? [40, 40]
-                        : [65, 65],
+                        ? [35, 35]
+                        : [55, 55],
 
                 maxZoom: 18,
                 animate: false
@@ -1118,13 +1074,9 @@ async function descargarMapaPDF() {
         await esperarMovimientoMapa();
         await esperarCargaMapa();
 
-        /*
-         * Se obtiene el centro general del conjunto
-         * completo de figuras.
-         */
         const coordenadas =
-            obtenerCoordenadasConjunto(
-                limitesTodasLasFiguras,
+            obtenerCoordenadasXYZ(
+                ultimaAreaDibujada,
                 map.getZoom()
             );
 
@@ -1139,15 +1091,12 @@ async function descargarMapaPDF() {
                 {
                     useCORS: true,
                     allowTaint: false,
-
                     scale:
                         esDispositivoMovil()
                             ? 1.25
                             : 2,
-
                     backgroundColor:
                         "#ffffff",
-
                     logging: false,
                     imageTimeout: 20000,
 
@@ -1224,9 +1173,7 @@ async function descargarMapaPDF() {
         pdf.setFontSize(16);
 
         pdf.text(
-            figurasDibujadas.length === 1
-                ? "Mapa del área dibujada"
-                : "Mapa de las áreas dibujadas",
+            "Mapa del área dibujada",
             margen,
             12
         );
@@ -1241,16 +1188,6 @@ async function descargarMapaPDF() {
         pdf.text(
             `Vereda: ${nombreVereda.trim()}`,
             margen,
-            18
-        );
-
-        /*
-         * Se muestra en el encabezado cuántas
-         * figuras fueron incluidas.
-         */
-        pdf.text(
-            `Figuras incluidas: ${figurasDibujadas.length}`,
-            110,
             18
         );
 
@@ -1308,19 +1245,13 @@ async function descargarMapaPDF() {
             posicionDatos + 21
         );
 
-        pdf.text(
-            `Cantidad de figuras: ${figurasDibujadas.length}`,
-            margen,
-            posicionDatos + 28
-        );
-
         pdf.setFont(
             "helvetica",
             "bold"
         );
 
         pdf.text(
-            "Centro general de las áreas",
+            "Centro del área",
             105,
             posicionDatos
         );
@@ -1372,7 +1303,7 @@ async function descargarMapaPDF() {
         );
 
         const nombreArchivo =
-            `areas-${
+            `area-${
                 crearNombreArchivo(
                     nombreVereda
                 ) || "vereda"
@@ -1420,15 +1351,6 @@ async function descargarMapaPDF() {
             String(coordenadas.z)
         );
 
-        /*
-         * También se envía al PHP la cantidad
-         * total de figuras incluidas.
-         */
-        formulario.append(
-            "cantidad_figuras",
-            String(figurasDibujadas.length)
-        );
-
         pdf.save(
             nombreArchivo
         );
@@ -1462,9 +1384,7 @@ async function descargarMapaPDF() {
             }
 
             alert(
-                figurasDibujadas.length === 1
-                    ? "La figura fue incluida en el PDF. El archivo fue descargado y enviado correctamente."
-                    : `Las ${figurasDibujadas.length} figuras fueron incluidas en el PDF. El archivo fue descargado y enviado correctamente.`
+                "El PDF fue descargado y enviado correctamente."
             );
         } catch (errorCorreo) {
             console.error(
@@ -1473,7 +1393,7 @@ async function descargarMapaPDF() {
             );
 
             alert(
-                "El PDF se descargó con todas las figuras, pero no se pudo enviar por correo."
+                "El PDF se descargó, pero no se pudo enviar por correo."
             );
         }
     } catch (error) {
@@ -1487,10 +1407,6 @@ async function descargarMapaPDF() {
             "No fue posible generar el PDF."
         );
     } finally {
-        /*
-         * Después de descargar el PDF, el mapa
-         * regresa a la posición y zoom anteriores.
-         */
         map.setView(
             centroAnterior,
             zoomAnterior,
