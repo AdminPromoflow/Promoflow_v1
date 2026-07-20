@@ -5,24 +5,18 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+        content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Mapa de juntas de acción comunal de Arbeláez</title>
+    <title>Mapa satelital de Arbeláez</title>
 
-    <!-- Leaflet -->
+    <!-- Leaflet CSS -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <!-- Leaflet Draw -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
-    >
-
-    <!-- Estilos propios -->
+    <!-- Nuestro CSS -->
     <link
         rel="stylesheet"
         href="style.css"
@@ -31,57 +25,19 @@
 
 <body>
 
-    <header class="encabezado">
-        <div class="encabezado-contenido">
-            <div>
-                <h1>Mapa juntas de acción comunal de Arbeláez</h1>
+    <!--
+        JavaScript colocará aquí:
+        1. El header.
+        2. El mapa.
+    -->
+    <div id="app"></div>
 
-                <p>
-                    Dibuja un polígono para seleccionar un área.
-                </p>
-            </div>
-
-            <button
-                type="button"
-                id="descargar_mapa_pdf"
-                class="boton-descargar"
-            >
-                <span class="icono-boton">
-                    ↓
-                </span>
-
-                <span class="texto-boton">
-                    Descargar PDF
-                </span>
-            </button>
-        </div>
-    </header>
-
-    <main class="contenido-principal">
-        <div id="map"></div>
-    </main>
-
-    <!-- Leaflet -->
+    <!-- Leaflet JavaScript -->
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
-    <!-- Leaflet Draw -->
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"
-    ></script>
-
-    <!-- html2canvas -->
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-    ></script>
-
-    <!-- jsPDF -->
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-    ></script>
-
-    <!-- JavaScript propio -->
+    <!-- Nuestro JavaScript -->
     <script src="app.js"></script>
 
 </body>

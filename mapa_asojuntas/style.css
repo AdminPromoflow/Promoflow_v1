@@ -3,6 +3,8 @@
 ========================================= */
 
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -10,400 +12,140 @@ html,
 body {
     width: 100%;
     height: 100%;
-    margin: 0;
-    padding: 0;
 }
 
 body {
-    position: relative;
-    overflow: hidden;
-    background: #f2f4f5;
-    color: #202124;
     font-family:
         Arial,
         Helvetica,
         sans-serif;
+
+    background-color: #111111;
+    overflow: hidden;
 }
 
 /* =========================================
-   ENCABEZADO SUPERPUESTO
+   CONTENEDOR PRINCIPAL
 ========================================= */
 
-.encabezado {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2000;
+#app {
     width: 100%;
-    background: rgba(23, 77, 53, 0.96);
-    color: #ffffff;
-    box-shadow:
-        0 2px 8px
-        rgba(0, 0, 0, 0.28);
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
 }
 
-.encabezado-contenido {
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.encabezado-mapa {
+    min-height: 74px;
+    padding: 14px 24px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    min-height: 76px;
-    padding: 12px 20px;
+
+    background-color: #ffffff;
+
+    border-bottom:
+        1px solid
+        rgba(0, 0, 0, 0.12);
+
+    box-shadow:
+        0 2px 12px
+        rgba(0, 0, 0, 0.15);
+
+    position: relative;
+    z-index: 1000;
 }
 
-.encabezado h1 {
-    margin: 0;
+.informacion-encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.titulo-mapa {
+    color: #202020;
     font-size: 22px;
+    font-weight: 700;
     line-height: 1.2;
 }
 
-.encabezado p {
-    margin: 5px 0 0;
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 13px;
-}
-
-/* =========================================
-   BOTÓN PDF
-========================================= */
-
-.boton-descargar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 9px 16px;
-    border: 1px solid
-        rgba(255, 255, 255, 0.42);
-    border-radius: 7px;
-    background: #ffffff;
-    color: #174d35;
-    cursor: pointer;
+.descripcion-mapa {
+    color: #666666;
     font-size: 14px;
+    line-height: 1.4;
+}
+
+.estado-mapa {
+    padding: 8px 12px;
+
+    color: #ffffff;
+    background-color: #277345;
+
+    border-radius: 20px;
+
+    font-size: 13px;
     font-weight: 700;
+
     white-space: nowrap;
-    transition:
-        background 0.2s ease,
-        transform 0.1s ease,
-        opacity 0.2s ease;
-}
-
-.boton-descargar:hover {
-    background: #eef7f2;
-}
-
-.boton-descargar:active {
-    transform: scale(0.97);
-}
-
-.boton-descargar:disabled {
-    cursor: wait;
-    opacity: 0.65;
-}
-
-.icono-boton {
-    font-size: 19px;
-    line-height: 1;
 }
 
 /* =========================================
-   CONTENEDOR DEL MAPA
+   MAPA
 ========================================= */
 
-.contenido-principal {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    min-height: 100vh;
-}
-
-/*
- * El mapa ocupa siempre el 100 % de la
- * altura visible de la pantalla.
- */
 #map {
     width: 100%;
-    min-height:  !important;
-    background: #d8d8d8;
-}
-
-/* =========================================
-   ETIQUETAS DE LAS VEREDAS
-========================================= */
-
-.label-vereda {
-    max-width: 150px;
-    margin: 0;
-    padding: 3px 6px;
-    border: none;
-    border-radius: 4px;
-    background:
-        rgba(255, 255, 255, 0.84);
-    box-shadow:
-        0 1px 4px
-        rgba(0, 0, 0, 0.3);
-    color: #111111;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1.15;
-    text-align: center;
-    white-space: normal;
-    pointer-events: none;
-}
-
-.label-vereda::before {
-    display: none;
-}
-
-/* =========================================
-   POPUPS
-========================================= */
-
-.leaflet-popup-content {
-    margin: 13px 17px;
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-.leaflet-popup-content h3 {
-    margin: 0 0 9px;
-    color: #174d35;
-    font-size: 16px;
-}
-
-.leaflet-popup-content strong {
-    color: #222222;
-}
-
-/* =========================================
-   CONTROLES LEAFLET
-========================================= */
-
-.leaflet-control-container {
-    position: relative;
-    z-index: 1500;
-}
-
-.leaflet-control-layers {
-    max-width: 230px;
-    border-radius: 7px;
-    font-size: 13px;
-}
-
-.leaflet-control-layers-expanded {
-    padding: 9px 11px;
-}
-
-.leaflet-bar a {
-    color: #222222;
-}
-
-.leaflet-draw-toolbar a {
-    background-color: #ffffff;
-}
-
-/*
- * Deja espacio para el encabezado en los
- * controles de la parte superior.
- */
-.leaflet-top {
-    top: 82px;
-}
-
-/* =========================================
-   FLECHAS SIEMPRE VISIBLES
-========================================= */
-
-.control-flechas-mapa {
-    display: grid;
-    grid-template-areas:
-        ". arriba ."
-        "izquierda centro derecha"
-        ". abajo .";
-    grid-template-columns:
-        48px 48px 48px;
-    grid-template-rows:
-        48px 48px 48px;
-    gap: 4px;
-    padding: 7px;
-    border-radius: 9px;
-    background:
-        rgba(255, 255, 255, 0.96);
-    box-shadow:
-        0 1px 8px
-        rgba(0, 0, 0, 0.45);
-}
-
-.flecha-mapa {
-    width: 48px;
-    height: 48px;
-    margin: 0;
-    padding: 0;
-    border: 1px solid #777777;
-    border-radius: 7px;
-    background: #ffffff;
-    color: #222222;
-    cursor: pointer;
-    font-size: 21px;
-    font-weight: bold;
-    line-height: 48px;
-    text-align: center;
-    touch-action: manipulation;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-.flecha-mapa:hover {
-    background: #eeeeee;
-}
-
-.flecha-mapa:active {
-    background: #d4d4d4;
-    transform: scale(0.94);
-}
-
-.flecha-arriba {
-    grid-area: arriba;
-}
-
-.flecha-abajo {
-    grid-area: abajo;
-}
-
-.flecha-izquierda {
-    grid-area: izquierda;
-}
-
-.flecha-derecha {
-    grid-area: derecha;
-}
-
-.centro-flechas {
-    display: flex;
-    grid-area: centro;
-    align-items: center;
-    justify-content: center;
-    color: #555555;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-/* =========================================
-   MENSAJE DURANTE DIBUJO O EDICIÓN
-========================================= */
-
-.mensaje-modo-mapa {
-    display: none;
-    max-width: 230px;
-    padding: 8px 11px;
-    border-radius: 6px;
-    background:
-        rgba(255, 255, 255, 0.96);
-    box-shadow:
-        0 1px 6px
-        rgba(0, 0, 0, 0.4);
-    color: #222222;
-    font-size: 12px;
-    line-height: 1.4;
-    text-align: center;
-}
-
-/* =========================================
-   RESPONSIVE
-========================================= */
-
-@media (max-width: 768px) {
-    .encabezado-contenido {
-        min-height: 68px;
-        gap: 10px;
-        padding: 9px 10px;
-    }
-
-    .encabezado h1 {
-        font-size: 16px;
-    }
-
-    .encabezado p {
-        display: none;
-    }
-
-    .boton-descargar {
-        min-height: 40px;
-        padding: 8px 10px;
-        font-size: 12px;
-    }
-
-    .icono-boton {
-        font-size: 17px;
-    }
 
     /*
-     * Ajustar los controles a la altura
-     * reducida del encabezado móvil.
-     */
-    .leaflet-top {
-        top: 72px;
-    }
+        Ocupa todo el espacio restante
+        después del encabezado.
+    */
+    flex: 1;
 
-    .label-vereda {
-        max-width: 105px;
-        padding: 2px 4px;
-        font-size: 8px;
-    }
+    min-height: 0;
 
-    .control-flechas-mapa {
-        grid-template-columns:
-            52px 52px 52px;
-        grid-template-rows:
-            52px 52px 52px;
-        gap: 5px;
-        padding: 7px;
-    }
-
-    .flecha-mapa {
-        width: 52px;
-        height: 52px;
-        font-size: 24px;
-        line-height: 52px;
-    }
-
-    .mensaje-modo-mapa {
-        max-width: 180px;
-        font-size: 11px;
-    }
-
-    .leaflet-control-layers {
-        max-width: 190px;
-        font-size: 12px;
-    }
+    background-color: #d8d8d8;
 }
 
-@media (max-width: 420px) {
-    .encabezado h1 {
-        max-width: 180px;
-        font-size: 14px;
+/* =========================================
+   CONTROLES DE LEAFLET
+========================================= */
+
+.leaflet-control-zoom a {
+    color: #222222;
+}
+
+.leaflet-control-attribution {
+    font-size: 10px;
+}
+
+/* =========================================
+   VERSIÓN MÓVIL
+========================================= */
+
+@media screen and (max-width: 768px) {
+
+    .encabezado-mapa {
+        min-height: 68px;
+        padding: 11px 14px;
     }
 
-    .boton-descargar {
-        gap: 5px;
-        padding: 7px 8px;
-        font-size: 11px;
+    .titulo-mapa {
+        font-size: 18px;
     }
 
-    .control-flechas-mapa {
-        grid-template-columns:
-            44px 44px 44px;
-        grid-template-rows:
-            44px 44px 44px;
-        gap: 4px;
-        padding: 6px;
+    .descripcion-mapa {
+        font-size: 12px;
     }
 
-    .flecha-mapa {
-        width: 44px;
-        height: 44px;
-        font-size: 21px;
-        line-height: 44px;
+    .estado-mapa {
+        display: none;
     }
 }
