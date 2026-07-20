@@ -268,68 +268,6 @@ function obtenerFigurasDibujadas() {
 }
 
 /* =========================================
-   AGREGAR COORDENADAS A LOS LÍMITES
-========================================= */
-
-function agregarCoordenadasALimites(
-    coordenadas,
-    limites
-) {
-    if (!coordenadas) {
-        return;
-    }
-
-    /*
-     * Si es una coordenada directa de Leaflet.
-     */
-    if (
-        coordenadas instanceof L.LatLng
-    ) {
-        limites.extend(
-            coordenadas
-        );
-
-        return;
-    }
-
-    /*
-     * Respaldo por si la coordenada no fue
-     * creada directamente como L.LatLng.
-     */
-    if (
-        typeof coordenadas === "object" &&
-        typeof coordenadas.lat === "number" &&
-        typeof coordenadas.lng === "number"
-    ) {
-        limites.extend(
-            L.latLng(
-                coordenadas.lat,
-                coordenadas.lng
-            )
-        );
-
-        return;
-    }
-
-    /*
-     * Leaflet puede guardar los puntos en
-     * varios niveles de arreglos.
-     *
-     * Por eso se recorren recursivamente.
-     */
-    if (Array.isArray(coordenadas)) {
-        coordenadas.forEach(
-            (coordenada) => {
-                agregarCoordenadasALimites(
-                    coordenada,
-                    limites
-                );
-            }
-        );
-    }
-}
-
-/* =========================================
    OBTENER LÍMITES DE TODAS LAS FIGURAS
 ========================================= */
 
@@ -347,35 +285,10 @@ function obtenerLimitesTodasLasFiguras() {
         L.latLngBounds([]);
 
     figuras.forEach((figura) => {
-        if (!figura) {
-            return;
-        }
-
-        /*
-         * Obtener todos los vértices del
-         * polígono.
-         */
         if (
-            typeof figura.getLatLngs ===
-            "function"
-        ) {
-            const coordenadasFigura =
-                figura.getLatLngs();
-
-            agregarCoordenadasALimites(
-                coordenadasFigura,
-                limitesGenerales
-            );
-
-            return;
-        }
-
-        /*
-         * Respaldo para otras capas Leaflet.
-         */
-        if (
+            figura &&
             typeof figura.getBounds ===
-            "function"
+                "function"
         ) {
             const limitesFigura =
                 figura.getBounds();
@@ -393,103 +306,11 @@ function obtenerLimitesTodasLasFiguras() {
 
     if (!limitesGenerales.isValid()) {
         throw new Error(
-            "No fue posible calcular los límites de todas las figuras dibujadas."
+            "No fue posible calcular los límites de las figuras dibujadas."
         );
     }
 
     return limitesGenerales;
-}
-
-/* =========================================
-   AJUSTAR MAPA A TODAS LAS FIGURAS
-========================================= */
-
-async function ajustarMapaATodasLasFiguras(
-    limites
-) {
-    if (
-        !limites ||
-        !limites.isValid()
-    ) {
-        throw new Error(
-            "Los límites de las figuras no son válidos."
-        );
-    }
-
-    /*
-     * Detener cualquier movimiento anterior.
-     */
-    map.stop();
-
-    /*
-     * Actualizar el tamaño antes de calcular
-     * el zoom.
-     */
-    map.invalidateSize({
-        animate: false,
-        pan: false
-    });
-
-    await esperar(200);
-
-    const padding =
-        esDispositivoMovil()
-            ? L.point(45, 45)
-            : L.point(70, 70);
-
-    /*
-     * Calcular el zoom necesario para mostrar
-     * todos los polígonos.
-     */
-    let zoomCalculado =
-        map.getBoundsZoom(
-            limites,
-            false,
-            padding
-        );
-
-    /*
-     * Evitar un zoom demasiado cercano.
-     */
-    zoomCalculado =
-        Math.min(
-            zoomCalculado,
-            18
-        );
-
-    /*
-     * Dejar un nivel adicional de margen.
-     */
-    if (
-        zoomCalculado >
-        map.getMinZoom()
-    ) {
-        zoomCalculado -= 1;
-    }
-
-    const centroGeneral =
-        limites.getCenter();
-
-    /*
-     * Aplicar el centro y el zoom calculado.
-     */
-    map.setView(
-        centroGeneral,
-        zoomCalculado,
-        {
-            animate: false
-        }
-    );
-
-    map.invalidateSize({
-        animate: false,
-        pan: false
-    });
-
-    await esperarMovimientoMapa();
-    await esperarCargaMapa();
-
-    return zoomCalculado;
 }
 
 /* =========================================
@@ -1217,40 +1038,58 @@ async function descargarMapaPDF() {
 
     try {
         /*
-         * Calcular los límites utilizando todos
-         * los vértices de todos los polígonos.
+         * Calcular los límites de todas las
+         * figuras dibujadas.
          */
         limitesTodasLasFiguras =
             obtenerLimitesTodasLasFiguras();
-
-        /*
-         * Cerrar cualquier popup abierto.
-         */
-        map.closePopup();
-
-        /*
-         * Ajustar el mapa inmediatamente para
-         * mostrar todos los polígonos.
-         */
-        await ajustarMapaATodasLasFiguras(
-            limitesTodasLasFiguras
-        );
     } catch (error) {
         console.error(
-            "Error ajustando el mapa:",
+            "Error calculando límites:",
             error
         );
 
         alert(
             error.message ||
-            "No fue posible mostrar todas las figuras."
+            "No fue posible calcular los límites de las figuras."
         );
 
         return;
     }
 
     /*
-     * Pedir los datos después de hacer zoom.
+     * Cerrar cualquier popup abierto para que
+     * no aparezca dentro del PDF.
+     */
+    map.closePopup();
+
+    /*
+     * Hacer zoom a todas las figuras antes
+     * de pedir los datos del usuario.
+     */
+    map.fitBounds(
+        limitesTodasLasFiguras,
+        {
+            padding:
+                esDispositivoMovil()
+                    ? [40, 40]
+                    : [65, 65],
+
+            maxZoom: 18,
+            animate: false
+        }
+    );
+
+    map.invalidateSize({
+        animate: false
+    });
+
+    await esperarMovimientoMapa();
+    await esperarCargaMapa();
+
+    /*
+     * Pedir datos después de mostrar todas
+     * las figuras en pantalla.
      */
     const nombreUsuario =
         window.prompt(
@@ -1326,31 +1165,31 @@ async function descargarMapaPDF() {
         }
 
         /*
-         * Volver a ajustar el mapa justo antes
-         * de capturarlo.
+         * Reaplicar el zoom para asegurar
+         * que todas las figuras sigan visibles.
          */
-        const zoomImpresion =
-            await ajustarMapaATodasLasFiguras(
-                limitesTodasLasFiguras
-            );
+        map.fitBounds(
+            limitesTodasLasFiguras,
+            {
+                padding:
+                    esDispositivoMovil()
+                        ? [40, 40]
+                        : [65, 65],
 
-        /*
-         * Poner los polígonos dibujados encima
-         * de las capas de las veredas.
-         */
-        poligonosDibujados.eachLayer(
-            (figura) => {
-                if (
-                    typeof figura.bringToFront ===
-                    "function"
-                ) {
-                    figura.bringToFront();
-                }
+                maxZoom: 18,
+                animate: false
             }
         );
 
-        await esperar(300);
+        map.invalidateSize({
+            animate: false
+        });
+
+        await esperarMovimientoMapa();
         await esperarCargaMapa();
+
+        const zoomImpresion =
+            map.getZoom();
 
         const coordenadas =
             obtenerCoordenadasConjunto(
@@ -1370,8 +1209,8 @@ async function descargarMapaPDF() {
         }
 
         /*
-         * Capturar el mapa con todos los
-         * polígonos visibles.
+         * Capturar el mapa completo con todos
+         * los polígonos visibles.
          */
         const canvas =
             await html2canvas(
@@ -1647,7 +1486,7 @@ async function descargarMapaPDF() {
             pdf.output("blob");
 
         /* =====================================
-           PREPARAR FORMULARIO
+           PREPARAR DATOS PARA PHP
         ===================================== */
 
         const formulario =
@@ -1723,6 +1562,10 @@ async function descargarMapaPDF() {
                     }
                 );
 
+            /*
+             * Leer primero como texto para detectar
+             * errores PHP que no sean JSON.
+             */
             const textoRespuesta =
                 await respuesta.text();
 
@@ -1781,21 +1624,27 @@ async function descargarMapaPDF() {
         );
     } finally {
         /*
-         * Mantener el mapa mostrando todos
-         * los polígonos.
+         * Mantener el mapa en el mismo zoom
+         * utilizado para imprimir el PDF.
          *
-         * No regresar al zoom anterior.
+         * No se regresa al zoom anterior.
          */
-        try {
-            await ajustarMapaATodasLasFiguras(
-                limitesTodasLasFiguras
-            );
-        } catch (errorAjuste) {
-            console.error(
-                "No se pudo conservar el zoom:",
-                errorAjuste
-            );
-        }
+        map.fitBounds(
+            limitesTodasLasFiguras,
+            {
+                padding:
+                    esDispositivoMovil()
+                        ? [40, 40]
+                        : [65, 65],
+
+                maxZoom: 18,
+                animate: false
+            }
+        );
+
+        map.invalidateSize({
+            animate: false
+        });
 
         botonDescargarPDF.disabled =
             false;
