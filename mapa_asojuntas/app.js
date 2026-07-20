@@ -229,6 +229,10 @@ class MapApp {
                             movement.selector
                         );
 
+                    if (!button) {
+                        return;
+                    }
+
                     button.addEventListener(
                         "click",
                         (event) => {
@@ -270,6 +274,7 @@ class MapApp {
             );
 
         resetButton.type = "button";
+
         resetButton.className =
             "reset-view-button";
 
@@ -567,10 +572,19 @@ class MapApp {
         );
     }
 
+    getDrawnPolygonLayers() {
+
+        if (!this.drawnPolygons) {
+            return [];
+        }
+
+        return this.drawnPolygons.getLayers();
+    }
+
     getDrawnPolygonBounds() {
 
         const layers =
-            this.drawnPolygons.getLayers();
+            this.getDrawnPolygonLayers();
 
         if (layers.length === 0) {
             return null;
@@ -582,8 +596,9 @@ class MapApp {
         layers.forEach((layer) => {
 
             if (
+                layer &&
                 typeof layer.getBounds ===
-                "function"
+                    "function"
             ) {
                 bounds.extend(
                     layer.getBounds()
@@ -596,6 +611,103 @@ class MapApp {
         }
 
         return bounds;
+    }
+
+    getDrawnPolygonsGeoJSON() {
+
+        const layers =
+            this.getDrawnPolygonLayers();
+
+        if (layers.length === 0) {
+            throw new Error(
+                "Draw at least one polygon first."
+            );
+        }
+
+        const geoJSON =
+            this.drawnPolygons.toGeoJSON();
+
+        geoJSON.features =
+            geoJSON.features.map(
+                (feature, index) => {
+
+                    feature.properties = {
+                        ...feature.properties,
+                        polygonNumber: index + 1,
+                        createdAt:
+                            new Date().toISOString()
+                    };
+
+                    return feature;
+                }
+            );
+
+        return geoJSON;
+    }
+
+    downloadFile(
+        content,
+        fileName,
+        mimeType
+    ) {
+
+        const blob = new Blob(
+            [content],
+            {
+                type: mimeType
+            }
+        );
+
+        const fileUrl =
+            URL.createObjectURL(
+                blob
+            );
+
+        const downloadLink =
+            document.createElement(
+                "a"
+            );
+
+        downloadLink.href =
+            fileUrl;
+
+        downloadLink.download =
+            fileName;
+
+        document.body.appendChild(
+            downloadLink
+        );
+
+        downloadLink.click();
+        downloadLink.remove();
+
+        window.setTimeout(
+            () => {
+                URL.revokeObjectURL(
+                    fileUrl
+                );
+            },
+            1000
+        );
+    }
+
+    downloadDrawnPolygonsGeoJSON() {
+
+        const geoJSON =
+            this.getDrawnPolygonsGeoJSON();
+
+        const geoJSONText =
+            JSON.stringify(
+                geoJSON,
+                null,
+                2
+            );
+
+        this.downloadFile(
+            geoJSONText,
+            "drawn-polygons.geojson",
+            "application/geo+json;charset=utf-8"
+        );
     }
 
     waitForMapMovement() {
@@ -638,7 +750,7 @@ class MapApp {
 
             window.setTimeout(
                 resolve,
-                800
+                1000
             );
         });
     }
@@ -749,13 +861,38 @@ class MapApp {
                         backgroundColor:
                             "#ffffff",
                         scale: 2,
-                        logging: false
+                        logging: false,
+                        imageTimeout: 20000
+                    }
+                );
+
+            const imageBlob =
+                await new Promise(
+                    (resolve, reject) => {
+
+                        canvas.toBlob(
+                            (blob) => {
+
+                                if (!blob) {
+                                    reject(
+                                        new Error(
+                                            "Could not create the map image."
+                                        )
+                                    );
+
+                                    return;
+                                }
+
+                                resolve(blob);
+                            },
+                            "image/png"
+                        );
                     }
                 );
 
             const imageUrl =
-                canvas.toDataURL(
-                    "image/png"
+                URL.createObjectURL(
+                    imageBlob
                 );
 
             const downloadLink =
@@ -775,6 +912,15 @@ class MapApp {
 
             downloadLink.click();
             downloadLink.remove();
+
+            window.setTimeout(
+                () => {
+                    URL.revokeObjectURL(
+                        imageUrl
+                    );
+                },
+                1000
+            );
 
         } finally {
 
@@ -797,25 +943,37 @@ class MapApp {
             printButton.textContent;
 
         printButton.disabled = true;
+
         printButton.textContent =
-            "Creating image...";
+            "Creating files...";
 
         try {
+
+            const layers =
+                this.getDrawnPolygonLayers();
+
+            if (layers.length === 0) {
+                throw new Error(
+                    "Draw at least one polygon first."
+                );
+            }
 
             await this.zoomToDrawnPolygons();
 
             await this.downloadDrawnPolygonsImage();
 
+            this.downloadDrawnPolygonsGeoJSON();
+
         } catch (error) {
 
             console.error(
-                "Error creating map image:",
+                "Error creating map files:",
                 error
             );
 
             alert(
                 error.message ||
-                "Could not create the map image."
+                "Could not create the map files."
             );
 
         } finally {
@@ -853,4 +1011,5 @@ class MapApp {
     }
 }
 
-const mapApp = new MapApp();
+const mapApp =
+    new MapApp();
