@@ -95,9 +95,9 @@ class MapApp {
         return {
             color: color,
             weight: 2,
-            opacity: 1,
+            opacity: 0.85,
             fillColor: color,
-            fillOpacity: 0.25
+            fillOpacity: 0.18
         };
     }
 
@@ -112,6 +112,49 @@ class MapApp {
                 permanent: true,
                 direction: "center",
                 className: "village-name"
+            }
+        );
+    }
+
+    highlightVillage(layer) {
+
+        layer.setStyle({
+            weight: 4,
+            opacity: 1,
+            fillOpacity: 0.4
+        });
+
+        layer.bringToFront();
+    }
+
+    resetVillageHighlight(layer) {
+
+        if (!this.villages) {
+            return;
+        }
+
+        this.villages.resetStyle(
+            layer
+        );
+    }
+
+    addVillageHighlight(layer) {
+
+        layer.on(
+            "mouseover",
+            () => {
+                this.highlightVillage(
+                    layer
+                );
+            }
+        );
+
+        layer.on(
+            "mouseout",
+            () => {
+                this.resetVillageHighlight(
+                    layer
+                );
             }
         );
     }
@@ -133,6 +176,10 @@ class MapApp {
                 ) => {
                     this.showVillageName(
                         feature,
+                        layer
+                    );
+
+                    this.addVillageHighlight(
                         layer
                     );
                 }
