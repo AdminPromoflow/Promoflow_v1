@@ -4,6 +4,7 @@ class Mapa {
 
     constructor() {
         this.showMap();
+        this.showVeredas();
         this.showPoligonosDibujados();
     }
 
@@ -28,6 +29,47 @@ class Mapa {
                 attribution: "Imágenes © Esri"
             }
         ).addTo(this.map);
+    }
+
+    showVeredas() {
+
+        fetch("geosons/Veredas.geojson")
+            .then((respuesta) => {
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        "No se pudo cargar Veredas.geojson."
+                    );
+                }
+
+                return respuesta.json();
+            })
+            .then((datos) => {
+
+                this.veredas = L.geoJSON(
+                    datos,
+                    {
+                        style: {
+                            color: "#ffff00",
+                            weight: 2,
+                            opacity: 1,
+                            fillColor: "#ffff00",
+                            fillOpacity: 0.15
+                        }
+                    }
+                );
+
+                this.veredas.addTo(
+                    this.map
+                );
+            })
+            .catch((error) => {
+
+                console.error(
+                    "Error cargando las veredas:",
+                    error
+                );
+            });
     }
 
     showPoligonosDibujados() {
@@ -81,6 +123,7 @@ class Mapa {
         this.map.on(
             L.Draw.Event.CREATED,
             (evento) => {
+
                 this.poligonosDibujados.addLayer(
                     evento.layer
                 );
