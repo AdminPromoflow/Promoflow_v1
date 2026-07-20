@@ -427,10 +427,10 @@ $servidorSMTP =
     "smtp.hostinger.com";
 
 $usuarioSMTP =
-    "correo@tudominio.com";
+    "admin@lanyardsforyou.com";
 
 $contrasenaSMTP =
-    "CONTRASENA_DEL_CORREO";
+    "32skiff32!CI";
 
 $puertoSMTP =
     465;
@@ -442,7 +442,7 @@ $puertoSMTP =
  */
 
 $correoRemitente =
-    "correo@tudominio.com";
+    "admin@lanyardsforyou.com";
 
 $nombreRemitente =
     "Mapa Asojuntas";
@@ -452,7 +452,7 @@ $nombreRemitente =
  */
 
 $correoDestino =
-    "correo-destino@tudominio.com";
+    "aleinarossui@gmail.com";
 
 $nombreDestino =
     "Asojuntas Arbeláez";
