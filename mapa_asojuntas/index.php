@@ -35,7 +35,7 @@
         href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
     >
 
-    <!-- Nuestro CSS -->
+    <!-- Custom CSS -->
     <link
         rel="stylesheet"
         href="style.css?v=<?= $styleVersion ?>"
@@ -45,22 +45,34 @@
 <body>
 
     <header>
-        <h1>Mapa de Arbeláez</h1>
+        <h1>Map of Arbeláez</h1>
+
+        <button
+            type="button"
+            id="print-drawn-polygons"
+        >
+            Download map image
+        </button>
     </header>
 
     <div id="map"></div>
 
-    <!-- Leaflet primero -->
+    <!-- Leaflet -->
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
-    <!-- Leaflet Draw después -->
+    <!-- Leaflet Draw -->
     <script
         src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"
     ></script>
 
-    <!-- Nuestro JavaScript al final -->
+    <!-- html2canvas -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+    ></script>
+
+    <!-- Custom JavaScript -->
     <script src="app.js?v=<?= $appVersion ?>"></script>
 
 </body>
