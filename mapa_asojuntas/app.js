@@ -138,39 +138,41 @@ async function esperarCargaMapa() {
     if (pendientes.length > 0) {
         await Promise.all(
             pendientes.map((imagen) => {
-                return new Promise((resolve) => {
-                    let terminado = false;
+                return new Promise(
+                    (resolve) => {
+                        let terminado = false;
 
-                    function finalizar() {
-                        if (terminado) {
-                            return;
+                        function finalizar() {
+                            if (terminado) {
+                                return;
+                            }
+
+                            terminado = true;
+                            resolve();
                         }
 
-                        terminado = true;
-                        resolve();
+                        imagen.addEventListener(
+                            "load",
+                            finalizar,
+                            {
+                                once: true
+                            }
+                        );
+
+                        imagen.addEventListener(
+                            "error",
+                            finalizar,
+                            {
+                                once: true
+                            }
+                        );
+
+                        window.setTimeout(
+                            finalizar,
+                            5000
+                        );
                     }
-
-                    imagen.addEventListener(
-                        "load",
-                        finalizar,
-                        {
-                            once: true
-                        }
-                    );
-
-                    imagen.addEventListener(
-                        "error",
-                        finalizar,
-                        {
-                            once: true
-                        }
-                    );
-
-                    window.setTimeout(
-                        finalizar,
-                        5000
-                    );
-                });
+                );
             })
         );
     }
@@ -226,7 +228,6 @@ function calcularTamanoImagenPDF(
         altoOriginal;
 
     let ancho = anchoMaximo;
-
     let alto =
         ancho /
         proporcion;
@@ -245,18 +246,18 @@ function calcularTamanoImagenPDF(
     };
 }
 
-/* =========================================
-   OBTENER FIGURAS DIBUJADAS
-========================================= */
-
+/*
+ * Obtiene todas las figuras que el usuario
+ * ha dibujado dentro del mapa.
+ */
 function obtenerFigurasDibujadas() {
     return poligonosDibujados.getLayers();
 }
 
-/* =========================================
-   CALCULAR LÍMITES DE TODAS LAS FIGURAS
-========================================= */
-
+/*
+ * Calcula unos límites generales que incluyen
+ * absolutamente todas las figuras dibujadas.
+ */
 function obtenerLimitesTodasLasFiguras() {
     const figuras =
         obtenerFigurasDibujadas();
@@ -299,10 +300,10 @@ function obtenerLimitesTodasLasFiguras() {
     return limitesGenerales;
 }
 
-/* =========================================
-   OBTENER CENTRO DEL CONJUNTO
-========================================= */
-
+/*
+ * Obtiene el centro geográfico del conjunto
+ * completo de figuras dibujadas.
+ */
 function obtenerCoordenadasConjunto(
     limites,
     zoom
@@ -325,10 +326,6 @@ function obtenerCoordenadasConjunto(
         z: zoom
     };
 }
-
-/* =========================================
-   CREAR NOMBRE DE ARCHIVO
-========================================= */
 
 function crearNombreArchivo(texto) {
     return String(texto)
@@ -411,12 +408,10 @@ const capaVeredas = L.geoJSON(
 
             return {
                 color: color,
-
                 weight:
                     esDispositivoMovil()
                         ? 1.5
                         : 2,
-
                 opacity: 0.9,
                 fillColor: color,
                 fillOpacity: 0.22
@@ -495,12 +490,10 @@ const capaVeredas = L.geoJSON(
 const poligonosDibujados =
     new L.FeatureGroup();
 
-poligonosDibujados.addTo(
-    map
-);
+poligonosDibujados.addTo(map);
 
 /* =========================================
-   CONTROL DE DIBUJO
+   DIBUJO
 ========================================= */
 
 const controlDibujo =
@@ -644,10 +637,6 @@ controlFlechas.onAdd =
                         movimiento.selector
                     );
 
-                if (!boton) {
-                    return;
-                }
-
                 boton.addEventListener(
                     "click",
                     function (evento) {
@@ -672,9 +661,7 @@ controlFlechas.onAdd =
         return contenedor;
     };
 
-controlFlechas.addTo(
-    map
-);
+controlFlechas.addTo(map);
 
 /* =========================================
    MENSAJE DE MODO
@@ -703,9 +690,7 @@ controlMensajeModo.onAdd =
         return elemento;
     };
 
-controlMensajeModo.addTo(
-    map
-);
+controlMensajeModo.addTo(map);
 
 const elementoMensajeModo =
     document.querySelector(
@@ -812,18 +797,21 @@ map.on(
 map.on(
     L.Draw.Event.EDITED,
     function () {
-        console.log(
-            "Las figuras fueron editadas."
-        );
+        /*
+         * No es necesario guardar solamente la
+         * última figura, porque el PDF utilizará
+         * todas las figuras del FeatureGroup.
+         */
     }
 );
 
 map.on(
     L.Draw.Event.DELETED,
     function () {
-        console.log(
-            "Una o más figuras fueron eliminadas."
-        );
+        /*
+         * Las figuras eliminadas se quitan
+         * automáticamente del grupo.
+         */
     }
 );
 
@@ -923,7 +911,7 @@ fetch(
     });
 
 /* =========================================
-   CONTROL DE CAPAS
+   CAPAS
 ========================================= */
 
 L.control.layers(
@@ -956,7 +944,7 @@ L.control.scale({
 }).addTo(map);
 
 /* =========================================
-   AJUSTAR TAMAÑO DEL MAPA
+   TAMAÑO DEL MAPA
 ========================================= */
 
 function ajustarTamanoMapa() {
@@ -986,7 +974,7 @@ window.addEventListener(
 );
 
 /* =========================================
-   BOTÓN DEL PDF
+   PDF
 ========================================= */
 
 const botonDescargarPDF =
@@ -1001,14 +989,14 @@ if (botonDescargarPDF) {
     );
 }
 
-/* =========================================
-   DESCARGAR PDF
-========================================= */
-
 async function descargarMapaPDF() {
     const figurasDibujadas =
         obtenerFigurasDibujadas();
 
+    /*
+     * Ahora se verifica si existe al menos
+     * una figura, sin depender de la última.
+     */
     if (figurasDibujadas.length === 0) {
         alert(
             "Primero debes dibujar al menos una figura."
@@ -1098,16 +1086,18 @@ async function descargarMapaPDF() {
 
         map.closePopup();
 
+        /*
+         * Esta función crea unos límites generales
+         * que abarcan todas las figuras dibujadas,
+         * aunque estén alejadas unas de otras.
+         */
         const limitesTodasLasFiguras =
             obtenerLimitesTodasLasFiguras();
 
-        map.invalidateSize({
-            animate: false
-        });
-
-        const movimientoMapa =
-            esperarMovimientoMapa();
-
+        /*
+         * El mapa se mueve y ajusta su zoom para
+         * que todas las figuras aparezcan juntas.
+         */
         map.fitBounds(
             limitesTodasLasFiguras,
             {
@@ -1121,9 +1111,17 @@ async function descargarMapaPDF() {
             }
         );
 
-        await movimientoMapa;
+        map.invalidateSize({
+            animate: false
+        });
+
+        await esperarMovimientoMapa();
         await esperarCargaMapa();
 
+        /*
+         * Se obtiene el centro general del conjunto
+         * completo de figuras.
+         */
         const coordenadas =
             obtenerCoordenadasConjunto(
                 limitesTodasLasFiguras,
@@ -1134,12 +1132,6 @@ async function descargarMapaPDF() {
             document.getElementById(
                 "map"
             );
-
-        if (!elementoMapa) {
-            throw new Error(
-                "No se encontró el elemento del mapa."
-            );
-        }
 
         const canvas =
             await html2canvas(
@@ -1161,11 +1153,12 @@ async function descargarMapaPDF() {
 
                     ignoreElements:
                         function (elemento) {
-                            return Boolean(
+                            return (
                                 elemento.classList &&
-                                elemento.classList.contains(
-                                    "leaflet-control-container"
-                                )
+                                elemento.classList
+                                    .contains(
+                                        "leaflet-control-container"
+                                    )
                             );
                         }
                 }
@@ -1185,15 +1178,9 @@ async function descargarMapaPDF() {
             new jsPDF({
                 orientation:
                     "landscape",
-
-                unit:
-                    "mm",
-
-                format:
-                    "a4",
-
-                compress:
-                    true
+                unit: "mm",
+                format: "a4",
+                compress: true
             });
 
         const anchoPagina =
@@ -1212,10 +1199,8 @@ async function descargarMapaPDF() {
             calcularTamanoImagenPDF(
                 canvas.width,
                 canvas.height,
-
                 anchoPagina -
                     margen * 2,
-
                 altoPagina -
                     altoEncabezado -
                     altoInformacion -
@@ -1236,15 +1221,12 @@ async function descargarMapaPDF() {
             "bold"
         );
 
-        pdf.setFontSize(
-            16
-        );
+        pdf.setFontSize(16);
 
         pdf.text(
             figurasDibujadas.length === 1
                 ? "Mapa del área dibujada"
                 : "Mapa de las áreas dibujadas",
-
             margen,
             12
         );
@@ -1254,9 +1236,7 @@ async function descargarMapaPDF() {
             "normal"
         );
 
-        pdf.setFontSize(
-            9
-        );
+        pdf.setFontSize(9);
 
         pdf.text(
             `Vereda: ${nombreVereda.trim()}`,
@@ -1264,6 +1244,10 @@ async function descargarMapaPDF() {
             18
         );
 
+        /*
+         * Se muestra en el encabezado cuántas
+         * figuras fueron incluidas.
+         */
         pdf.text(
             `Figuras incluidas: ${figurasDibujadas.length}`,
             110,
@@ -1291,9 +1275,7 @@ async function descargarMapaPDF() {
             "bold"
         );
 
-        pdf.setFontSize(
-            11
-        );
+        pdf.setFontSize(11);
 
         pdf.text(
             "Información del solicitante",
@@ -1306,9 +1288,7 @@ async function descargarMapaPDF() {
             "normal"
         );
 
-        pdf.setFontSize(
-            9.5
-        );
+        pdf.setFontSize(9.5);
 
         pdf.text(
             `Nombre: ${nombreUsuario.trim()}`,
@@ -1398,19 +1378,107 @@ async function descargarMapaPDF() {
                 ) || "vereda"
             }.pdf`;
 
+        const pdfBlob =
+            pdf.output("blob");
+
+        const formulario =
+            new FormData();
+
+        formulario.append(
+            "pdf",
+            pdfBlob,
+            nombreArchivo
+        );
+
+        formulario.append(
+            "nombre",
+            nombreUsuario.trim()
+        );
+
+        formulario.append(
+            "celular",
+            celularUsuario.trim()
+        );
+
+        formulario.append(
+            "vereda",
+            nombreVereda.trim()
+        );
+
+        formulario.append(
+            "coordenada_x",
+            coordenadas.x.toFixed(8)
+        );
+
+        formulario.append(
+            "coordenada_y",
+            coordenadas.y.toFixed(8)
+        );
+
+        formulario.append(
+            "coordenada_z",
+            String(coordenadas.z)
+        );
+
+        /*
+         * También se envía al PHP la cantidad
+         * total de figuras incluidas.
+         */
+        formulario.append(
+            "cantidad_figuras",
+            String(figurasDibujadas.length)
+        );
+
         pdf.save(
             nombreArchivo
         );
 
-        alert(
-            figurasDibujadas.length === 1
-                ? "La figura fue incluida y el PDF se descargó correctamente."
-                : `Las ${figurasDibujadas.length} figuras fueron incluidas y el PDF se descargó correctamente.`
-        );
+        try {
+            if (textoBoton) {
+                textoBoton.textContent =
+                    "Enviando...";
+            }
 
+            const respuesta =
+                await fetch(
+                    "send_email.php",
+                    {
+                        method: "POST",
+                        body: formulario
+                    }
+                );
+
+            const resultado =
+                await respuesta.json();
+
+            if (
+                !respuesta.ok ||
+                !resultado.ok
+            ) {
+                throw new Error(
+                    resultado.mensaje ||
+                    "No se pudo enviar el correo."
+                );
+            }
+
+            alert(
+                figurasDibujadas.length === 1
+                    ? "La figura fue incluida en el PDF. El archivo fue descargado y enviado correctamente."
+                    : `Las ${figurasDibujadas.length} figuras fueron incluidas en el PDF. El archivo fue descargado y enviado correctamente.`
+            );
+        } catch (errorCorreo) {
+            console.error(
+                "Error enviando PDF:",
+                errorCorreo
+            );
+
+            alert(
+                "El PDF se descargó con todas las figuras, pero no se pudo enviar por correo."
+            );
+        }
     } catch (error) {
         console.error(
-            "Error generando el PDF:",
+            "Error generando PDF:",
             error
         );
 
@@ -1418,8 +1486,11 @@ async function descargarMapaPDF() {
             error.message ||
             "No fue posible generar el PDF."
         );
-
     } finally {
+        /*
+         * Después de descargar el PDF, el mapa
+         * regresa a la posición y zoom anteriores.
+         */
         map.setView(
             centroAnterior,
             zoomAnterior,
