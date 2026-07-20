@@ -1441,7 +1441,7 @@ async function descargarMapaPDF() {
 
             const respuesta =
                 await fetch(
-                    "enviar_pdf.php",
+                    "send_email.php",
                     {
                         method: "POST",
                         body: formulario
