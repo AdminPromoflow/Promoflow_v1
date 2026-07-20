@@ -6,6 +6,8 @@ class MapApp {
         this.showMap();
         this.showVillages();
         this.showDrawnPolygons();
+        this.showZoomControls();
+        this.showMovementControls();
     }
 
     showMap() {
@@ -13,6 +15,14 @@ class MapApp {
         this.map = L.map(
             "map",
             {
+                zoomControl: false,
+                dragging: false,
+                touchZoom: false,
+                doubleClickZoom: false,
+                scrollWheelZoom: false,
+                boxZoom: false,
+                keyboard: false,
+                tap: false,
                 maxZoom: 18,
                 minZoom: 11
             }
@@ -29,6 +39,213 @@ class MapApp {
                 attribution: "Imagery © Esri"
             }
         ).addTo(this.map);
+    }
+
+    showZoomControls() {
+
+        const zoomControl = L.control({
+            position: "topright"
+        });
+
+        zoomControl.onAdd = () => {
+
+            const container = L.DomUtil.create(
+                "div",
+                "custom-zoom-control"
+            );
+
+            container.innerHTML = `
+                <button
+                    type="button"
+                    class="custom-zoom-button zoom-in-button"
+                    aria-label="Zoom in"
+                    title="Zoom in"
+                >
+                    +
+                </button>
+
+                <button
+                    type="button"
+                    class="custom-zoom-button zoom-out-button"
+                    aria-label="Zoom out"
+                    title="Zoom out"
+                >
+                    −
+                </button>
+            `;
+
+            L.DomEvent.disableClickPropagation(
+                container
+            );
+
+            L.DomEvent.disableScrollPropagation(
+                container
+            );
+
+            const zoomInButton =
+                container.querySelector(
+                    ".zoom-in-button"
+                );
+
+            const zoomOutButton =
+                container.querySelector(
+                    ".zoom-out-button"
+                );
+
+            zoomInButton.addEventListener(
+                "click",
+                (event) => {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    this.map.zoomIn();
+                }
+            );
+
+            zoomOutButton.addEventListener(
+                "click",
+                (event) => {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    this.map.zoomOut();
+                }
+            );
+
+            return container;
+        };
+
+        zoomControl.addTo(
+            this.map
+        );
+    }
+
+    showMovementControls() {
+
+        const movementControl = L.control({
+            position: "bottomright"
+        });
+
+        movementControl.onAdd = () => {
+
+            const container = L.DomUtil.create(
+                "div",
+                "movement-control"
+            );
+
+            container.innerHTML = `
+                <button
+                    type="button"
+                    class="movement-button move-up-button"
+                    aria-label="Move up"
+                    title="Move up"
+                >
+                    ▲
+                </button>
+
+                <button
+                    type="button"
+                    class="movement-button move-left-button"
+                    aria-label="Move left"
+                    title="Move left"
+                >
+                    ◀
+                </button>
+
+                <div class="movement-center">
+                    ✥
+                </div>
+
+                <button
+                    type="button"
+                    class="movement-button move-right-button"
+                    aria-label="Move right"
+                    title="Move right"
+                >
+                    ▶
+                </button>
+
+                <button
+                    type="button"
+                    class="movement-button move-down-button"
+                    aria-label="Move down"
+                    title="Move down"
+                >
+                    ▼
+                </button>
+            `;
+
+            L.DomEvent.disableClickPropagation(
+                container
+            );
+
+            L.DomEvent.disableScrollPropagation(
+                container
+            );
+
+            const movementDistance = 150;
+
+            const movements = [
+                {
+                    selector: ".move-up-button",
+                    x: 0,
+                    y: -movementDistance
+                },
+                {
+                    selector: ".move-down-button",
+                    x: 0,
+                    y: movementDistance
+                },
+                {
+                    selector: ".move-left-button",
+                    x: -movementDistance,
+                    y: 0
+                },
+                {
+                    selector: ".move-right-button",
+                    x: movementDistance,
+                    y: 0
+                }
+            ];
+
+            movements.forEach(
+                (movement) => {
+
+                    const button =
+                        container.querySelector(
+                            movement.selector
+                        );
+
+                    button.addEventListener(
+                        "click",
+                        (event) => {
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            this.map.panBy(
+                                [
+                                    movement.x,
+                                    movement.y
+                                ],
+                                {
+                                    animate: true,
+                                    duration: 0.25
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+
+            return container;
+        };
+
+        movementControl.addTo(
+            this.map
+        );
     }
 
     getVillageColors() {
@@ -143,6 +360,7 @@ class MapApp {
         layer.on(
             "mouseover",
             () => {
+
                 this.highlightVillage(
                     layer
                 );
@@ -152,6 +370,7 @@ class MapApp {
         layer.on(
             "mouseout",
             () => {
+
                 this.resetVillageHighlight(
                     layer
                 );
@@ -165,6 +384,7 @@ class MapApp {
             data,
             {
                 style: (feature) => {
+
                     return this.getVillageStyle(
                         feature
                     );
@@ -174,6 +394,7 @@ class MapApp {
                     feature,
                     layer
                 ) => {
+
                     this.showVillageName(
                         feature,
                         layer

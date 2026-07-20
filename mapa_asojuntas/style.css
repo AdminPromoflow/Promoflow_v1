@@ -27,3 +27,101 @@ header h1 {
     width: 100%;
     height: calc(100vh - 70px);
 }
+.custom-zoom-control {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.custom-zoom-button {
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+    color: #222222;
+
+    font-size: 26px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.25);
+}
+
+.movement-control {
+    display: grid;
+
+    grid-template-columns:
+        42px
+        42px
+        42px;
+
+    grid-template-rows:
+        42px
+        42px
+        42px;
+
+    gap: 4px;
+}
+
+.movement-button {
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+    color: #222222;
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.25);
+}
+
+.move-up-button {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.move-left-button {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.movement-center {
+    grid-column: 2;
+    grid-row: 2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background-color: rgba(
+        255,
+        255,
+        255,
+        0.9
+    );
+}
+
+.move-right-button {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.move-down-button {
+    grid-column: 2;
+    grid-row: 3;
+}
