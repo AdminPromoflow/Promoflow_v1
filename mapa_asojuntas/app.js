@@ -31,9 +31,9 @@ class MapApp {
         ).addTo(this.map);
     }
 
-    showVillages() {
+    getVillageColors() {
 
-        const colors = [
+        return [
             "#e6194b",
             "#3cb44b",
             "#ffe119",
@@ -51,23 +51,100 @@ class MapApp {
             "#469990",
             "#ff7f50"
         ];
+    }
 
-        function getVillageColor(name) {
+    getVillageColor(name) {
 
-            const text = String(
-                name || "No name"
-            );
+        const colors =
+            this.getVillageColors();
 
-            let number = 0;
+        const text = String(
+            name || "No name"
+        );
 
-            for (let i = 0; i < text.length; i++) {
-                number += text.charCodeAt(i);
-            }
+        let number = 0;
 
-            return colors[
-                number % colors.length
-            ];
+        for (let i = 0; i < text.length; i++) {
+            number += text.charCodeAt(i);
         }
+
+        return colors[
+            number % colors.length
+        ];
+    }
+
+    getVillageName(feature) {
+
+        const properties =
+            feature.properties || {};
+
+        return (
+            properties.NOMBRE_VER ||
+            "No name"
+        );
+    }
+
+    getVillageStyle(feature) {
+
+        const name =
+            this.getVillageName(feature);
+
+        const color =
+            this.getVillageColor(name);
+
+        return {
+            color: color,
+            weight: 2,
+            opacity: 1,
+            fillColor: color,
+            fillOpacity: 0.25
+        };
+    }
+
+    showVillageName(feature, layer) {
+
+        const name =
+            this.getVillageName(feature);
+
+        layer.bindTooltip(
+            name,
+            {
+                permanent: true,
+                direction: "center",
+                className: "village-name"
+            }
+        );
+    }
+
+    createVillageLayer(data) {
+
+        this.villages = L.geoJSON(
+            data,
+            {
+                style: (feature) => {
+                    return this.getVillageStyle(
+                        feature
+                    );
+                },
+
+                onEachFeature: (
+                    feature,
+                    layer
+                ) => {
+                    this.showVillageName(
+                        feature,
+                        layer
+                    );
+                }
+            }
+        );
+
+        this.villages.addTo(
+            this.map
+        );
+    }
+
+    showVillages() {
 
         fetch("geosons/Veredas.geojson")
             .then((response) => {
@@ -82,36 +159,8 @@ class MapApp {
             })
             .then((data) => {
 
-                this.villages = L.geoJSON(
-                    data,
-                    {
-                        style: function (feature) {
-
-                            const properties =
-                                feature.properties || {};
-
-                            const name =
-                                properties.NOMBRE_VER ||
-                                "No name";
-
-                            const color =
-                                getVillageColor(
-                                    name
-                                );
-
-                            return {
-                                color: color,
-                                weight: 2,
-                                opacity: 1,
-                                fillColor: color,
-                                fillOpacity: 0.25
-                            };
-                        }
-                    }
-                );
-
-                this.villages.addTo(
-                    this.map
+                this.createVillageLayer(
+                    data
                 );
             })
             .catch((error) => {
