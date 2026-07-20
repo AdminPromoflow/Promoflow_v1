@@ -1,11 +1,11 @@
 "use strict";
 
-class Mapa {
+class MapApp {
 
     constructor() {
         this.showMap();
-        this.showVeredas();
-        this.showPoligonosDibujados();
+        this.showVillages();
+        this.showDrawnPolygons();
     }
 
     showMap() {
@@ -26,62 +26,113 @@ class Mapa {
             {
                 maxZoom: 18,
                 minZoom: 11,
-                attribution: "Imágenes © Esri"
+                attribution: "Imagery © Esri"
             }
         ).addTo(this.map);
     }
 
-    showVeredas() {
+    showVillages() {
+
+        const colors = [
+            "#e6194b",
+            "#3cb44b",
+            "#ffe119",
+            "#4363d8",
+            "#f58231",
+            "#911eb4",
+            "#46f0f0",
+            "#f032e6",
+            "#bcf60c",
+            "#008080",
+            "#9a6324",
+            "#800000",
+            "#808000",
+            "#000075",
+            "#469990",
+            "#ff7f50"
+        ];
+
+        function getVillageColor(name) {
+
+            const text = String(
+                name || "No name"
+            );
+
+            let number = 0;
+
+            for (let i = 0; i < text.length; i++) {
+                number += text.charCodeAt(i);
+            }
+
+            return colors[
+                number % colors.length
+            ];
+        }
 
         fetch("geosons/Veredas.geojson")
-            .then((respuesta) => {
+            .then((response) => {
 
-                if (!respuesta.ok) {
+                if (!response.ok) {
                     throw new Error(
-                        "No se pudo cargar Veredas.geojson."
+                        "Could not load Veredas.geojson."
                     );
                 }
 
-                return respuesta.json();
+                return response.json();
             })
-            .then((datos) => {
+            .then((data) => {
 
-                this.veredas = L.geoJSON(
-                    datos,
+                this.villages = L.geoJSON(
+                    data,
                     {
-                        style: {
-                            color: "#ffff00",
-                            weight: 2,
-                            opacity: 1,
-                            fillColor: "#ffff00",
-                            fillOpacity: 0.15
+                        style: function (feature) {
+
+                            const properties =
+                                feature.properties || {};
+
+                            const name =
+                                properties.NOMBRE_VER ||
+                                "No name";
+
+                            const color =
+                                getVillageColor(
+                                    name
+                                );
+
+                            return {
+                                color: color,
+                                weight: 2,
+                                opacity: 1,
+                                fillColor: color,
+                                fillOpacity: 0.25
+                            };
                         }
                     }
                 );
 
-                this.veredas.addTo(
+                this.villages.addTo(
                     this.map
                 );
             })
             .catch((error) => {
 
                 console.error(
-                    "Error cargando las veredas:",
+                    "Error loading villages:",
                     error
                 );
             });
     }
 
-    showPoligonosDibujados() {
+    showDrawnPolygons() {
 
-        this.poligonosDibujados =
+        this.drawnPolygons =
             new L.FeatureGroup();
 
-        this.poligonosDibujados.addTo(
+        this.drawnPolygons.addTo(
             this.map
         );
 
-        const controlDibujo =
+        const drawControl =
             new L.Control.Draw({
                 position: "topleft",
 
@@ -109,7 +160,7 @@ class Mapa {
 
                 edit: {
                     featureGroup:
-                        this.poligonosDibujados,
+                        this.drawnPolygons,
 
                     edit: true,
                     remove: true
@@ -117,19 +168,19 @@ class Mapa {
             });
 
         this.map.addControl(
-            controlDibujo
+            drawControl
         );
 
         this.map.on(
             L.Draw.Event.CREATED,
-            (evento) => {
+            (event) => {
 
-                this.poligonosDibujados.addLayer(
-                    evento.layer
+                this.drawnPolygons.addLayer(
+                    event.layer
                 );
             }
         );
     }
 }
 
-const mapa = new Mapa();
+const mapApp = new MapApp();
