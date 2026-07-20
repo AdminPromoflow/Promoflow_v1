@@ -21,74 +21,165 @@ body {
 ========================================= */
 
 header {
-    height: 70px;
-    padding: 0 24px;
+    height: 76px;
+    padding: 0 28px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
 
-    background-color: #ffffff;
+    position: relative;
+    z-index: 1000;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0f5132 0%,
+            #198754 55%,
+            #20a464 100%
+        );
 
     border-bottom:
         1px solid
-        rgba(0, 0, 0, 0.12);
+        rgba(255, 255, 255, 0.2);
 
     box-shadow:
-        0 2px 12px
-        rgba(0, 0, 0, 0.18);
+        0 4px 18px
+        rgba(0, 0, 0, 0.28);
 
-    position: relative;
-    z-index: 1000;
+    overflow: hidden;
+}
+
+header::before {
+    content: "";
+
+    position: absolute;
+    top: -70px;
+    right: 120px;
+
+    width: 210px;
+    height: 210px;
+
+    border-radius: 50%;
+
+    background-color:
+        rgba(255, 255, 255, 0.07);
+
+    pointer-events: none;
+}
+
+header::after {
+    content: "";
+
+    position: absolute;
+    bottom: -95px;
+    left: 28%;
+
+    width: 190px;
+    height: 190px;
+
+    border-radius: 50%;
+
+    background-color:
+        rgba(255, 255, 255, 0.05);
+
+    pointer-events: none;
 }
 
 header h1 {
-    color: #222222;
-    font-size: 22px;
+    position: relative;
+    z-index: 1;
+
+    color: #ffffff;
+
+    font-size: 23px;
     font-weight: 700;
+    letter-spacing: 0.3px;
+
+    text-shadow:
+        0 1px 3px
+        rgba(0, 0, 0, 0.25);
 }
 
+/* =========================================
+   PRINT BUTTON
+========================================= */
+
 #print-drawn-polygons {
-    min-height: 42px;
-    padding: 0 18px;
+    min-height: 44px;
+    padding: 0 20px;
 
-    border: none;
-    border-radius: 8px;
+    position: relative;
+    z-index: 1;
 
-    background-color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.4);
+
+    border-radius: 10px;
+
+    background-color:
+        rgba(255, 255, 255, 0.16);
+
     color: #ffffff;
 
     font-size: 14px;
     font-weight: 700;
+    letter-spacing: 0.2px;
 
     cursor: pointer;
 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
     box-shadow:
-        0 2px 8px
-        rgba(37, 99, 235, 0.3);
+        0 3px 10px
+        rgba(0, 0, 0, 0.2);
 
     transition:
         background-color 0.2s ease,
+        border-color 0.2s ease,
         transform 0.2s ease,
         box-shadow 0.2s ease;
 }
 
 #print-drawn-polygons:hover {
-    background-color: #1d4ed8;
+    background-color:
+        rgba(255, 255, 255, 0.26);
+
+    border-color:
+        rgba(255, 255, 255, 0.7);
+
+    transform: translateY(-1px);
 
     box-shadow:
-        0 4px 12px
-        rgba(37, 99, 235, 0.4);
+        0 5px 14px
+        rgba(0, 0, 0, 0.25);
 }
 
 #print-drawn-polygons:active {
-    transform: scale(0.97);
+    transform:
+        translateY(0)
+        scale(0.97);
 }
 
 #print-drawn-polygons:disabled {
-    background-color: #9ca3af;
+    background-color:
+        rgba(255, 255, 255, 0.12);
+
+    color:
+        rgba(255, 255, 255, 0.65);
+
+    border-color:
+        rgba(255, 255, 255, 0.2);
+
     cursor: not-allowed;
+    transform: none;
     box-shadow: none;
 }
 
@@ -98,7 +189,7 @@ header h1 {
 
 #map {
     width: 100%;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 76px);
 
     background-color: #d1d5db;
 }
@@ -118,6 +209,7 @@ header h1 {
 .zoom-out-button {
     width: 44px;
     min-width: 44px;
+
     height: 44px;
     min-height: 44px;
 
@@ -127,11 +219,14 @@ header h1 {
     align-items: center;
     justify-content: center;
 
-    border: none;
-    border-radius: 8px;
+    border:
+        1px solid
+        rgba(0, 0, 0, 0.12);
+
+    border-radius: 9px;
 
     background-color: #ffffff;
-    color: #222222;
+    color: #174c35;
 
     font-family: Arial, sans-serif;
     font-size: 27px;
@@ -141,18 +236,20 @@ header h1 {
     cursor: pointer;
 
     box-shadow:
-        0 2px 8px
+        0 3px 10px
         rgba(0, 0, 0, 0.28);
 
     transition:
         background-color 0.2s ease,
+        color 0.2s ease,
         transform 0.2s ease;
 }
 
 .custom-zoom-control button:hover,
 .zoom-in-button:hover,
 .zoom-out-button:hover {
-    background-color: #f3f4f6;
+    background-color: #198754;
+    color: #ffffff;
 }
 
 .custom-zoom-control button:active,
@@ -188,6 +285,7 @@ header h1 {
 .move-down-button {
     width: 44px;
     min-width: 44px;
+
     height: 44px;
     min-height: 44px;
 
@@ -197,11 +295,14 @@ header h1 {
     align-items: center;
     justify-content: center;
 
-    border: none;
-    border-radius: 8px;
+    border:
+        1px solid
+        rgba(0, 0, 0, 0.12);
+
+    border-radius: 9px;
 
     background-color: #ffffff;
-    color: #222222;
+    color: #174c35;
 
     font-family: Arial, sans-serif;
     font-size: 18px;
@@ -211,16 +312,18 @@ header h1 {
     cursor: pointer;
 
     box-shadow:
-        0 2px 8px
+        0 3px 10px
         rgba(0, 0, 0, 0.28);
 
     transition:
         background-color 0.2s ease,
+        color 0.2s ease,
         transform 0.2s ease;
 }
 
 .movement-control button:hover {
-    background-color: #f3f4f6;
+    background-color: #198754;
+    color: #ffffff;
 }
 
 .movement-control button:active {
@@ -248,17 +351,17 @@ header h1 {
     align-items: center;
     justify-content: center;
 
-    border-radius: 8px;
+    border-radius: 9px;
 
     background-color:
         rgba(255, 255, 255, 0.92);
 
-    color: #555555;
+    color: #198754;
 
     font-size: 18px;
 
     box-shadow:
-        0 2px 8px
+        0 3px 10px
         rgba(0, 0, 0, 0.22);
 }
 
@@ -290,11 +393,14 @@ header h1 {
     align-items: center;
     justify-content: center;
 
-    border: none;
+    border:
+        1px solid
+        rgba(0, 0, 0, 0.12);
+
     border-radius: 50%;
 
     background-color: #ffffff;
-    color: #222222;
+    color: #198754;
 
     font-size: 24px;
     font-weight: 700;
@@ -305,16 +411,18 @@ header h1 {
     z-index: 1000;
 
     box-shadow:
-        0 2px 8px
+        0 3px 10px
         rgba(0, 0, 0, 0.28);
 
     transition:
         background-color 0.2s ease,
+        color 0.2s ease,
         transform 0.2s ease;
 }
 
 .reset-view-button:hover {
-    background-color: #f3f4f6;
+    background-color: #198754;
+    color: #ffffff;
 
     transform:
         translateY(-50%)
@@ -334,13 +442,16 @@ header h1 {
 .village-name {
     padding: 3px 7px;
 
-    border: none;
+    border:
+        1px solid
+        rgba(20, 80, 50, 0.18);
+
     border-radius: 5px;
 
     background-color:
-        rgba(255, 255, 255, 0.8);
+        rgba(255, 255, 255, 0.82);
 
-    color: #111111;
+    color: #123d29;
 
     font-size: 11px;
     font-weight: 700;
@@ -374,7 +485,7 @@ header h1 {
 @media screen and (max-width: 768px) {
 
     header {
-        height: 64px;
+        height: 68px;
         padding: 0 12px;
         gap: 10px;
     }
@@ -384,13 +495,14 @@ header h1 {
     }
 
     #print-drawn-polygons {
-        min-height: 38px;
+        min-height: 40px;
         padding: 0 12px;
+        border-radius: 8px;
         font-size: 12px;
     }
 
     #map {
-        height: calc(100vh - 64px);
+        height: calc(100vh - 68px);
     }
 
     .custom-zoom-control button,
@@ -398,6 +510,7 @@ header h1 {
     .zoom-out-button {
         width: 42px;
         min-width: 42px;
+
         height: 42px;
         min-height: 42px;
     }
@@ -422,6 +535,7 @@ header h1 {
     .movement-center {
         width: 42px;
         min-width: 42px;
+
         height: 42px;
         min-height: 42px;
     }
