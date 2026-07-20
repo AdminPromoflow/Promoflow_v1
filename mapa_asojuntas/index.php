@@ -8,15 +8,13 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Mapa satelital de Arbeláez</title>
+    <title>Mapa satelital</title>
 
-    <!-- Leaflet CSS -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <!-- Nuestro CSS -->
     <link
         rel="stylesheet"
         href="style.css"
@@ -25,19 +23,16 @@
 
 <body>
 
-    <!--
-        JavaScript colocará aquí:
-        1. El header.
-        2. El mapa.
-    -->
-    <div id="app"></div>
+    <header>
+        <h1>Mapa de Arbeláez</h1>
+    </header>
 
-    <!-- Leaflet JavaScript -->
+    <div id="map"></div>
+
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
-    <!-- Nuestro JavaScript -->
     <script src="app.js"></script>
 
 </body>
