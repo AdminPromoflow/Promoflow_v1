@@ -4,38 +4,128 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
 body {
     overflow: hidden;
     font-family: Arial, sans-serif;
+    background-color: #111111;
 }
+
+/* =========================================
+   HEADER
+========================================= */
 
 header {
     height: 70px;
-    padding: 0 20px;
+    padding: 0 24px;
 
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 20px;
 
     background-color: #ffffff;
+
+    border-bottom:
+        1px solid
+        rgba(0, 0, 0, 0.12);
+
+    box-shadow:
+        0 2px 12px
+        rgba(0, 0, 0, 0.18);
+
+    position: relative;
+    z-index: 1000;
 }
 
 header h1 {
+    color: #222222;
     font-size: 22px;
+    font-weight: 700;
 }
+
+#print-drawn-polygons {
+    min-height: 42px;
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 8px
+        rgba(37, 99, 235, 0.3);
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+#print-drawn-polygons:hover {
+    background-color: #1d4ed8;
+
+    box-shadow:
+        0 4px 12px
+        rgba(37, 99, 235, 0.4);
+}
+
+#print-drawn-polygons:active {
+    transform: scale(0.97);
+}
+
+#print-drawn-polygons:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* =========================================
+   MAP
+========================================= */
 
 #map {
     width: 100%;
     height: calc(100vh - 70px);
+
+    background-color: #d1d5db;
 }
+
+/* =========================================
+   ZOOM CONTROL
+========================================= */
+
 .custom-zoom-control {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
 }
 
-.custom-zoom-button {
-    width: 42px;
-    height: 42px;
+.custom-zoom-control button,
+.zoom-in-button,
+.zoom-out-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     border: none;
     border-radius: 8px;
@@ -43,35 +133,69 @@ header h1 {
     background-color: #ffffff;
     color: #222222;
 
-    font-size: 26px;
-    font-weight: bold;
+    font-family: Arial, sans-serif;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1;
 
     cursor: pointer;
 
     box-shadow:
         0 2px 8px
-        rgba(0, 0, 0, 0.25);
+        rgba(0, 0, 0, 0.28);
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
 }
+
+.custom-zoom-control button:hover,
+.zoom-in-button:hover,
+.zoom-out-button:hover {
+    background-color: #f3f4f6;
+}
+
+.custom-zoom-control button:active,
+.zoom-in-button:active,
+.zoom-out-button:active {
+    transform: scale(0.94);
+}
+
+/* =========================================
+   MOVEMENT CONTROL
+========================================= */
 
 .movement-control {
     display: grid;
 
     grid-template-columns:
-        42px
-        42px
-        42px;
+        44px
+        44px
+        44px;
 
     grid-template-rows:
-        42px
-        42px
-        42px;
+        44px
+        44px
+        44px;
 
-    gap: 4px;
+    gap: 5px;
 }
 
-.movement-button {
-    width: 42px;
-    height: 42px;
+.movement-control button,
+.move-up-button,
+.move-left-button,
+.move-right-button,
+.move-down-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     border: none;
     border-radius: 8px;
@@ -79,13 +203,28 @@ header h1 {
     background-color: #ffffff;
     color: #222222;
 
+    font-family: Arial, sans-serif;
     font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
 
     cursor: pointer;
 
     box-shadow:
         0 2px 8px
-        rgba(0, 0, 0, 0.25);
+        rgba(0, 0, 0, 0.28);
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.movement-control button:hover {
+    background-color: #f3f4f6;
+}
+
+.movement-control button:active {
+    transform: scale(0.94);
 }
 
 .move-up-button {
@@ -102,18 +241,25 @@ header h1 {
     grid-column: 2;
     grid-row: 2;
 
+    width: 44px;
+    height: 44px;
+
     display: flex;
     align-items: center;
     justify-content: center;
 
     border-radius: 8px;
 
-    background-color: rgba(
-        255,
-        255,
-        255,
-        0.9
-    );
+    background-color:
+        rgba(255, 255, 255, 0.92);
+
+    color: #555555;
+
+    font-size: 18px;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.22);
 }
 
 .move-right-button {
@@ -124,4 +270,159 @@ header h1 {
 .move-down-button {
     grid-column: 2;
     grid-row: 3;
+}
+
+/* =========================================
+   RESET VIEW BUTTON
+========================================= */
+
+.reset-view-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+
+    width: 46px;
+    height: 46px;
+
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 50%;
+
+    background-color: #ffffff;
+    color: #222222;
+
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+
+    cursor: pointer;
+
+    z-index: 1000;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.28);
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.reset-view-button:hover {
+    background-color: #f3f4f6;
+
+    transform:
+        translateY(-50%)
+        scale(1.05);
+}
+
+.reset-view-button:active {
+    transform:
+        translateY(-50%)
+        scale(0.95);
+}
+
+/* =========================================
+   VILLAGE LABELS
+========================================= */
+
+.village-name {
+    padding: 3px 7px;
+
+    border: none;
+    border-radius: 5px;
+
+    background-color:
+        rgba(255, 255, 255, 0.8);
+
+    color: #111111;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    box-shadow:
+        0 1px 4px
+        rgba(0, 0, 0, 0.25);
+}
+
+.village-name::before {
+    display: none;
+}
+
+/* =========================================
+   LEAFLET CONTROLS
+========================================= */
+
+.leaflet-control-container button {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.leaflet-control-attribution {
+    font-size: 9px;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media screen and (max-width: 768px) {
+
+    header {
+        height: 64px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    header h1 {
+        font-size: 17px;
+    }
+
+    #print-drawn-polygons {
+        min-height: 38px;
+        padding: 0 12px;
+        font-size: 12px;
+    }
+
+    #map {
+        height: calc(100vh - 64px);
+    }
+
+    .custom-zoom-control button,
+    .zoom-in-button,
+    .zoom-out-button {
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        min-height: 42px;
+    }
+
+    .movement-control {
+        grid-template-columns:
+            42px
+            42px
+            42px;
+
+        grid-template-rows:
+            42px
+            42px
+            42px;
+    }
+
+    .movement-control button,
+    .move-up-button,
+    .move-left-button,
+    .move-right-button,
+    .move-down-button,
+    .movement-center {
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        min-height: 42px;
+    }
 }
