@@ -10,6 +10,19 @@
 
     <title>Mapa de Arbeláez</title>
 
+    <?php
+    $stylePath = __DIR__ . "/style.css";
+    $appPath = __DIR__ . "/app.js";
+
+    $styleVersion = file_exists($stylePath)
+        ? filemtime($stylePath)
+        : time();
+
+    $appVersion = file_exists($appPath)
+        ? filemtime($appPath)
+        : time();
+    ?>
+
     <!-- Leaflet -->
     <link
         rel="stylesheet"
@@ -25,7 +38,7 @@
     <!-- Nuestro CSS -->
     <link
         rel="stylesheet"
-        href="style.css"
+        href="style.css?v=<?= $styleVersion ?>"
     >
 </head>
 
@@ -48,7 +61,7 @@
     ></script>
 
     <!-- Nuestro JavaScript al final -->
-    <script src="app.js"></script>
+    <script src="app.js?v=<?= $appVersion ?>"></script>
 
 </body>
 </html>
