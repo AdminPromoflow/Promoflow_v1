@@ -120,6 +120,10 @@ function esDispositivoMovil() {
     ).matches;
 }
 
+/* =========================================
+   ESPERAR CARGA DEL MAPA
+========================================= */
+
 async function esperarCargaMapa() {
     await esperar(700);
 
@@ -179,13 +183,17 @@ async function esperarCargaMapa() {
 
     await esperar(
         esDispositivoMovil()
-            ? 900
-            : 500
+            ? 1000
+            : 600
     );
 }
 
+/* =========================================
+   ESPERAR MOVIMIENTO DEL MAPA
+========================================= */
+
 function esperarMovimientoMapa(
-    tiempoMaximo = 1800
+    tiempoMaximo = 2000
 ) {
     return new Promise((resolve) => {
         let terminado = false;
@@ -217,6 +225,10 @@ function esperarMovimientoMapa(
     });
 }
 
+/* =========================================
+   CALCULAR TAMAÑO DE IMAGEN EN PDF
+========================================= */
+
 function calcularTamanoImagenPDF(
     anchoOriginal,
     altoOriginal,
@@ -228,6 +240,7 @@ function calcularTamanoImagenPDF(
         altoOriginal;
 
     let ancho = anchoMaximo;
+
     let alto =
         ancho /
         proporcion;
@@ -246,18 +259,18 @@ function calcularTamanoImagenPDF(
     };
 }
 
-/*
- * Obtiene todas las figuras que el usuario
- * ha dibujado dentro del mapa.
- */
+/* =========================================
+   OBTENER FIGURAS DIBUJADAS
+========================================= */
+
 function obtenerFigurasDibujadas() {
     return poligonosDibujados.getLayers();
 }
 
-/*
- * Calcula unos límites generales que incluyen
- * absolutamente todas las figuras dibujadas.
- */
+/* =========================================
+   OBTENER LÍMITES DE TODAS LAS FIGURAS
+========================================= */
+
 function obtenerLimitesTodasLasFiguras() {
     const figuras =
         obtenerFigurasDibujadas();
@@ -300,10 +313,10 @@ function obtenerLimitesTodasLasFiguras() {
     return limitesGenerales;
 }
 
-/*
- * Obtiene el centro geográfico del conjunto
- * completo de figuras dibujadas.
- */
+/* =========================================
+   OBTENER COORDENADAS DEL CONJUNTO
+========================================= */
+
 function obtenerCoordenadasConjunto(
     limites,
     zoom
@@ -326,6 +339,10 @@ function obtenerCoordenadasConjunto(
         z: zoom
     };
 }
+
+/* =========================================
+   CREAR NOMBRE DE ARCHIVO
+========================================= */
 
 function crearNombreArchivo(texto) {
     return String(texto)
@@ -408,10 +425,12 @@ const capaVeredas = L.geoJSON(
 
             return {
                 color: color,
+
                 weight:
                     esDispositivoMovil()
                         ? 1.5
                         : 2,
+
                 opacity: 0.9,
                 fillColor: color,
                 fillOpacity: 0.22
@@ -493,7 +512,7 @@ const poligonosDibujados =
 poligonosDibujados.addTo(map);
 
 /* =========================================
-   DIBUJO
+   CONTROL DE DIBUJO
 ========================================= */
 
 const controlDibujo =
@@ -610,18 +629,21 @@ controlFlechas.onAdd =
                 x: 0,
                 y: -distancia
             },
+
             {
                 selector:
                     ".flecha-abajo",
                 x: 0,
                 y: distancia
             },
+
             {
                 selector:
                     ".flecha-izquierda",
                 x: -distancia,
                 y: 0
             },
+
             {
                 selector:
                     ".flecha-derecha",
@@ -786,7 +808,9 @@ map.on(
             <strong>
                 Figura ${numeroFigura}
             </strong>
+
             <br>
+
             Esta figura será incluida en el PDF junto con las demás figuras dibujadas.
         `);
 
@@ -798,9 +822,8 @@ map.on(
     L.Draw.Event.EDITED,
     function () {
         /*
-         * No es necesario guardar solamente la
-         * última figura, porque el PDF utilizará
-         * todas las figuras del FeatureGroup.
+         * Todas las figuras editadas permanecen
+         * dentro de poligonosDibujados.
          */
     }
 );
@@ -809,8 +832,8 @@ map.on(
     L.Draw.Event.DELETED,
     function () {
         /*
-         * Las figuras eliminadas se quitan
-         * automáticamente del grupo.
+         * Leaflet elimina automáticamente las
+         * figuras del grupo.
          */
     }
 );
@@ -911,7 +934,7 @@ fetch(
     });
 
 /* =========================================
-   CAPAS
+   CONTROL DE CAPAS
 ========================================= */
 
 L.control.layers(
@@ -922,6 +945,7 @@ L.control.layers(
         "Mapa de calles":
             mapaCalles
     },
+
     {
         "Veredas":
             capaVeredas,
@@ -929,6 +953,7 @@ L.control.layers(
         "Polígonos dibujados":
             poligonosDibujados
     },
+
     {
         collapsed:
             esDispositivoMovil(),
@@ -936,6 +961,10 @@ L.control.layers(
         position: "topright"
     }
 ).addTo(map);
+
+/* =========================================
+   ESCALA
+========================================= */
 
 L.control.scale({
     metric: true,
@@ -974,7 +1003,7 @@ window.addEventListener(
 );
 
 /* =========================================
-   PDF
+   BOTÓN DESCARGAR PDF
 ========================================= */
 
 const botonDescargarPDF =
@@ -989,14 +1018,14 @@ if (botonDescargarPDF) {
     );
 }
 
+/* =========================================
+   DESCARGAR PDF
+========================================= */
+
 async function descargarMapaPDF() {
     const figurasDibujadas =
         obtenerFigurasDibujadas();
 
-    /*
-     * Ahora se verifica si existe al menos
-     * una figura, sin depender de la última.
-     */
     if (figurasDibujadas.length === 0) {
         alert(
             "Primero debes dibujar al menos una figura."
@@ -1005,6 +1034,63 @@ async function descargarMapaPDF() {
         return;
     }
 
+    let limitesTodasLasFiguras;
+
+    try {
+        /*
+         * Calcular los límites de todas las
+         * figuras dibujadas.
+         */
+        limitesTodasLasFiguras =
+            obtenerLimitesTodasLasFiguras();
+    } catch (error) {
+        console.error(
+            "Error calculando límites:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "No fue posible calcular los límites de las figuras."
+        );
+
+        return;
+    }
+
+    /*
+     * Cerrar cualquier popup abierto para que
+     * no aparezca dentro del PDF.
+     */
+    map.closePopup();
+
+    /*
+     * Hacer zoom a todas las figuras antes
+     * de pedir los datos del usuario.
+     */
+    map.fitBounds(
+        limitesTodasLasFiguras,
+        {
+            padding:
+                esDispositivoMovil()
+                    ? [40, 40]
+                    : [65, 65],
+
+            maxZoom: 18,
+            animate: false
+        }
+    );
+
+    map.invalidateSize({
+        animate: false
+    });
+
+    await esperarMovimientoMapa();
+    await esperarCargaMapa();
+
+    /*
+     * Pedir datos después de mostrar todas
+     * las figuras en pantalla.
+     */
     const nombreUsuario =
         window.prompt(
             "Ingrese su nombre completo:"
@@ -1051,12 +1137,6 @@ async function descargarMapaPDF() {
             ? textoBoton.textContent
             : "";
 
-    const centroAnterior =
-        map.getCenter();
-
-    const zoomAnterior =
-        map.getZoom();
-
     botonDescargarPDF.disabled =
         true;
 
@@ -1084,19 +1164,9 @@ async function descargarMapaPDF() {
             );
         }
 
-        map.closePopup();
-
         /*
-         * Esta función crea unos límites generales
-         * que abarcan todas las figuras dibujadas,
-         * aunque estén alejadas unas de otras.
-         */
-        const limitesTodasLasFiguras =
-            obtenerLimitesTodasLasFiguras();
-
-        /*
-         * El mapa se mueve y ajusta su zoom para
-         * que todas las figuras aparezcan juntas.
+         * Reaplicar el zoom para asegurar
+         * que todas las figuras sigan visibles.
          */
         map.fitBounds(
             limitesTodasLasFiguras,
@@ -1118,14 +1188,13 @@ async function descargarMapaPDF() {
         await esperarMovimientoMapa();
         await esperarCargaMapa();
 
-        /*
-         * Se obtiene el centro general del conjunto
-         * completo de figuras.
-         */
+        const zoomImpresion =
+            map.getZoom();
+
         const coordenadas =
             obtenerCoordenadasConjunto(
                 limitesTodasLasFiguras,
-                map.getZoom()
+                zoomImpresion
             );
 
         const elementoMapa =
@@ -1133,6 +1202,16 @@ async function descargarMapaPDF() {
                 "map"
             );
 
+        if (!elementoMapa) {
+            throw new Error(
+                "No se encontró el elemento del mapa."
+            );
+        }
+
+        /*
+         * Capturar el mapa completo con todos
+         * los polígonos visibles.
+         */
         const canvas =
             await html2canvas(
                 elementoMapa,
@@ -1176,8 +1255,7 @@ async function descargarMapaPDF() {
 
         const pdf =
             new jsPDF({
-                orientation:
-                    "landscape",
+                orientation: "landscape",
                 unit: "mm",
                 format: "a4",
                 compress: true
@@ -1199,8 +1277,10 @@ async function descargarMapaPDF() {
             calcularTamanoImagenPDF(
                 canvas.width,
                 canvas.height,
+
                 anchoPagina -
                     margen * 2,
+
                 altoPagina -
                     altoEncabezado -
                     altoInformacion -
@@ -1215,6 +1295,10 @@ async function descargarMapaPDF() {
 
         const posicionY =
             altoEncabezado;
+
+        /* =====================================
+           TÍTULO DEL PDF
+        ===================================== */
 
         pdf.setFont(
             "helvetica",
@@ -1231,6 +1315,10 @@ async function descargarMapaPDF() {
             12
         );
 
+        /* =====================================
+           INFORMACIÓN DEL ENCABEZADO
+        ===================================== */
+
         pdf.setFont(
             "helvetica",
             "normal"
@@ -1244,15 +1332,15 @@ async function descargarMapaPDF() {
             18
         );
 
-        /*
-         * Se muestra en el encabezado cuántas
-         * figuras fueron incluidas.
-         */
         pdf.text(
             `Figuras incluidas: ${figurasDibujadas.length}`,
             110,
             18
         );
+
+        /* =====================================
+           IMAGEN DEL MAPA
+        ===================================== */
 
         pdf.addImage(
             imagen,
@@ -1269,6 +1357,10 @@ async function descargarMapaPDF() {
             altoPagina -
             altoInformacion +
             5;
+
+        /* =====================================
+           INFORMACIÓN DEL SOLICITANTE
+        ===================================== */
 
         pdf.setFont(
             "helvetica",
@@ -1314,6 +1406,10 @@ async function descargarMapaPDF() {
             posicionDatos + 28
         );
 
+        /* =====================================
+           CENTRO GENERAL
+        ===================================== */
+
         pdf.setFont(
             "helvetica",
             "bold"
@@ -1343,10 +1439,14 @@ async function descargarMapaPDF() {
         );
 
         pdf.text(
-            `Z - Zoom: ${coordenadas.z}`,
+            `Z - Zoom de impresión: ${zoomImpresion}`,
             105,
             posicionDatos + 21
         );
+
+        /* =====================================
+           FECHA Y SISTEMA
+        ===================================== */
 
         const fecha =
             new Date().toLocaleString(
@@ -1371,6 +1471,10 @@ async function descargarMapaPDF() {
             posicionDatos + 21
         );
 
+        /* =====================================
+           NOMBRE DEL ARCHIVO
+        ===================================== */
+
         const nombreArchivo =
             `areas-${
                 crearNombreArchivo(
@@ -1380,6 +1484,10 @@ async function descargarMapaPDF() {
 
         const pdfBlob =
             pdf.output("blob");
+
+        /* =====================================
+           PREPARAR DATOS PARA PHP
+        ===================================== */
 
         const formulario =
             new FormData();
@@ -1417,21 +1525,27 @@ async function descargarMapaPDF() {
 
         formulario.append(
             "coordenada_z",
-            String(coordenadas.z)
+            String(zoomImpresion)
         );
 
-        /*
-         * También se envía al PHP la cantidad
-         * total de figuras incluidas.
-         */
         formulario.append(
             "cantidad_figuras",
-            String(figurasDibujadas.length)
+            String(
+                figurasDibujadas.length
+            )
         );
+
+        /* =====================================
+           DESCARGAR PDF
+        ===================================== */
 
         pdf.save(
             nombreArchivo
         );
+
+        /* =====================================
+           ENVIAR PDF AL CORREO
+        ===================================== */
 
         try {
             if (textoBoton) {
@@ -1441,15 +1555,37 @@ async function descargarMapaPDF() {
 
             const respuesta =
                 await fetch(
-                    "enviar_pdf.php",
+                    "send_email.php",
                     {
                         method: "POST",
                         body: formulario
                     }
                 );
 
-            const resultado =
-                await respuesta.json();
+            /*
+             * Leer primero como texto para detectar
+             * errores PHP que no sean JSON.
+             */
+            const textoRespuesta =
+                await respuesta.text();
+
+            let resultado;
+
+            try {
+                resultado =
+                    JSON.parse(
+                        textoRespuesta
+                    );
+            } catch (errorJSON) {
+                console.error(
+                    "Respuesta del servidor:",
+                    textoRespuesta
+                );
+
+                throw new Error(
+                    "El servidor no devolvió una respuesta JSON válida."
+                );
+            }
 
             if (
                 !respuesta.ok ||
@@ -1488,13 +1624,20 @@ async function descargarMapaPDF() {
         );
     } finally {
         /*
-         * Después de descargar el PDF, el mapa
-         * regresa a la posición y zoom anteriores.
+         * Mantener el mapa en el mismo zoom
+         * utilizado para imprimir el PDF.
+         *
+         * No se regresa al zoom anterior.
          */
-        map.setView(
-            centroAnterior,
-            zoomAnterior,
+        map.fitBounds(
+            limitesTodasLasFiguras,
             {
+                padding:
+                    esDispositivoMovil()
+                        ? [40, 40]
+                        : [65, 65],
+
+                maxZoom: 18,
                 animate: false
             }
         );
