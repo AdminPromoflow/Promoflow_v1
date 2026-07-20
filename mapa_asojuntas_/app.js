@@ -12,7 +12,6 @@ class Mapa {
         this.map = L.map(
             "map",
             {
-                minZoom: 5,
                 maxZoom: 18
             }
         ).setView(
@@ -23,7 +22,6 @@ class Mapa {
         L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
-                minZoom: 5,
                 maxZoom: 18,
                 attribution: "Imágenes © Esri"
             }
