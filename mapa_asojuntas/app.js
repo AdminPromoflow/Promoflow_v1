@@ -138,41 +138,39 @@ async function esperarCargaMapa() {
     if (pendientes.length > 0) {
         await Promise.all(
             pendientes.map((imagen) => {
-                return new Promise(
-                    (resolve) => {
-                        let terminado = false;
+                return new Promise((resolve) => {
+                    let terminado = false;
 
-                        function finalizar() {
-                            if (terminado) {
-                                return;
-                            }
-
-                            terminado = true;
-                            resolve();
+                    function finalizar() {
+                        if (terminado) {
+                            return;
                         }
 
-                        imagen.addEventListener(
-                            "load",
-                            finalizar,
-                            {
-                                once: true
-                            }
-                        );
-
-                        imagen.addEventListener(
-                            "error",
-                            finalizar,
-                            {
-                                once: true
-                            }
-                        );
-
-                        window.setTimeout(
-                            finalizar,
-                            5000
-                        );
+                        terminado = true;
+                        resolve();
                     }
-                );
+
+                    imagen.addEventListener(
+                        "load",
+                        finalizar,
+                        {
+                            once: true
+                        }
+                    );
+
+                    imagen.addEventListener(
+                        "error",
+                        finalizar,
+                        {
+                            once: true
+                        }
+                    );
+
+                    window.setTimeout(
+                        finalizar,
+                        5000
+                    );
+                });
             })
         );
     }
@@ -349,131 +347,6 @@ function crearNombreArchivo(texto) {
             /^-+|-+$/g,
             ""
         );
-}
-
-/* =========================================
-   LEER RESPUESTA DEL SERVIDOR
-========================================= */
-
-async function leerRespuestaJSON(
-    respuesta
-) {
-    const texto =
-        await respuesta.text();
-
-    if (texto.trim() === "") {
-        throw new Error(
-            "El servidor devolvió una respuesta vacía."
-        );
-    }
-
-    try {
-        return JSON.parse(
-            texto
-        );
-    } catch (error) {
-        console.error(
-            "Respuesta no válida del servidor:",
-            texto
-        );
-
-        throw new Error(
-            "El servidor no devolvió un JSON válido. Revisa los errores del archivo send_email.php."
-        );
-    }
-}
-
-/* =========================================
-   ENVIAR PDF POR CORREO
-========================================= */
-
-async function enviarPDFPorCorreo(
-    pdfBlob,
-    nombreArchivo,
-    datos
-) {
-    const formulario =
-        new FormData();
-
-    /*
-     * Esta acción es la que recibe el switch
-     * de handleEmail() en send_email.php.
-     */
-    formulario.append(
-        "action",
-        "send_email"
-    );
-
-    formulario.append(
-        "pdf",
-        pdfBlob,
-        nombreArchivo
-    );
-
-    formulario.append(
-        "nombre",
-        datos.nombre
-    );
-
-    formulario.append(
-        "celular",
-        datos.celular
-    );
-
-    formulario.append(
-        "vereda",
-        datos.vereda
-    );
-
-    formulario.append(
-        "coordenada_x",
-        datos.coordenadaX
-    );
-
-    formulario.append(
-        "coordenada_y",
-        datos.coordenadaY
-    );
-
-    formulario.append(
-        "coordenada_z",
-        datos.coordenadaZ
-    );
-
-    formulario.append(
-        "cantidad_figuras",
-        datos.cantidadFiguras
-    );
-
-    const respuesta =
-        await fetch(
-            "send_email.php",
-            {
-                method: "POST",
-                body: formulario
-            }
-        );
-
-    const resultado =
-        await leerRespuestaJSON(
-            respuesta
-        );
-
-    if (
-        !respuesta.ok ||
-        (
-            resultado.ok !== true &&
-            resultado.response !== true
-        )
-    ) {
-        throw new Error(
-            resultado.mensaje ||
-            resultado.error ||
-            "No fue posible enviar el PDF por correo."
-        );
-    }
-
-    return resultado;
 }
 
 /* =========================================
@@ -1129,7 +1002,7 @@ if (botonDescargarPDF) {
 }
 
 /* =========================================
-   DESCARGAR Y ENVIAR PDF
+   DESCARGAR PDF
 ========================================= */
 
 async function descargarMapaPDF() {
@@ -1228,10 +1101,6 @@ async function descargarMapaPDF() {
         const limitesTodasLasFiguras =
             obtenerLimitesTodasLasFiguras();
 
-        /*
-         * Primero se corrige el tamaño del mapa
-         * y después se calculan los límites.
-         */
         map.invalidateSize({
             animate: false
         });
@@ -1529,90 +1398,28 @@ async function descargarMapaPDF() {
                 ) || "vereda"
             }.pdf`;
 
-        const pdfBlob =
-            pdf.output(
-                "blob"
-            );
-
-        /*
-         * Primero se guarda el PDF en el
-         * dispositivo del usuario.
-         */
         pdf.save(
             nombreArchivo
         );
 
-        if (textoBoton) {
-            textoBoton.textContent =
-                "Enviando...";
-        }
-
-        const datosCorreo = {
-            nombre:
-                nombreUsuario.trim(),
-
-            celular:
-                celularUsuario.trim(),
-
-            vereda:
-                nombreVereda.trim(),
-
-            coordenadaX:
-                coordenadas.x.toFixed(8),
-
-            coordenadaY:
-                coordenadas.y.toFixed(8),
-
-            coordenadaZ:
-                String(
-                    coordenadas.z
-                ),
-
-            cantidadFiguras:
-                String(
-                    figurasDibujadas.length
-                )
-        };
-
-        /*
-         * La función crea el FormData,
-         * agrega action=send_email y lo
-         * envía al PHP.
-         */
-        const resultadoCorreo =
-            await enviarPDFPorCorreo(
-                pdfBlob,
-                nombreArchivo,
-                datosCorreo
-            );
-
-        console.log(
-            "Correo enviado:",
-            resultadoCorreo
-        );
-
         alert(
             figurasDibujadas.length === 1
-                ? "La figura fue incluida en el PDF. El archivo fue descargado y enviado correctamente."
-                : `Las ${figurasDibujadas.length} figuras fueron incluidas en el PDF. El archivo fue descargado y enviado correctamente.`
+                ? "La figura fue incluida y el PDF se descargó correctamente."
+                : `Las ${figurasDibujadas.length} figuras fueron incluidas y el PDF se descargó correctamente.`
         );
 
     } catch (error) {
         console.error(
-            "Error generando o enviando el PDF:",
+            "Error generando el PDF:",
             error
         );
 
         alert(
             error.message ||
-            "No fue posible generar o enviar el PDF."
+            "No fue posible generar el PDF."
         );
 
     } finally {
-        /*
-         * El mapa regresa a la posición
-         * que tenía antes de generar el PDF.
-         */
         map.setView(
             centroAnterior,
             zoomAnterior,
