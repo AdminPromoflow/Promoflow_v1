@@ -12,7 +12,7 @@ class Mapa {
         this.map = L.map(
             "map",
             {
-                minZoom: 16,
+                minZoom: 5,
                 maxZoom: 18
             }
         ).setView(
