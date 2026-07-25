@@ -19,7 +19,7 @@ body{
     min-height:100vh;
     min-height:100dvh;
     font-family: Arial, Helvetica, sans-serif;
-    background:#edf1f7;
+    background: gold;
     overflow:hidden;
     overscroll-behavior:none;
 }
