@@ -34,7 +34,7 @@
   <div class="caja_grande">
     <h1>Texto</h1>
     <div class="caja_pequeña">
-      <input type="text" name="" value="">
+      <input id="input" type="text" name="" value="">
     </div>
 
   </div>
