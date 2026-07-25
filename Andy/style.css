@@ -32,9 +32,10 @@ body{
 }
 .caja_pequeña{
   position: absolute;
-  top: 0px;
+  bottom: 0px;
   left: 0px;
   height: 80px;
+  width: 100vw;
   background: green;
 
 }
