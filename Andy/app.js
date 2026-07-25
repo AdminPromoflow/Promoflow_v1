@@ -1,170 +1,219 @@
 "use strict";
 
 const conversations = [
-{
-    id:1,
-    name:"Andrew",
-    online:true,
-    messages:[
-        {
-            from:"them",
-            text:"Hello!"
-        },
-        {
-            from:"me",
-            text:"Hi Andrew!"
-        }
-    ]
-},
-{
-    id:2,
-    name:"Sophia",
-    online:false,
-    messages:[
-        {
-            from:"them",
-            text:"Can we talk tomorrow?"
-        }
-    ]
-},
-{
-    id:3,
-    name:"Michael",
-    online:true,
-    messages:[
-        {
-            from:"me",
-            text:"Everything is ready."
-        }
-    ]
-}
+    {
+        id: 1,
+        name: "Andrew",
+        online: true,
+        messages: [
+            {
+                from: "them",
+                text: "Hello!"
+            },
+            {
+                from: "me",
+                text: "Hi Andrew!"
+            },
+            {
+                from: "them",
+                text: "How are you today?"
+            }
+        ]
+    },
+    {
+        id: 2,
+        name: "Sophia",
+        online: false,
+        messages: [
+            {
+                from: "them",
+                text: "Can we talk tomorrow?"
+            }
+        ]
+    },
+    {
+        id: 3,
+        name: "Michael",
+        online: true,
+        messages: [
+            {
+                from: "me",
+                text: "Everything is ready."
+            }
+        ]
+    }
 ];
+
+const messenger = document.querySelector(".messenger");
 
 const conversationList = document.getElementById("conversationList");
 const chatBody = document.getElementById("chatBody");
 const chatName = document.getElementById("chatName");
 const chatStatus = document.getElementById("chatStatus");
+const chatAvatar = document.getElementById("chatAvatar");
+
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
-const search = document.getElementById("searchConversation");
+
+const searchConversation = document.getElementById("searchConversation");
+const backButton = document.getElementById("backButton");
 
 let currentConversation = null;
 
-function renderConversations(filter = ""){
+/* ==========================================
+   RENDER CONVERSATIONS
+========================================== */
+
+function renderConversations(filter = "") {
 
     conversationList.innerHTML = "";
 
     conversations
-    .filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()))
-    .forEach(conversation=>{
+        .filter(conversation =>
+            conversation.name
+                .toLowerCase()
+                .includes(filter.toLowerCase())
+        )
+        .forEach(conversation => {
 
-        const div = document.createElement("div");
+            const lastMessage =
+                conversation.messages[
+                    conversation.messages.length - 1
+                ];
 
-        div.className="conversation";
+            const div = document.createElement("div");
 
-        div.innerHTML=`
+            div.className = "conversation";
 
-            <div class="avatar">
-                ${conversation.name.charAt(0)}
-            </div>
+            if (
+                currentConversation &&
+                currentConversation.id === conversation.id
+            ) {
+                div.classList.add("active");
+            }
 
-            <div class="info">
+            div.innerHTML = `
+                <div class="avatar">
+                    ${conversation.name.charAt(0)}
+                </div>
 
-                <h4>${conversation.name}</h4>
+                <div class="info">
 
-                <p>
-                    ${
-                        conversation.messages.at(-1)?.text || ""
-                    }
-                </p>
+                    <h4>${conversation.name}</h4>
 
-            </div>
+                    <p>${lastMessage ? lastMessage.text : ""}</p>
 
-            <span class="time">
-                Now
-            </span>
+                </div>
 
-        `;
+                <span class="time">
+                    Now
+                </span>
+            `;
 
-        div.onclick=()=>{
+            div.addEventListener("click", () => {
 
-            document
-            .querySelectorAll(".conversation")
-            .forEach(c=>c.classList.remove("active"));
+                currentConversation = conversation;
 
-            div.classList.add("active");
+                renderConversations(searchConversation.value);
 
-            currentConversation=conversation;
+                renderMessages();
 
-            renderMessages();
+                messenger.classList.add("chat-open");
 
-        };
+            });
 
-        conversationList.appendChild(div);
+            conversationList.appendChild(div);
 
-    });
+        });
 
 }
 
-function renderMessages(){
+/* ==========================================
+   RENDER MESSAGES
+========================================== */
 
-    if(!currentConversation) return;
+function renderMessages() {
 
-    chatName.textContent=currentConversation.name;
+    if (!currentConversation) {
+        return;
+    }
 
-    chatStatus.textContent=currentConversation.online
+    chatName.textContent = currentConversation.name;
+
+    chatStatus.textContent = currentConversation.online
         ? "Online"
         : "Offline";
 
-    chatBody.innerHTML="";
+    chatStatus.style.color = currentConversation.online
+        ? "#22c55e"
+        : "#9ca3af";
 
-    currentConversation.messages.forEach(message=>{
+    chatAvatar.textContent =
+        currentConversation.name.charAt(0);
 
-        const div=document.createElement("div");
+    chatBody.innerHTML = "";
 
-        div.className=`message ${
-            message.from==="me"
-            ? "sent"
-            : "received"
-        }`;
+    currentConversation.messages.forEach(message => {
 
-        div.textContent=message.text;
+        const div = document.createElement("div");
+
+        div.className =
+            "message " +
+            (message.from === "me"
+                ? "sent"
+                : "received");
+
+        div.textContent = message.text;
 
         chatBody.appendChild(div);
 
     });
 
-    chatBody.scrollTop=chatBody.scrollHeight;
+    chatBody.scrollTop = chatBody.scrollHeight;
 
 }
 
-function sendMessage(){
+/* ==========================================
+   SEND MESSAGE
+========================================== */
 
-    if(!currentConversation) return;
+function sendMessage() {
 
-    const text=messageInput.value.trim();
+    if (!currentConversation) {
+        return;
+    }
 
-    if(text==="") return;
+    const text = messageInput.value.trim();
+
+    if (text === "") {
+        return;
+    }
 
     currentConversation.messages.push({
 
-        from:"me",
+        from: "me",
 
-        text
+        text: text
 
     });
 
-    messageInput.value="";
+    messageInput.value = "";
+
+    renderConversations(searchConversation.value);
 
     renderMessages();
 
 }
 
-sendButton.onclick=sendMessage;
+/* ==========================================
+   EVENTS
+========================================== */
 
-messageInput.addEventListener("keypress",(event)=>{
+sendButton.addEventListener("click", sendMessage);
 
-    if(event.key==="Enter"){
+messageInput.addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
 
         sendMessage();
 
@@ -172,10 +221,20 @@ messageInput.addEventListener("keypress",(event)=>{
 
 });
 
-search.addEventListener("input",()=>{
+searchConversation.addEventListener("input", () => {
 
-    renderConversations(search.value);
+    renderConversations(searchConversation.value);
 
 });
+
+backButton.addEventListener("click", () => {
+
+    messenger.classList.remove("chat-open");
+
+});
+
+/* ==========================================
+   INITIALIZE
+========================================== */
 
 renderConversations();

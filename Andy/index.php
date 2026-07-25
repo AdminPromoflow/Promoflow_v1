@@ -18,7 +18,9 @@
 
 <div class="messenger">
 
-    <!-- Sidebar -->
+    <!-- ==========================
+         SIDEBAR
+    =========================== -->
 
     <aside class="sidebar">
 
@@ -28,37 +30,60 @@
 
             <input
                 type="text"
-                placeholder="Search..."
-                id="searchConversation">
+                id="searchConversation"
+                placeholder="Search conversation...">
 
         </div>
 
-        <div class="conversation-list" id="conversationList">
+        <div
+            class="conversation-list"
+            id="conversationList">
+
+            <!-- Conversations generated with JavaScript -->
 
         </div>
 
     </aside>
 
-    <!-- Chat -->
+    <!-- ==========================
+         CHAT
+    =========================== -->
 
     <section class="chat">
 
         <header class="chat-header">
 
+            <button
+                id="backButton"
+                class="back-button"
+                type="button">
+
+                ←
+
+            </button>
+
             <div class="user">
 
-                <div class="avatar large">
-                    A
+                <div
+                    class="avatar large"
+                    id="chatAvatar">
+
+                    ?
+
                 </div>
 
                 <div>
 
                     <h3 id="chatName">
-                        Select conversation
+
+                        Select a conversation
+
                     </h3>
 
                     <span id="chatStatus">
+
                         Offline
+
                     </span>
 
                 </div>
@@ -67,20 +92,45 @@
 
         </header>
 
-        <div
+        <main
             class="chat-body"
             id="chatBody">
 
-        </div>
+            <div class="empty-chat">
+
+                <div class="empty-icon">
+
+                    💬
+
+                </div>
+
+                <h2>
+
+                    Messenger System
+
+                </h2>
+
+                <p>
+
+                    Select a conversation to start chatting.
+
+                </p>
+
+            </div>
+
+        </main>
 
         <footer class="chat-footer">
 
             <input
                 type="text"
                 id="messageInput"
-                placeholder="Write a message...">
+                placeholder="Write a message..."
+                autocomplete="off">
 
-            <button id="sendButton">
+            <button
+                id="sendButton"
+                type="button">
 
                 Send
 
