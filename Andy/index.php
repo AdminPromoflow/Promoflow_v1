@@ -4,13 +4,28 @@
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes">
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="default">
+
+    <meta
+        name="format-detection"
+        content="telephone=no">
 
     <title>Messenger System</title>
 
-    <link rel="stylesheet"
-          href="style.css?v=<?php echo filemtime("style.css"); ?>">
+    <link
+        rel="stylesheet"
+        href="style.css?v=<?php echo filemtime("style.css"); ?>">
 
 </head>
 
@@ -31,7 +46,11 @@
             <input
                 type="text"
                 id="searchConversation"
-                placeholder="Search conversation...">
+                placeholder="Search conversation..."
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false">
 
         </div>
 
@@ -56,7 +75,8 @@
             <button
                 id="backButton"
                 class="back-button"
-                type="button">
+                type="button"
+                aria-label="Back">
 
                 ←
 
@@ -126,7 +146,11 @@
                 type="text"
                 id="messageInput"
                 placeholder="Write a message..."
-                autocomplete="off">
+                autocomplete="off"
+                autocapitalize="sentences"
+                autocorrect="on"
+                spellcheck="true"
+                enterkeyhint="send">
 
             <button
                 id="sendButton"
