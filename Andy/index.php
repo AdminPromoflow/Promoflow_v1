@@ -31,140 +31,15 @@
 
 <body>
 
-<div class="messenger">
+  <div class="caja_grande">
+    <h1>Texto</h1>
+    <div class="caja_pequeña">
+      <input type="text" name="" value="">
+    </div>
 
-    <!-- ==========================
-         SIDEBAR
-    =========================== -->
+  </div>
 
-    <aside class="sidebar">
 
-        <div class="sidebar-header">
-
-            <h2>Messages</h2>
-
-            <input
-                type="text"
-                id="searchConversation"
-                placeholder="Search conversation..."
-                autocomplete="off"
-                autocapitalize="off"
-                autocorrect="off"
-                spellcheck="false">
-
-        </div>
-
-        <div
-            class="conversation-list"
-            id="conversationList">
-
-            <!-- Conversations generated with JavaScript -->
-
-        </div>
-
-    </aside>
-
-    <!-- ==========================
-         CHAT
-    =========================== -->
-
-    <section class="chat">
-
-        <header class="chat-header">
-
-            <button
-                id="backButton"
-                class="back-button"
-                type="button"
-                aria-label="Back">
-
-                ←
-
-            </button>
-
-            <div class="user">
-
-                <div
-                    class="avatar large"
-                    id="chatAvatar">
-
-                    ?
-
-                </div>
-
-                <div>
-
-                    <h3 id="chatName">
-
-                        Select a conversation
-
-                    </h3>
-
-                    <span id="chatStatus">
-
-                        Offline
-
-                    </span>
-
-                </div>
-
-            </div>
-
-        </header>
-
-        <main
-            class="chat-body"
-            id="chatBody">
-
-            <div class="empty-chat">
-
-                <div class="empty-icon">
-
-                    💬
-
-                </div>
-
-                <h2>
-
-                    Messenger System
-
-                </h2>
-
-                <p>
-
-                    Select a conversation to start chatting.
-
-                </p>
-
-            </div>
-
-        </main>
-
-        <footer class="chat-footer">
-
-            <input
-                type="text"
-                id="messageInput"
-                placeholder="Write a message..."
-                autocomplete="off"
-                autocapitalize="sentences"
-                autocorrect="on"
-                spellcheck="true"
-                enterkeyhint="send">
-
-            <button
-                id="sendButton"
-                type="button">
-
-                Send
-
-            </button>
-
-        </footer>
-
-    </section>
-
-</div>
 
 <script src="app.js?v=<?php echo filemtime("app.js"); ?>"></script>
 
