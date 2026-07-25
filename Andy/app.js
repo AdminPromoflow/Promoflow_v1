@@ -8,6 +8,6 @@ const caja_grande = document.getElementById("caja_grande");
 
 
 
-input.addEventListener("focus", function(){
+input.addEventListener("click", function(){
   alert("hah");
 });
