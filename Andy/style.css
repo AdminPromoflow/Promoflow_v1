@@ -27,38 +27,17 @@ select {
     font-size: 16px;
 }
 
-/* ==========================================
-   LARGE BOX
-========================================== */
-
-.caja_grande {
-    display: flex;
-    flex-direction: column;
-
-    width: 100%;
-    height: 100dvh;
-
-    background: orange;
-    overflow: hidden;
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
 }
 
-/* ==========================================
-   MIDDLE CONTENT
-========================================== */
-
-.caja_contenido {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
+.top,
+.bottom {
+  flex: 0 0 auto; /* shrink to content */
 }
 
-/* ==========================================
-   SMALL BOX
-========================================== */
-
-.caja_pequeña {
-    flex: 0 0 auto;
-
-    width: 100%;
-    background: green;
+.middle {
+  flex: 1 1 auto; /* takes up remaining space */
 }
