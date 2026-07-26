@@ -29,9 +29,9 @@
 
 <body>
 
-  <div class="caja_grande">
+  <div id="caja_grande" class="caja_grande">
     <h1>Texto</h1>
-    <div class="caja_pequeña">
+    <div id="caja_pequeña" class="caja_pequeña">
       <input id="input" type="text" name="" value="">
     </div>
 
