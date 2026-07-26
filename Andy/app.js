@@ -6,7 +6,7 @@ const html = document.documentElement;
 
 input.addEventListener("click", function () {
   container.style.background = "red";
-  body.style.background = "body";
+  body.style.background = "purple";
 
     // alert("hi");
     //
