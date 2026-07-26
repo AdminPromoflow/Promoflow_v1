@@ -8,7 +8,8 @@ input.addEventListener("click", function () {
   container.style.background = "red";
   body.style.background = "purple";
    body.style.height = "300px";
-  html.style.background = "brown";
+   html.style.height = "400px";
+   html.style.background = "brown";
 
     // alert("hi");
     //
