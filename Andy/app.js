@@ -1,9 +1,12 @@
 const input = document.getElementById("input");
-const cajaGrande = document.getElementById("caja_grande");
+const container = document.getElementById("container");
+
 const body = document.body;
 const html = document.documentElement;
 
 input.addEventListener("click", function () {
+  container.style.height = "200px";
+  container.style.background = "red";
     // alert("hi");
     //
     // cajaGrande.style.height = "200px";
