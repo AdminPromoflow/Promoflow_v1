@@ -7,6 +7,7 @@ const html = document.documentElement;
 input.addEventListener("click", function () {
   container.style.background = "red";
   body.style.background = "purple";
+   body.style.height = "300px";
   html.style.background = "brown";
 
     // alert("hi");
