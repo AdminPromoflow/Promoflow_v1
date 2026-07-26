@@ -28,17 +28,9 @@ select {
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  height: 500px;
   overflow-y: hidden;
-}
-
-.top,
-.bottom {
-  flex: 0 0 auto; /* shrink to content */
-}
-
-.middle {
-  flex: 1 1 auto; /* takes up remaining space */
 }
