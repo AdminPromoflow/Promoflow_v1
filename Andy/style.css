@@ -35,3 +35,18 @@ select {
   background: green;
   overflow-y: hidden;
 }
+.top{
+  position: relative;
+  background: gold;
+  height: 100px;
+}
+.middle{
+  position: relative;
+  background: blue;
+  height: 300px;
+}
+.bottom{
+  position: relative;
+  background: red;
+  height: 100px;
+}
