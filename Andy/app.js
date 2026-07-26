@@ -5,7 +5,6 @@ const body = document.body;
 const html = document.documentElement;
 
 input.addEventListener("click", function () {
-  container.style.height = "200px";
   container.style.background = "red";
     // alert("hi");
     //
