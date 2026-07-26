@@ -4,10 +4,10 @@ const body = document.body;
 const html = document.documentElement;
 
 input.addEventListener("click", function () {
-    alert("hi");
-
-    cajaGrande.style.height = "200px";
-    body.style.height = "300px";
-    html.style.height = "400px";
+    // alert("hi");
+    //
+    // cajaGrande.style.height = "200px";
+    // body.style.height = "300px";
+    // html.style.height = "400px";
 
 });
