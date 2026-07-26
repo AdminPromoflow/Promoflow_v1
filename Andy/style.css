@@ -21,6 +21,11 @@ body{
     overflow:hidden;
     overscroll-behavior:none;
 }
+input,
+textarea,
+select {
+    font-size: 16px;
+}
 
 .caja_grande{
   position: relative;
