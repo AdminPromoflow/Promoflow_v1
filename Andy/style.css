@@ -32,5 +32,6 @@ select {
   top: 0px;
   left: 0px;
   height: 500px;
+  background: green;
   overflow-y: hidden;
 }

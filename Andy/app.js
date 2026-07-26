@@ -5,11 +5,11 @@ const body = document.body;
 const html = document.documentElement;
 
 input.addEventListener("click", function () {
-  container.style.background = "red";
-  body.style.background = "purple";
-   body.style.height = "300px";
-   html.style.height = "400px";
-   html.style.background = "brown";
+  // container.style.background = "red";
+  // body.style.background = "purple";
+  //  body.style.height = "300px";
+  //  html.style.height = "400px";
+  //  html.style.background = "brown";
 
     // alert("hi");
     //
