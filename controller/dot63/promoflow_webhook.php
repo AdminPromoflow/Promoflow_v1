@@ -119,7 +119,6 @@ class PromoflowWebhook
         "message_created_at" => $created_at ?? null,
         "all_data_received" => $data
     ]);
-    exit;
     $resultMessages = $message->sendMessage();
 
     echo json_encode($resultMessages);
