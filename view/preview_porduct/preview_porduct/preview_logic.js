@@ -163,6 +163,7 @@ class PreviewLogic {
         return response.text();
       })
       .then((text) => {
+        alert(text);
         let json;
 
         try {
