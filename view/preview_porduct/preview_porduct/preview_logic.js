@@ -3,9 +3,10 @@
 class PreviewLogic {
   constructor() {
     this.variations = new Variations(this);
+    this.initialised = false;
 
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => this.init());
+      document.addEventListener("DOMContentLoaded", () => this.init(), { once: true });
     } else {
       this.init();
     }
@@ -16,9 +17,15 @@ class PreviewLogic {
   ============================================================================ */
 
   init() {
+    if (this.initialised) return false;
+
+    this.initialised = true;
+
     this.bindMainButtons();
     this.variations.init();
     this.getDataProduct();
+
+    return true;
   }
 
   bindMainButtons() {
@@ -40,6 +47,8 @@ class PreviewLogic {
       messageSupplierBtn.dataset.bound = "1";
       messageSupplierBtn.addEventListener("click", () => this.messageSupplier());
     }
+
+    return true;
   }
 
   /* ============================================================================
@@ -51,7 +60,7 @@ class PreviewLogic {
     const sku = params.get("sku");
 
     if (!sku) {
-      console.warn("No SKU in URL");
+      console.warn("No SKU in URL.");
       return false;
     }
 
@@ -70,7 +79,7 @@ class PreviewLogic {
     const sku = params.get("sku");
 
     if (!sku) {
-      console.warn("No SKU in URL");
+      console.warn("No SKU in URL.");
       return false;
     }
 
@@ -90,7 +99,7 @@ class PreviewLogic {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network error.");
+          throw new Error(`Network error: ${response.status}.`);
         }
 
         return response.text();
@@ -101,8 +110,9 @@ class PreviewLogic {
         try {
           responseData = JSON.parse(text);
         } catch (error) {
-          console.error("Invalid JSON response:", error);
-          alert(text);
+          console.error("Invalid publish JSON response:", error);
+          console.error("Server response:", text);
+          alert(text || "Invalid server response.");
           return;
         }
 
@@ -120,9 +130,7 @@ class PreviewLogic {
   }
 
   backBtn() {
-    const destination = "../../view/overview/index.php";
-    window.location.assign(destination);
-
+    window.location.assign("../../view/overview/index.php");
     return true;
   }
 
@@ -135,7 +143,8 @@ class PreviewLogic {
     const sku = params.get("sku");
 
     if (!sku) {
-      console.warn("No SKU in URL");
+      console.warn("No SKU in URL.");
+      this.hideLoader();
       return false;
     }
 
@@ -157,7 +166,7 @@ class PreviewLogic {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network error.");
+          throw new Error(`Network error: ${response.status}.`);
         }
 
         return response.text();
@@ -174,23 +183,15 @@ class PreviewLogic {
         }
 
         if (!Array.isArray(json)) {
+          console.error("Expected an array but received:", json);
           throw new Error("Invalid product preview response.");
         }
 
-        const companyName =
-          json.find((row) => row?.company_name)?.company_name ?? "";
-
-        const categoryName =
-          json.find((row) => row?.category_name)?.category_name ?? "";
-
-        const groupName =
-          json.find((row) => row?.group_name)?.group_name ?? "";
-
-        const defaultVariationId =
-          json.find((row) => row?.default_variation_id)?.default_variation_id ?? "";
-
-        const productDetails =
-          json.find((row) => row?.product_details)?.product_details ?? {};
+        const companyName = json.find((row) => row?.company_name !== undefined)?.company_name ?? "";
+        const categoryName = json.find((row) => row?.category_name !== undefined)?.category_name ?? "";
+        const groupName = json.find((row) => row?.group_name !== undefined)?.group_name ?? "";
+        const defaultVariationId = json.find((row) => row?.default_variation_id !== undefined)?.default_variation_id ?? "";
+        const productDetails = json.find((row) => row?.product_details !== undefined)?.product_details ?? {};
 
         const productName = productDetails?.product_name ?? "";
         const descriptiveTagline = productDetails?.descriptive_tagline ?? "";
@@ -206,19 +207,33 @@ class PreviewLogic {
         this.renderTagline(descriptiveTagline);
         this.renderDescription(description);
 
-        variations.reset();
-        this.deleteGroupsContent();
+        if (!this.variations || typeof this.variations !== "object") {
+          throw new Error("The Variations instance was not created correctly.");
+        }
+
+        if (typeof this.variations.reset === "function") {
+          this.variations.reset();
+        } else if (typeof this.variations.clearVariations === "function") {
+          this.variations.clearVariations();
+        } else {
+          this.deleteGroupsContent();
+        }
 
         if (!defaultVariationId) {
-          console.warn("No default variation id returned.");
+          console.warn("No default variation ID returned.");
           this.hideLoader();
           return;
         }
 
-        variations.fetchChildVariationsById(defaultVariationId);
+        if (typeof this.variations.fetchChildVariationsById !== "function") {
+          throw new Error("Variations.fetchChildVariationsById() does not exist.");
+        }
+
+        this.variations.fetchChildVariationsById(defaultVariationId);
       })
       .catch((error) => {
         console.error("Error fetching preview:", error);
+        console.error("Error stack:", error.stack);
         this.hideLoader();
       });
 
@@ -244,6 +259,7 @@ class PreviewLogic {
 
   deleteGroupsContent() {
     const groups = [
+      document.querySelector(".wrap-variations-group"),
       document.getElementById("wrap-variations-group"),
       document.getElementById("wrap-images-group"),
       document.getElementById("wrap-items-group"),
@@ -251,11 +267,14 @@ class PreviewLogic {
       document.getElementById("wrap-artworks-group")
     ];
 
-    for (const group of groups) {
-      if (group) {
-        group.innerHTML = "";
-      }
-    }
+    const processedGroups = new Set();
+
+    groups.forEach((group) => {
+      if (!group || processedGroups.has(group)) return;
+
+      processedGroups.add(group);
+      group.innerHTML = "";
+    });
 
     window.previewGallery?.clearGallery?.();
 
@@ -285,7 +304,6 @@ class PreviewLogic {
     if (!category) return false;
 
     category.textContent = categoryName || "";
-
     return true;
   }
 
@@ -295,7 +313,6 @@ class PreviewLogic {
     if (!title) return false;
 
     title.textContent = productName || "";
-
     return true;
   }
 
@@ -305,7 +322,6 @@ class PreviewLogic {
     if (!brand) return false;
 
     brand.textContent = companyName || "";
-
     return true;
   }
 
@@ -315,7 +331,6 @@ class PreviewLogic {
     if (!subtitle) return false;
 
     subtitle.textContent = descriptiveTagline || "";
-
     return true;
   }
 
@@ -325,16 +340,31 @@ class PreviewLogic {
     if (!descriptionElement) return false;
 
     descriptionElement.textContent = description || "";
-
     return true;
   }
 
   /* ============================================================================
     VARIATION PROXIES
-    These methods communicate with variations.js.
   ============================================================================ */
 
+  resetVariations() {
+    if (typeof this.variations?.reset === "function") {
+      return this.variations.reset();
+    }
+
+    if (typeof this.variations?.clearVariations === "function") {
+      return this.variations.clearVariations();
+    }
+
+    return this.deleteGroupsContent();
+  }
+
   selectVariation(domId = "", automatic = false, variationRow = null) {
+    if (typeof this.variations?.selectVariation !== "function") {
+      console.error("Variations.selectVariation() does not exist.");
+      return false;
+    }
+
     return this.variations.selectVariation(domId, automatic, variationRow);
   }
 
@@ -343,22 +373,35 @@ class PreviewLogic {
   }
 
   fetchChildVariationsById(variationId) {
+    if (typeof this.variations?.fetchChildVariationsById !== "function") {
+      console.error("Variations.fetchChildVariationsById() does not exist.");
+      return false;
+    }
+
     return this.variations.fetchChildVariationsById(variationId);
   }
 
   setSelectVariation(domId) {
-    this.variations.setSelectVariation(domId);
+    if (typeof this.variations?.setSelectVariation !== "function") return false;
+
+    return this.variations.setSelectVariation(domId);
   }
 
   getSelectVariation() {
+    if (typeof this.variations?.getSelectVariation !== "function") return null;
+
     return this.variations.getSelectVariation();
   }
 
   getSelectedVariationId() {
+    if (typeof this.variations?.getSelectedVariationId !== "function") return null;
+
     return this.variations.getSelectedVariationId();
   }
 
   getShouldDeleteItems() {
+    if (typeof this.variations?.getShouldDeleteItems !== "function") return false;
+
     return this.variations.getShouldDeleteItems();
   }
 
@@ -367,18 +410,12 @@ class PreviewLogic {
   ============================================================================ */
 
   showLoader() {
-    if (
-      typeof window.loader !== "undefined" &&
-      typeof window.loader?.show === "function"
-    ) {
+    if (typeof window.loader?.show === "function") {
       window.loader.show();
       return true;
     }
 
-    if (
-      typeof loader !== "undefined" &&
-      typeof loader?.show === "function"
-    ) {
+    if (typeof loader !== "undefined" && typeof loader?.show === "function") {
       loader.show();
       return true;
     }
@@ -387,18 +424,12 @@ class PreviewLogic {
   }
 
   hideLoader() {
-    if (
-      typeof window.loader !== "undefined" &&
-      typeof window.loader?.hide === "function"
-    ) {
+    if (typeof window.loader?.hide === "function") {
       window.loader.hide();
       return true;
     }
 
-    if (
-      typeof loader !== "undefined" &&
-      typeof loader?.hide === "function"
-    ) {
+    if (typeof loader !== "undefined" && typeof loader?.hide === "function") {
       loader.hide();
       return true;
     }
@@ -424,25 +455,17 @@ class PreviewLogic {
   GLOBAL INSTANCE
 ============================================================================ */
 
-let previewLogic = null;
-let variations = null;
-
 function createPreviewLogic() {
   if (window.previewLogic instanceof PreviewLogic) {
-    previewLogic = window.previewLogic;
-    variations = previewLogic.variations;
-    return;
+    window.variations = window.previewLogic.variations;
+    return window.previewLogic;
   }
 
-  previewLogic = new PreviewLogic();
-  variations = previewLogic.variations;
+  window.previewLogic = new PreviewLogic();
+  window.variations = window.previewLogic.variations;
 
-  window.previewLogic = previewLogic;
-  window.variations = variations;
+  return window.previewLogic;
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", createPreviewLogic);
-} else {
-  createPreviewLogic();
-}
+const previewLogic = createPreviewLogic();
+const variations = previewLogic.variations;
