@@ -205,7 +205,6 @@ class PreviewLogic {
         this.renderBrandName(companyName);
         this.renderTagline(descriptiveTagline);
         this.renderDescription(description);
-        alert("buenas");
 
         this.variations.reset();
         this.deleteGroupsContent();
@@ -216,7 +215,7 @@ class PreviewLogic {
           return;
         }
 
-        this.variations.fetchChildVariationsById(defaultVariationId);
+        this.fetchChildVariationsById(defaultVariationId);
       })
       .catch((error) => {
         console.error("Error fetching preview:", error);
