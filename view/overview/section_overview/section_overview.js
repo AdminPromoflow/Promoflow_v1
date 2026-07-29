@@ -49,6 +49,7 @@ class SectionOverview {
         return result.json();
       })
       .then((data) => {
+        alert(data);
         if (data["success"]) {
           this.renderOverviewDetailsTable(data["result"]);
         }
