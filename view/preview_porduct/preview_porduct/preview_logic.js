@@ -99,7 +99,7 @@ class PreviewLogic {
         if (responseData.success === true) {
           alert(responseData.message || "The product has been approved.");
 
-          window.location.href = "view/overview/index.php";
+          window.location.href = "../../view/overview/index.php";
           return;
         }
 
