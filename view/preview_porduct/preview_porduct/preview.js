@@ -10,31 +10,28 @@ class PreviewGallery {
     this.currentIndex = 0;
     this.autoTimer = null;
     this.observer = null;
-
-    this.init();
+    this.isInitialised = false;
   }
 
-  /* ============================================================================
+  /* ==========================================================================
     INITIALISE
-  ============================================================================ */
+  ========================================================================== */
 
   init() {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => {
-        this.setupObserver();
-        this.setupZoomEvents();
-        this.refreshGallery();
-      });
-    } else {
-      this.setupObserver();
-      this.setupZoomEvents();
-      this.refreshGallery();
-    }
-  }
+    if (this.isInitialised) return;
 
-  /* ============================================================================
-    OBSERVER
-  ============================================================================ */
+    const root = this.getRoot();
+
+    if (!root) {
+      console.warn(`Gallery root #${this.rootId} was not found.`);
+      return;
+    }
+
+    this.isInitialised = true;
+    this.setupObserver();
+    this.setupZoomEvents();
+    this.refreshGallery();
+  }
 
   setupObserver() {
     const root = this.getRoot();
@@ -43,10 +40,22 @@ class PreviewGallery {
 
     if (this.observer) {
       this.observer.disconnect();
+      this.observer = null;
     }
 
-    this.observer = new MutationObserver(() => {
-      this.refreshGallery(true);
+    this.observer = new MutationObserver((mutations) => {
+      const hasRelevantChange = mutations.some((mutation) => {
+        if (mutation.type === "childList") return true;
+
+        return (
+          mutation.type === "attributes" &&
+          ["src", "poster"].includes(mutation.attributeName)
+        );
+      });
+
+      if (hasRelevantChange) {
+        this.refreshGallery(true);
+      }
     });
 
     this.observer.observe(root, {
@@ -59,15 +68,10 @@ class PreviewGallery {
     return true;
   }
 
-  /* ============================================================================
-    ZOOM EVENTS
-  ============================================================================ */
-
   setupZoomEvents() {
     const root = this.getRoot();
 
-    if (!root) return false;
-    if (root.dataset.zoomBound === "1") return true;
+    if (!root || root.dataset.zoomBound === "1") return false;
 
     root.dataset.zoomBound = "1";
 
@@ -79,63 +83,20 @@ class PreviewGallery {
       this.handleZoomLeave();
     });
 
-    return true;
-  }
+    root.addEventListener("touchstart", () => {
+      this.stopAutoplay();
+    }, { passive: true });
 
-  handleZoomMove(event) {
-    const activeMedia = event.target.closest(".preview-media.is-active");
-
-    if (!activeMedia) return false;
-    if (activeMedia.tagName !== "IMG") return false;
-
-    const rect = activeMedia.getBoundingClientRect();
-
-    if (!rect.width || !rect.height) return false;
-
-    const offsetX = event.clientX - rect.left;
-    const offsetY = event.clientY - rect.top;
-
-    const xPercent = (offsetX / rect.width) * 100;
-    const yPercent = (offsetY / rect.height) * 100;
-
-    activeMedia.classList.add("is-zooming");
-    activeMedia.style.transformOrigin = `${xPercent}% ${yPercent}%`;
-    activeMedia.style.transform = `scale(${this.zoomScale})`;
-
-    this.stopAutoplay();
+    root.addEventListener("touchend", () => {
+      this.startAutoplay();
+    }, { passive: true });
 
     return true;
   }
 
-  handleZoomLeave() {
-    const currentMedia = this.getCurrentMedia();
-
-    if (currentMedia && currentMedia.tagName === "IMG") {
-      this.resetZoom(currentMedia);
-    }
-
-    this.startAutoplay();
-
-    return true;
-  }
-
-  resetZoom(media = null) {
-    const mediaItems = media ? [media] : this.getMediaItems();
-
-    for (const item of mediaItems) {
-      if (!(item instanceof HTMLElement)) continue;
-
-      item.classList.remove("is-zooming");
-      item.style.transformOrigin = "50% 50%";
-      item.style.transform = "scale(1)";
-    }
-
-    return true;
-  }
-
-  /* ============================================================================
-    DOM HELPERS
-  ============================================================================ */
+  /* ==========================================================================
+    ELEMENT HELPERS
+  ========================================================================== */
 
   getRoot() {
     return document.getElementById(this.rootId);
@@ -150,15 +111,19 @@ class PreviewGallery {
 
     if (!root) return [];
 
-    return Array.from(root.querySelectorAll(".preview-media"));
+    return Array.from(
+      root.querySelectorAll(
+        "img.preview-media, video.preview-media"
+      )
+    );
   }
 
   getCurrentMedia() {
-    const mediaItems = this.getMediaItems();
+    const items = this.getMediaItems();
 
-    if (mediaItems.length === 0) return null;
+    if (items.length === 0) return null;
 
-    return mediaItems[this.currentIndex] || null;
+    return items[this.currentIndex] || null;
   }
 
   hasMedia() {
@@ -173,41 +138,113 @@ class PreviewGallery {
     return index;
   }
 
-  /* ============================================================================
+  /* ==========================================================================
     AUTOPLAY
-  ============================================================================ */
+  ========================================================================== */
 
   stopAutoplay() {
-    if (!this.autoTimer) return false;
+    if (!this.autoTimer) return;
 
-    clearInterval(this.autoTimer);
+    window.clearInterval(this.autoTimer);
     this.autoTimer = null;
-
-    return true;
   }
 
   startAutoplay() {
     this.stopAutoplay();
 
-    const mediaItems = this.getMediaItems();
+    const items = this.getMediaItems();
 
-    if (mediaItems.length <= 1) return false;
+    if (items.length <= 1) return false;
 
     this.autoTimer = window.setInterval(() => {
-      this.nextImage();
+      this.nextImage(false);
     }, this.intervalMs);
 
     return true;
   }
 
-  /* ============================================================================
-    GALLERY
-  ============================================================================ */
+  clearGallery() {
+    this.stopAutoplay();
+    this.currentIndex = 0;
+
+    const thumbsRoot = this.getThumbsRoot();
+
+    if (thumbsRoot) {
+      thumbsRoot.replaceChildren();
+    }
+
+    return true;
+  }
+
+  /* ==========================================================================
+    ZOOM
+  ========================================================================== */
+
+  resetZoom(media = null) {
+    const items = media ? [media] : this.getMediaItems();
+
+    for (const item of items) {
+      if (!(item instanceof HTMLElement)) continue;
+
+      item.classList.remove("is-zooming");
+      item.style.transformOrigin = "";
+      item.style.transform = "";
+    }
+  }
+
+  handleZoomMove(event) {
+    const target = event.target;
+
+    if (!(target instanceof Element)) return;
+
+    const activeMedia = target.closest(
+      ".preview-media.is-active"
+    );
+
+    if (!(activeMedia instanceof HTMLImageElement)) return;
+
+    const rect = activeMedia.getBoundingClientRect();
+
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    const offsetX = Math.min(
+      Math.max(event.clientX - rect.left, 0),
+      rect.width
+    );
+
+    const offsetY = Math.min(
+      Math.max(event.clientY - rect.top, 0),
+      rect.height
+    );
+
+    const xPercent = (offsetX / rect.width) * 100;
+    const yPercent = (offsetY / rect.height) * 100;
+
+    activeMedia.classList.add("is-zooming");
+    activeMedia.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+    activeMedia.style.transform = `scale(${this.zoomScale})`;
+
+    this.stopAutoplay();
+  }
+
+  handleZoomLeave() {
+    const currentMedia = this.getCurrentMedia();
+
+    if (currentMedia instanceof HTMLImageElement) {
+      this.resetZoom(currentMedia);
+    }
+
+    this.startAutoplay();
+  }
+
+  /* ==========================================================================
+    GALLERY REFRESH
+  ========================================================================== */
 
   refreshGallery(keepIndex = false) {
-    const mediaItems = this.getMediaItems();
+    const items = this.getMediaItems();
 
-    if (mediaItems.length === 0) {
+    if (items.length === 0) {
       this.clearGallery();
       return false;
     }
@@ -215,7 +252,7 @@ class PreviewGallery {
     if (keepIndex) {
       this.currentIndex = this.normaliseIndex(
         this.currentIndex,
-        mediaItems.length
+        items.length
       );
     } else {
       this.currentIndex = 0;
@@ -228,41 +265,30 @@ class PreviewGallery {
     return true;
   }
 
-  clearGallery() {
-    this.stopAutoplay();
-    this.currentIndex = 0;
-
-    const thumbsRoot = this.getThumbsRoot();
-
-    if (thumbsRoot) {
-      thumbsRoot.innerHTML = "";
-    }
-
-    return true;
-  }
-
   showCurrentMedia() {
-    const mediaItems = this.getMediaItems();
+    const items = this.getMediaItems();
 
-    if (mediaItems.length === 0) return false;
+    if (items.length === 0) return false;
 
     this.currentIndex = this.normaliseIndex(
       this.currentIndex,
-      mediaItems.length
+      items.length
     );
 
-    for (let index = 0; index < mediaItems.length; index++) {
-      const media = mediaItems[index];
-      const isActive = index === this.currentIndex;
+    for (let i = 0; i < items.length; i++) {
+      const media = items[i];
+      const isActive = i === this.currentIndex;
 
       this.resetZoom(media);
 
       media.classList.toggle("is-active", isActive);
       media.hidden = !isActive;
       media.style.display = isActive ? "block" : "none";
+      media.setAttribute("aria-hidden", isActive ? "false" : "true");
 
-      if (media.tagName === "VIDEO" && !isActive) {
+      if (media instanceof HTMLVideoElement && !isActive) {
         media.pause();
+        media.currentTime = 0;
       }
     }
 
@@ -271,50 +297,62 @@ class PreviewGallery {
     return true;
   }
 
-  /* ============================================================================
+  /* ==========================================================================
     NAVIGATION
-  ============================================================================ */
+  ========================================================================== */
 
-  nextImage() {
-    const mediaItems = this.getMediaItems();
+  nextImage(restartAutoplay = true) {
+    const items = this.getMediaItems();
 
-    if (mediaItems.length <= 1) return false;
+    if (items.length <= 1) return false;
 
     this.currentIndex = this.normaliseIndex(
       this.currentIndex + 1,
-      mediaItems.length
+      items.length
     );
 
     this.showCurrentMedia();
-    this.startAutoplay();
+
+    if (restartAutoplay) {
+      this.startAutoplay();
+    }
 
     return true;
   }
 
-  prevImage() {
-    const mediaItems = this.getMediaItems();
+  prevImage(restartAutoplay = true) {
+    const items = this.getMediaItems();
 
-    if (mediaItems.length <= 1) return false;
+    if (items.length <= 1) return false;
 
     this.currentIndex = this.normaliseIndex(
       this.currentIndex - 1,
-      mediaItems.length
+      items.length
     );
 
     this.showCurrentMedia();
-    this.startAutoplay();
+
+    if (restartAutoplay) {
+      this.startAutoplay();
+    }
 
     return true;
   }
 
   goToImage(index) {
-    const mediaItems = this.getMediaItems();
+    const items = this.getMediaItems();
+    const numericIndex = Number(index);
 
-    if (mediaItems.length === 0) return false;
+    if (
+      items.length === 0 ||
+      !Number.isInteger(numericIndex)
+    ) {
+      return false;
+    }
 
     this.currentIndex = this.normaliseIndex(
-      Number(index),
-      mediaItems.length
+      numericIndex,
+      items.length
     );
 
     this.showCurrentMedia();
@@ -323,51 +361,45 @@ class PreviewGallery {
     return true;
   }
 
-  /* ============================================================================
+  /* ==========================================================================
     THUMBNAILS
-  ============================================================================ */
+  ========================================================================== */
 
   renderThumbs() {
     const thumbsRoot = this.getThumbsRoot();
-    const mediaItems = this.getMediaItems();
+    const items = this.getMediaItems();
 
     if (!thumbsRoot) return false;
 
-    thumbsRoot.innerHTML = "";
+    thumbsRoot.replaceChildren();
 
-    for (let index = 0; index < mediaItems.length; index++) {
-      const media = mediaItems[index];
+    for (let i = 0; i < items.length; i++) {
+      const media = items[i];
       const button = document.createElement("button");
 
       button.type = "button";
       button.className = "sp-thumb";
+      button.dataset.mediaIndex = String(i);
       button.setAttribute("role", "listitem");
-      button.setAttribute("aria-label", `Show media ${index + 1}`);
+      button.setAttribute("aria-label", `Show media ${i + 1}`);
       button.setAttribute("aria-pressed", "false");
 
-      if (media.tagName === "IMG") {
-        const thumbnail = document.createElement("img");
+      if (media instanceof HTMLImageElement) {
+        const thumbImage = document.createElement("img");
 
-        thumbnail.src = media.currentSrc || media.src;
-        thumbnail.alt = media.alt || `Preview image ${index + 1}`;
-        thumbnail.loading = "lazy";
-        thumbnail.decoding = "async";
-        thumbnail.draggable = false;
+        thumbImage.src = media.currentSrc || media.src;
+        thumbImage.alt = media.alt || `Preview image ${i + 1}`;
+        thumbImage.loading = "lazy";
+        thumbImage.decoding = "async";
+        thumbImage.draggable = false;
 
-        button.appendChild(thumbnail);
-      } else if (media.tagName === "VIDEO") {
-        const videoLabel = document.createElement("span");
-
-        videoLabel.className = "sp-thumb-video";
-        videoLabel.textContent = `Video ${index + 1}`;
-
-        button.appendChild(videoLabel);
-      } else {
-        button.textContent = `Media ${index + 1}`;
+        button.appendChild(thumbImage);
+      } else if (media instanceof HTMLVideoElement) {
+        this.renderVideoThumbnail(button, media, i);
       }
 
       button.addEventListener("click", () => {
-        this.goToImage(index);
+        this.goToImage(i);
       });
 
       thumbsRoot.appendChild(button);
@@ -378,20 +410,43 @@ class PreviewGallery {
     return true;
   }
 
+  renderVideoThumbnail(button, media, index) {
+    const poster = String(media.poster ?? "").trim();
+
+    if (poster) {
+      const thumbImage = document.createElement("img");
+
+      thumbImage.src = poster;
+      thumbImage.alt = `Video preview ${index + 1}`;
+      thumbImage.loading = "lazy";
+      thumbImage.decoding = "async";
+      thumbImage.draggable = false;
+
+      button.appendChild(thumbImage);
+    }
+
+    const videoLabel = document.createElement("span");
+
+    videoLabel.className = "sp-thumb-video";
+    videoLabel.textContent = "Video";
+
+    button.appendChild(videoLabel);
+  }
+
   updateThumbStates() {
     const thumbsRoot = this.getThumbsRoot();
 
     if (!thumbsRoot) return false;
 
-    const thumbnails = Array.from(
+    const thumbs = Array.from(
       thumbsRoot.querySelectorAll(".sp-thumb")
     );
 
-    for (let index = 0; index < thumbnails.length; index++) {
-      const isActive = index === this.currentIndex;
+    for (let i = 0; i < thumbs.length; i++) {
+      const isActive = i === this.currentIndex;
 
-      thumbnails[index].classList.toggle("is-active", isActive);
-      thumbnails[index].setAttribute(
+      thumbs[i].classList.toggle("is-active", isActive);
+      thumbs[i].setAttribute(
         "aria-pressed",
         isActive ? "true" : "false"
       );
@@ -399,32 +454,84 @@ class PreviewGallery {
 
     return true;
   }
-}
 
-/* ============================================================================
-  GLOBAL INSTANCE
-============================================================================ */
+  /* ==========================================================================
+    PRICE COMPATIBILITY
+  ========================================================================== */
 
-let previewGallery = null;
+  updatePrice(preferredButton = null) {
+    const selectedButton =
+      preferredButton ||
+      document.querySelector(
+        "#wrap-prices-group .js-price-option.is-selected"
+      ) ||
+      document.querySelector(
+        "#wrap-prices-group .js-price-option"
+      );
 
-function createPreviewGallery() {
-  if (window.previewGallery instanceof PreviewGallery) {
-    previewGallery = window.previewGallery;
-    return;
+    if (!selectedButton) return false;
+
+    if (
+      window.prices &&
+      typeof window.prices.selectPriceButton === "function"
+    ) {
+      const scope = selectedButton.closest(".wrap-price");
+
+      return window.prices.selectPriceButton(
+        selectedButton,
+        scope
+      );
+    }
+
+    return false;
   }
 
-  previewGallery = new PreviewGallery({
-    rootId: "wrap-images-group",
-    thumbsId: "sp_thumbs",
-    intervalMs: 5000,
-    zoomScale: 2
-  });
+  destroy() {
+    this.stopAutoplay();
+    this.resetZoom();
 
-  window.previewGallery = previewGallery;
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+
+    const root = this.getRoot();
+
+    if (root) {
+      delete root.dataset.zoomBound;
+    }
+
+    this.isInitialised = false;
+  }
+}
+
+/* ==========================================================================
+  GLOBAL INSTANCE
+========================================================================== */
+
+const previewGallery = new PreviewGallery({
+  rootId: "wrap-images-group",
+  thumbsId: "sp_thumbs",
+  intervalMs: 5000,
+  zoomScale: 2
+});
+
+window.previewGallery = previewGallery;
+
+/* ==========================================================================
+  INITIALISE ONCE
+========================================================================== */
+
+function initialisePreviewGallery() {
+  window.previewGallery?.init?.();
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", createPreviewGallery);
+  document.addEventListener(
+    "DOMContentLoaded",
+    initialisePreviewGallery,
+    { once: true }
+  );
 } else {
-  createPreviewGallery();
+  initialisePreviewGallery();
 }

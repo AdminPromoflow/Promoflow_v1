@@ -1,724 +1,1053 @@
 // variations.js
 
 class Variations {
-  constructor(previewLogic = null) {
+  constructor(previewLogic) {
     this.previewLogic = previewLogic;
-
-    this.topContainer = null;
-    this.bottomContainer = null;
-
-    this.variations = [];
     this.variationSelected = null;
-    this.selectedOptions = {};
-    this.maxQuantity = null;
     this.shouldDeleteItems = false;
-
-    this.images = typeof Images === "function" ? new Images(previewLogic) : null;
-    this.items = typeof Items === "function" ? new Items(previewLogic) : null;
-    this.prices = typeof Prices === "function" ? new Prices(previewLogic) : null;
-    this.artwork = typeof Artwork === "function" ? new Artwork(previewLogic) : null;
-  }
-
-  init() {
-    this.topContainer = document.querySelector(".wrap-variations-group");
-    this.bottomContainer = document.getElementById("wrap-variations-group");
-
-    this.images?.init();
-    this.items?.init();
-    this.prices?.init();
-    this.artwork?.init();
-
-    return Boolean(this.topContainer || this.bottomContainer);
+    this.autoLoadedVariationIds = new Set();
+    this.requestVersion = 0;
+    this.loadedVariationTypes = new Set();
+    this.isInitialised = false;
   }
 
   /* ==========================================================================
-    RENDER VARIATIONS
+    INITIALISE
   ========================================================================== */
 
-  renderVariation(data = []) {
-    return this.renderVariations(data);
-  }
+  init() {
+    if (this.isInitialised) return;
 
-  renderVariations(data = []) {
-    this.init();
+    const parent = this.getVariationsParent();
 
-    this.variations = this.normaliseVariations(data);
-    this.selectedOptions = {};
-    this.variationSelected = null;
-    this.maxQuantity = null;
-    this.shouldDeleteItems = false;
-
-    this.clearVariationContainers();
-
-    if (this.variations.length === 0) {
-      this.hideVariationContainers();
-      this.renderIndependentResources(data);
-      return false;
+    if (!parent) {
+      console.warn("Variation group container was not found.");
+      return;
     }
 
-    const groups = this.getVariationGroups(this.variations);
+    this.isInitialised = true;
+    this.bindVariationEvents();
+  }
 
-    groups.forEach((group, index) => {
-      const container = index < 2 || !this.bottomContainer ? this.topContainer : this.bottomContainer;
+  reset() {
+    this.requestVersion++;
+    this.variationSelected = null;
+    this.shouldDeleteItems = false;
+    this.autoLoadedVariationIds.clear();
+    this.loadedVariationTypes.clear();
+  }
 
-      if (!container) return;
+  getVariationsParent() {
+    return document.getElementById("wrap-variations-group");
+  }
 
-      container.appendChild(this.createVariationGroup(group, index));
+  /* ==========================================================================
+    EVENT DELEGATION
+  ========================================================================== */
+
+  bindVariationEvents() {
+    const parent = this.getVariationsParent();
+
+    if (!parent || parent.dataset.variationsBound === "1") return false;
+
+    parent.dataset.variationsBound = "1";
+
+    parent.addEventListener("click", (event) => {
+      const target = event.target;
+
+      if (!(target instanceof Element)) return;
+
+      const optionButton = target.closest(
+        ".var-option[id^='variation_id_']"
+      );
+
+      if (optionButton && parent.contains(optionButton)) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.selectVariation(optionButton.id);
+        return;
+      }
+
+      const collapseHeader = target.closest(".var-collapse-header");
+
+      if (
+        collapseHeader &&
+        parent.contains(collapseHeader)
+      ) {
+        event.preventDefault();
+
+        const group = collapseHeader.closest(".wrap-variations");
+
+        this.toggleVariationGroup(group);
+      }
     });
-
-    this.showVariationContainers();
-    this.selectDefaultOptions(groups);
-    this.resolveSelectedVariation();
 
     return true;
   }
 
-  createVariationGroup(group, groupIndex) {
-    const section = document.createElement("div");
-    const label = document.createElement("div");
-    const name = document.createElement("span");
-    const selectedValue = document.createElement("strong");
-    const options = document.createElement("div");
+  toggleVariationGroup(group) {
+    if (!group) return false;
 
-    section.className = "var-group";
-    section.dataset.groupKey = group.key;
+    const isOpen = group.classList.contains("is-open");
 
-    label.className = "var-label";
-    name.className = "var-name";
-    selectedValue.className = "var-selected-value";
-    options.className = "var-options";
-
-    name.textContent = group.name;
-    selectedValue.id = `variation_selected_${this.normaliseKey(group.key)}`;
-    selectedValue.textContent = "";
-
-    label.appendChild(name);
-    label.appendChild(selectedValue);
-
-    group.options.forEach((option, optionIndex) => {
-      options.appendChild(this.createVariationButton(group, option, groupIndex, optionIndex));
-    });
-
-    section.appendChild(label);
-    section.appendChild(options);
-
-    return section;
-  }
-
-  createVariationButton(group, option, groupIndex, optionIndex) {
-    const button = document.createElement("button");
-    const text = document.createElement("span");
-
-    button.type = "button";
-    button.className = "var-option js-scale-in";
-    button.dataset.groupKey = group.key;
-    button.dataset.optionId = String(option.id);
-    button.dataset.optionValue = option.value;
-    button.dataset.groupIndex = String(groupIndex);
-    button.dataset.optionIndex = String(optionIndex);
-    button.setAttribute("aria-pressed", "false");
-
-    text.className = "opt-main";
-    text.textContent = option.label;
-
-    if (option.image) {
-      const image = document.createElement("img");
-
-      image.src = option.image;
-      image.alt = option.label;
-      image.loading = "lazy";
-      image.decoding = "async";
-      image.className = "variation-option-image";
-
-      button.appendChild(image);
+    if (isOpen) {
+      this.closeVariationGroup(group);
+    } else {
+      this.openVariationGroup(group);
     }
 
-    button.appendChild(text);
+    return true;
+  }
 
-    button.addEventListener("click", () => {
-      this.selectOption(group.key, option.id);
-    });
+  openVariationGroup(group) {
+    if (!group) return false;
+
+    const groups = document.querySelectorAll(
+      "#wrap-variations-group .wrap-variations.is-collapsible"
+    );
+
+    for (const item of groups) {
+      if (item === group) continue;
+
+      this.closeVariationGroup(item);
+    }
+
+    group.classList.add("is-open");
+
+    const header = group.querySelector(".var-collapse-header");
+
+    if (header) {
+      header.setAttribute("aria-expanded", "true");
+    }
+
+    return true;
+  }
+
+  closeVariationGroup(group) {
+    if (!group) return false;
+
+    group.classList.remove("is-open");
+
+    const header = group.querySelector(".var-collapse-header");
+
+    if (header) {
+      header.setAttribute("aria-expanded", "false");
+    }
+
+    return true;
+  }
+
+  updateVariationHeader(group, selectedText = "") {
+    if (!group) return false;
+
+    const safeText = String(selectedText ?? "").trim();
+    const selectedLabel = group.querySelector(
+      ".js-selected-variation-label"
+    );
+
+    const summaryPill = group.querySelector(
+      ".variation-summary-pill"
+    );
+
+    if (selectedLabel) {
+      selectedLabel.textContent = safeText || "Select option";
+    }
+
+    if (summaryPill) {
+      summaryPill.textContent = safeText
+        ? `Selected: ${safeText}`
+        : "Select an option";
+    }
+
+    return true;
+  }
+
+  /* ==========================================================================
+    FETCH VARIATIONS
+  ========================================================================== */
+
+  async fetchChildVariationsById(variationId, version = this.requestVersion) {
+    const currentVariationId = String(variationId ?? "").trim();
+
+    if (!currentVariationId) {
+      console.warn("No variation_id provided.");
+      return false;
+    }
+
+    const url = "../../controller/order/product.php";
+
+    const data = {
+      action: "get_variation_children_by_id",
+      variation_id: currentVariationId
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Network error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      const json = this.parseJson(text);
+
+      if (!json || typeof json !== "object") {
+        throw new Error("Invalid variation response.");
+      }
+
+      if (version !== this.requestVersion) {
+        return false;
+      }
+
+      const variationTypes = Array.isArray(json.variationTypes)
+        ? json.variationTypes
+        : [];
+
+      const childVariations = Array.isArray(json.childVariations)
+        ? json.childVariations
+        : [];
+
+      const variationTypesForDelete = Array.isArray(
+        json.variationTypesForDelete
+      )
+        ? json.variationTypesForDelete
+        : [];
+
+      const currentVariationData =
+        json.currentVariationData &&
+        typeof json.currentVariationData === "object" &&
+        !Array.isArray(json.currentVariationData)
+          ? json.currentVariationData
+          : {};
+
+      this.shouldDeleteItems = variationTypesForDelete.length > 0;
+
+      this.organizeCurrentVariation(currentVariationData);
+
+      if (
+        childVariations.length > 0 &&
+        variationTypes.length > 0
+      ) {
+        this.organizeVariationsForRender(
+          childVariations,
+          variationTypes
+        );
+
+        this.autoLoadFirstChildVariation(
+          childVariations,
+          variationTypes,
+          currentVariationId,
+          version
+        );
+
+        return true;
+      }
+
+      this.finishPrices();
+
+      return true;
+    } catch (error) {
+      if (version === this.requestVersion) {
+        console.error(
+          "Error fetching child variations:",
+          error
+        );
+      }
+
+      return false;
+    }
+  }
+
+  /* ==========================================================================
+    AUTOMATIC SELECTION
+  ========================================================================== */
+
+  autoLoadFirstChildVariation(
+    childVariations = [],
+    variationTypes = [],
+    currentVariationId = "",
+    version = this.requestVersion
+  ) {
+    if (
+      version !== this.requestVersion ||
+      !Array.isArray(childVariations) ||
+      childVariations.length === 0
+    ) {
+      return false;
+    }
+
+    const currentId = String(currentVariationId ?? "").trim();
+    const firstTypeName = String(
+      variationTypes?.[0]?.type_name ?? ""
+    ).trim();
+
+    let selectedRow = null;
+
+    for (const row of childVariations) {
+      const variation = row?.variation;
+
+      if (!variation) continue;
+
+      const childVariationId = String(
+        variation.variation_id ?? ""
+      ).trim();
+
+      const childTypeName = String(
+        variation.type_name ?? ""
+      ).trim();
+
+      if (!childVariationId) continue;
+      if (childVariationId === currentId) continue;
+      if (this.autoLoadedVariationIds.has(childVariationId)) continue;
+
+      if (
+        firstTypeName &&
+        childTypeName !== firstTypeName
+      ) {
+        continue;
+      }
+
+      selectedRow = row;
+      break;
+    }
+
+    if (!selectedRow) {
+      for (const row of childVariations) {
+        const childVariationId = String(
+          row?.variation?.variation_id ?? ""
+        ).trim();
+
+        if (!childVariationId) continue;
+        if (childVariationId === currentId) continue;
+        if (this.autoLoadedVariationIds.has(childVariationId)) continue;
+
+        selectedRow = row;
+        break;
+      }
+    }
+
+    const nextVariationId = String(
+      selectedRow?.variation?.variation_id ?? ""
+    ).trim();
+
+    if (!nextVariationId) return false;
+
+    const domId = `variation_id_${nextVariationId}`;
+    const button = document.getElementById(domId);
+
+    if (!button) return false;
+
+    this.autoLoadedVariationIds.add(nextVariationId);
+
+    window.setTimeout(() => {
+      if (version !== this.requestVersion) return;
+
+      this.selectVariation(
+        domId,
+        true,
+        selectedRow,
+        version
+      );
+    }, 0);
+
+    return true;
+  }
+
+  /* ==========================================================================
+    CURRENT VARIATION
+  ========================================================================== */
+
+  organizeCurrentVariation(currentVariationData = {}) {
+    try {
+      const variation = currentVariationData?.variation;
+
+      if (!variation) return false;
+
+      const variationId = String(
+        variation.variation_id ?? ""
+      ).trim();
+
+      const typeId = String(
+        variation.type_id ?? ""
+      ).trim();
+
+      const typeName = String(
+        variation.type_name ?? ""
+      ).trim();
+
+      if (!variationId || !typeId || !typeName) {
+        return false;
+      }
+
+      this.setSelectVariation(
+        `variation_id_${variationId}`
+      );
+
+      return this.renderVariationAssets({
+        variation: variation,
+        images: Array.isArray(currentVariationData.images)
+          ? currentVariationData.images
+          : [],
+        items: Array.isArray(currentVariationData.items)
+          ? currentVariationData.items
+          : [],
+        prices: Array.isArray(currentVariationData.prices)
+          ? currentVariationData.prices
+          : [],
+        artwork: currentVariationData.artwork ?? null
+      });
+    } catch (error) {
+      console.error(
+        "Error organising current variation:",
+        error
+      );
+
+      return false;
+    }
+  }
+
+  /* ==========================================================================
+    VARIATION ASSETS
+  ========================================================================== */
+
+  renderVariationAssets(row = {}) {
+    try {
+      const variation = row?.variation;
+
+      if (!variation) return false;
+
+      const variationId = String(
+        variation.variation_id ?? ""
+      ).trim();
+
+      const typeId = String(
+        variation.type_id ?? ""
+      ).trim();
+
+      const typeName = String(
+        variation.type_name ?? ""
+      ).trim();
+
+      if (!variationId || !typeId || !typeName) {
+        return false;
+      }
+
+      const typeVariation = {
+        type_id: typeId,
+        type_name: typeName
+      };
+
+      const imagesOnlyOfType = Array.isArray(row.images)
+        ? row.images.map((imageData) => ({
+            ...imageData,
+            variation_id: variationId
+          }))
+        : [];
+
+      const itemsOnlyOfType = Array.isArray(row.items)
+        ? row.items.map((itemData) => ({
+            ...itemData,
+            variation_id: variationId
+          }))
+        : [];
+
+      const pricesOnlyOfType = Array.isArray(row.prices)
+        ? row.prices.map((priceData) => ({
+            ...priceData,
+            variation_id: variationId,
+            price_display_mode:
+              variation.price_display_mode ?? null
+          }))
+        : [];
+
+      const artworksOnlyOfType = [];
+      const artworkData = row.artwork ?? null;
+
+      if (
+        artworkData &&
+        typeof artworkData === "object"
+      ) {
+        const pdf = String(
+          artworkData.pdf_artwork ?? ""
+        ).trim();
+
+        const name = String(
+          artworkData.name_pdf_artwork ?? ""
+        ).trim();
+
+        if (pdf || name) {
+          artworksOnlyOfType.push({
+            ...artworkData,
+            variation_id: variationId
+          });
+        }
+      }
+
+      this.deleteAssetsByType(typeId);
+
+      if (
+        imagesOnlyOfType.length > 0 &&
+        window.images &&
+        typeof window.images.renderImages === "function"
+      ) {
+        window.images.renderImages(
+          imagesOnlyOfType,
+          typeVariation
+        );
+      }
+
+      if (
+        itemsOnlyOfType.length > 0 &&
+        window.items &&
+        typeof window.items.renderItems === "function"
+      ) {
+        window.items.renderItems(
+          itemsOnlyOfType,
+          typeVariation
+        );
+      }
+
+      if (
+        pricesOnlyOfType.length > 0 &&
+        window.prices &&
+        typeof window.prices.renderPrices === "function"
+      ) {
+        window.prices.renderPrices(
+          pricesOnlyOfType,
+          typeVariation
+        );
+      }
+
+      if (
+        artworksOnlyOfType.length > 0 &&
+        window.artwork &&
+        typeof window.artwork.renderArtwork === "function"
+      ) {
+        window.artwork.renderArtwork(
+          artworksOnlyOfType,
+          typeVariation
+        );
+      }
+
+      window.previewGallery?.refreshGallery?.(true);
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Error rendering variation assets:",
+        error
+      );
+
+      return false;
+    }
+  }
+
+  deleteAssetsByType(typeId) {
+    if (
+      window.images &&
+      typeof window.images.deleteImages === "function"
+    ) {
+      window.images.deleteImages(typeId);
+    }
+
+    if (
+      window.items &&
+      typeof window.items.deleteItems === "function"
+    ) {
+      window.items.deleteItems(typeId);
+    }
+
+    if (
+      window.prices &&
+      typeof window.prices.deletePrices === "function"
+    ) {
+      window.prices.deletePrices(typeId);
+    }
+
+    if (
+      window.artwork &&
+      typeof window.artwork.deleteArtwork === "function"
+    ) {
+      window.artwork.deleteArtwork(typeId);
+    }
+  }
+
+  /* ==========================================================================
+    ORGANISE VARIATIONS
+  ========================================================================== */
+
+  organizeVariationsForRender(
+    childVariations = [],
+    variationTypes = []
+  ) {
+    if (
+      !Array.isArray(childVariations) ||
+      childVariations.length === 0 ||
+      !Array.isArray(variationTypes) ||
+      variationTypes.length === 0
+    ) {
+      return false;
+    }
+
+    for (const typeVariation of variationTypes) {
+      const typeId = String(
+        typeVariation?.type_id ?? ""
+      ).trim();
+
+      const typeName = String(
+        typeVariation?.type_name ?? ""
+      ).trim();
+
+      if (!typeId || !typeName) continue;
+
+      const variationsOnlyOfType = [];
+
+      for (const row of childVariations) {
+        const variation = row?.variation;
+
+        if (!variation) continue;
+
+        const variationTypeId = String(
+          variation.type_id ?? ""
+        ).trim();
+
+        const variationTypeName = String(
+          variation.type_name ?? ""
+        ).trim();
+
+        const sameType =
+          variationTypeId === typeId ||
+          variationTypeName === typeName;
+
+        if (!sameType) continue;
+
+        variationsOnlyOfType.push(variation);
+      }
+
+      if (variationsOnlyOfType.length === 0) continue;
+
+      this.renderVariations(
+        variationsOnlyOfType,
+        typeVariation
+      );
+    }
+
+    return true;
+  }
+
+  /* ==========================================================================
+    RENDER VARIATION GROUP
+  ========================================================================== */
+
+  renderVariations(
+    childVariationsOfType = [],
+    typeVariation = {}
+  ) {
+    try {
+      const parent = this.getVariationsParent();
+
+      if (
+        !parent ||
+        !Array.isArray(childVariationsOfType) ||
+        childVariationsOfType.length === 0
+      ) {
+        return false;
+      }
+
+      const typeId = String(
+        typeVariation?.type_id ?? ""
+      ).trim();
+
+      const typeName = String(
+        typeVariation?.type_name ?? ""
+      ).trim();
+
+      if (!typeId || !typeName) return false;
+
+      const safeTypeId = this.escapeCss(typeId);
+      const labelId = `var-label-${typeId}`;
+      const optionsId = `var-options-${typeId}`;
+      const bodyId = `var-collapse-body-${typeId}`;
+
+      const existing = parent.querySelector(
+        `.wrap-variations[data-type-id="${safeTypeId}"]`
+      );
+
+      if (existing) {
+        existing.remove();
+      }
+
+      const group = document.createElement("div");
+
+      group.className = "wrap-variations is-collapsible";
+      group.dataset.typeId = typeId;
+      group.setAttribute("aria-labelledby", labelId);
+
+      const header = document.createElement("button");
+
+      header.type = "button";
+      header.className = "var-collapse-header";
+      header.setAttribute("aria-expanded", "false");
+      header.setAttribute("aria-controls", bodyId);
+
+      const left = document.createElement("span");
+      left.className = "var-collapse-left";
+
+      const title = document.createElement("span");
+      title.className = "var-collapse-title";
+
+      const name = document.createElement("span");
+      name.className = "var-name";
+      name.textContent = typeName;
+
+      const selectedLabel = document.createElement("strong");
+      selectedLabel.id = labelId;
+      selectedLabel.className = "js-selected-variation-label";
+      selectedLabel.textContent = "Select option";
+
+      title.appendChild(name);
+      title.appendChild(selectedLabel);
+
+      const summaryPill = document.createElement("span");
+      summaryPill.className = "variation-summary-pill";
+      summaryPill.textContent = "Select an option";
+
+      const hint = document.createElement("span");
+      hint.className = "var-collapse-hint";
+      hint.textContent = "Click to view available options";
+
+      left.appendChild(title);
+      left.appendChild(summaryPill);
+      left.appendChild(hint);
+
+      const icon = document.createElement("span");
+      icon.className = "var-collapse-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "⌄";
+
+      header.appendChild(left);
+      header.appendChild(icon);
+
+      const body = document.createElement("div");
+      body.className = "var-collapse-body";
+      body.id = bodyId;
+
+      const inner = document.createElement("div");
+      inner.className = "var-collapse-inner";
+
+      const options = document.createElement("div");
+      options.className = "var-options";
+      options.id = optionsId;
+
+      for (const variation of childVariationsOfType) {
+        const button = this.createVariationButton(
+          variation
+        );
+
+        if (button) {
+          options.appendChild(button);
+        }
+      }
+
+      if (options.children.length === 0) {
+        return false;
+      }
+
+      inner.appendChild(options);
+      body.appendChild(inner);
+
+      group.appendChild(header);
+      group.appendChild(body);
+
+      parent.appendChild(group);
+      this.loadedVariationTypes.add(typeId);
+
+      const groupsCount = parent.querySelectorAll(
+        ".wrap-variations.is-collapsible"
+      ).length;
+
+      if (groupsCount === 1) {
+        this.openVariationGroup(group);
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Error rendering variations:",
+        error
+      );
+
+      return false;
+    }
+  }
+
+  createVariationButton(variation = {}) {
+    const variationId = String(
+      variation?.variation_id ?? ""
+    ).trim();
+
+    const label = String(
+      variation?.name ?? ""
+    ).trim();
+
+    if (!variationId) return null;
+
+    const rawImage = String(
+      variation?.image ?? ""
+    )
+      .trim()
+      .replace(/^\/+/, "");
+
+    const imageSource = this.buildControllerAssetUrl(
+      rawImage,
+      "../../view/preview_porduct/img/icon_product.png"
+    );
+
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.id = `variation_id_${variationId}`;
+    button.className = "var-option js-scale-in";
+    button.dataset.variationLabel = label;
+    button.setAttribute("aria-pressed", "false");
+
+    const image = document.createElement("img");
+
+    image.className = "var-thumb";
+    image.src = imageSource;
+    image.alt = label || "Option sample";
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.draggable = false;
+
+    const main = document.createElement("span");
+
+    main.className = "opt-main";
+    main.textContent = label;
+
+    button.appendChild(image);
+    button.appendChild(main);
 
     return button;
   }
 
   /* ==========================================================================
-    SELECT OPTIONS
+    SELECT VARIATION
   ========================================================================== */
 
-  selectDefaultOptions(groups = []) {
-    groups.forEach((group) => {
-      const selectedOption = group.options.find((option) => option.selected && !option.disabled);
-      const firstOption = group.options.find((option) => !option.disabled);
-      const option = selectedOption || firstOption;
+  selectVariation(
+    domId = "",
+    automatic = false,
+    variationRow = null,
+    version = this.requestVersion
+  ) {
+    const id = String(domId ?? "").trim();
 
-      if (option) this.selectedOptions[group.key] = option.id;
-    });
-
-    this.updateOptionButtons();
-    this.updateSelectedLabels();
-
-    return true;
-  }
-
-  selectOption(groupKey, optionId) {
-    const group = this.getGroupByKey(groupKey);
-
-    if (!group) return false;
-
-    const option = group.options.find((currentOption) => String(currentOption.id) === String(optionId));
-
-    if (!option || option.disabled) return false;
-
-    this.selectedOptions[group.key] = option.id;
-
-    this.updateOptionButtons();
-    this.updateSelectedLabels();
-    this.resolveSelectedVariation();
-
-    return true;
-  }
-
-  selectVariation(variation) {
-    if (variation === null || variation === undefined) return false;
-
-    if (typeof variation === "object") {
-      const normalisedVariation = this.normaliseVariation(variation, 0);
-
-      this.applyVariationOptions(normalisedVariation);
-      this.setSelectVariation(normalisedVariation);
-      this.applyVariationResources(normalisedVariation);
-
-      return true;
-    }
-
-    const foundVariation = this.getVariationById(variation);
-
-    if (!foundVariation) return false;
-
-    this.applyVariationOptions(foundVariation);
-    this.setSelectVariation(foundVariation);
-    this.applyVariationResources(foundVariation);
-
-    return true;
-  }
-
-  applyVariationOptions(variation) {
-    if (!variation?.options) return false;
-
-    Object.entries(variation.options).forEach(([groupKey, optionValue]) => {
-      const group = this.getGroupByKey(groupKey);
-
-      if (!group) return;
-
-      const option = group.options.find((currentOption) => {
-        return String(currentOption.id) === String(optionValue) || String(currentOption.value) === String(optionValue);
-      });
-
-      if (option) this.selectedOptions[group.key] = option.id;
-    });
-
-    this.updateOptionButtons();
-    this.updateSelectedLabels();
-
-    return true;
-  }
-
-  resolveSelectedVariation() {
-    const variation = this.findMatchingVariation();
-
-    if (!variation) {
-      this.setSelectVariation(null);
-      this.updateAvailableOptions();
-      this.clearDependentResources();
+    if (!id || version !== this.requestVersion) {
       return false;
     }
 
-    this.setSelectVariation(variation);
-    this.updateAvailableOptions();
-    this.applyVariationResources(variation);
+    const variationId = id
+      .replace(/^variation_id_/, "")
+      .trim();
 
-    return true;
-  }
+    if (!variationId) return false;
 
-  findMatchingVariation() {
-    return this.variations.find((variation) => {
-      const entries = Object.entries(variation.options);
+    const button = document.getElementById(id);
 
-      if (entries.length === 0) return this.variations.length === 1;
+    if (!button) return false;
 
-      return entries.every(([groupKey, optionValue]) => {
-        const selectedOptionId = this.selectedOptions[groupKey];
-        const group = this.getGroupByKey(groupKey);
+    if (!automatic) {
+      this.requestVersion++;
+      version = this.requestVersion;
 
-        if (!group || selectedOptionId === undefined) return false;
-
-        const selectedOption = group.options.find((option) => String(option.id) === String(selectedOptionId));
-
-        if (!selectedOption) return false;
-
-        return String(selectedOption.id) === String(optionValue) || String(selectedOption.value) === String(optionValue);
-      });
-    }) || null;
-  }
-
-  updateOptionButtons() {
-    const containers = [this.topContainer, this.bottomContainer].filter(Boolean);
-
-    containers.forEach((container) => {
-      container.querySelectorAll(".var-option[data-group-key]").forEach((button) => {
-        const groupKey = button.dataset.groupKey;
-        const optionId = button.dataset.optionId;
-        const selected = String(this.selectedOptions[groupKey]) === String(optionId);
-
-        button.classList.toggle("is-selected", selected);
-        button.setAttribute("aria-pressed", selected ? "true" : "false");
-      });
-    });
-
-    return true;
-  }
-
-  updateSelectedLabels() {
-    const groups = this.getVariationGroups(this.variations);
-
-    groups.forEach((group) => {
-      const optionId = this.selectedOptions[group.key];
-      const option = group.options.find((currentOption) => String(currentOption.id) === String(optionId));
-      const label = document.getElementById(`variation_selected_${this.normaliseKey(group.key)}`);
-
-      if (label) label.textContent = option?.label || "";
-    });
-
-    return true;
-  }
-
-  updateAvailableOptions() {
-    const groups = this.getVariationGroups(this.variations);
-
-    groups.forEach((group) => {
-      group.options.forEach((option) => {
-        const available = this.isOptionAvailable(group.key, option);
-        const buttons = document.querySelectorAll(`.var-option[data-group-key="${this.escapeSelector(group.key)}"][data-option-id="${this.escapeSelector(String(option.id))}"]`);
-
-        buttons.forEach((button) => {
-          button.disabled = !available;
-          button.classList.toggle("is-disabled", !available);
-          button.setAttribute("aria-disabled", available ? "false" : "true");
-        });
-      });
-    });
-
-    return true;
-  }
-
-  isOptionAvailable(groupKey, option) {
-    return this.variations.some((variation) => {
-      return Object.entries(this.selectedOptions).every(([selectedGroupKey, selectedOptionId]) => {
-        const group = this.getGroupByKey(selectedGroupKey);
-
-        if (!group) return true;
-
-        const selectedOption = selectedGroupKey === groupKey
-          ? option
-          : group.options.find((currentOption) => String(currentOption.id) === String(selectedOptionId));
-
-        if (!selectedOption) return true;
-
-        const variationValue = variation.options[selectedGroupKey];
-
-        if (variationValue === undefined) return true;
-
-        return String(variationValue) === String(selectedOption.id) || String(variationValue) === String(selectedOption.value);
-      });
-    });
-  }
-
-  /* ==========================================================================
-    APPLY SELECTED VARIATION
-  ========================================================================== */
-
-  applyVariationResources(variation) {
-    if (!variation) return false;
-
-    this.maxQuantity = variation.maxQuantity;
-    this.shouldDeleteItems = variation.shouldDeleteItems;
-
-    this.images?.renderImages(variation.images);
-
-    if (variation.shouldDeleteItems) {
-      this.items?.clearItems();
-    } else {
-      this.items?.renderItems(variation.items);
+      this.autoLoadedVariationIds.clear();
+      this.autoLoadedVariationIds.add(variationId);
     }
 
-    this.prices?.renderPrices(variation.prices);
-    this.artwork?.renderArtworks(variation.artworks);
+    const group = button.closest(".wrap-variations");
 
-    this.notifyPreviewLogic(variation);
+    if (group) {
+      const variationButtons = group.querySelectorAll(
+        ".var-option[id^='variation_id_']"
+      );
 
-    return true;
-  }
+      for (const item of variationButtons) {
+        const isSelected = item === button;
 
-  renderIndependentResources(data = {}) {
-    const source = data?.data || data?.product || data;
+        item.classList.toggle(
+          "is-selected",
+          isSelected
+        );
 
-    if (!source || typeof source !== "object") return false;
+        item.setAttribute(
+          "aria-pressed",
+          isSelected ? "true" : "false"
+        );
+      }
 
-    this.images?.renderImages(source.images || source.product_images || source.media || []);
-    this.items?.renderItems(source.items || source.product_items || []);
-    this.prices?.renderPrices(source.prices || source.product_prices || []);
-    this.artwork?.renderArtworks(source.artworks || source.artwork || source.templates || []);
+      const selectedText =
+        button.dataset.variationLabel ||
+        button.querySelector(".opt-main")?.textContent?.trim() ||
+        "";
 
-    return true;
-  }
-
-  clearDependentResources() {
-    this.images?.clearImages();
-    this.items?.clearItems();
-    this.prices?.clearPrices();
-    this.artwork?.clearArtworks();
-
-    return true;
-  }
-
-  notifyPreviewLogic(variation) {
-    if (!this.previewLogic) return false;
-
-    this.previewLogic.variationSelected = variation;
-    this.previewLogic.max_quantity = variation.maxQuantity;
-    this.previewLogic.shouldDeleteItems = variation.shouldDeleteItems;
-
-    if (typeof this.previewLogic.setSelectVariation === "function") {
-      this.previewLogic.setSelectVariation(variation);
+      this.updateVariationHeader(
+        group,
+        selectedText
+      );
     }
 
-    if (typeof this.previewLogic.setMaxQuantity === "function") {
-      this.previewLogic.setMaxQuantity(variation.maxQuantity);
+    this.setSelectVariation(id);
+
+    if (
+      variationRow &&
+      typeof variationRow === "object"
+    ) {
+      this.renderVariationAssets(variationRow);
     }
 
-    if (typeof this.previewLogic.setShouldDeleteItems === "function") {
-      this.previewLogic.setShouldDeleteItems(variation.shouldDeleteItems);
-    }
-
-    return true;
-  }
-
-  /* ==========================================================================
-    NORMALISE DATA
-  ========================================================================== */
-
-  normaliseVariations(data = []) {
-    const variations = this.extractVariations(data);
-
-    return variations.map((variation, index) => {
-      return this.normaliseVariation(variation, index);
-    }).filter((variation) => variation.active).sort((firstVariation, secondVariation) => firstVariation.order - secondVariation.order);
-  }
-
-  normaliseVariation(variation = {}, index = 0) {
-    const options = this.normaliseVariationOptions(
-      variation.options ||
-      variation.selected_options ||
-      variation.selectedOptions ||
-      variation.attributes ||
-      variation.values ||
-      variation.variation_values ||
-      variation.variationValues ||
-      {}
+    this.fetchChildVariationsById(
+      variationId,
+      version
     );
 
-    const resources = variation.resources || variation.content || variation.data || variation;
-
-    return {
-      id: variation.id ?? variation.variation_id ?? variation.product_variation_id ?? variation.id_variation ?? index,
-      sku: variation.sku || variation.product_sku || variation.variation_sku || "",
-      name: variation.name || variation.title || variation.variation_name || `Variation ${index + 1}`,
-      options,
-      images: resources.images || resources.product_images || resources.media || resources.gallery || [],
-      items: resources.items || resources.product_items || resources.items_information || resources.notes || [],
-      prices: resources.prices || resources.product_prices || resources.price_options || resources.quantities || [],
-      artworks: resources.artworks || resources.artwork || resources.templates || resources.artwork_templates || [],
-      maxQuantity: this.toNullableNumber(
-        variation.max_quantity ??
-        variation.maxQuantity ??
-        resources.max_quantity ??
-        resources.maxQuantity
-      ),
-      shouldDeleteItems: this.toBoolean(
-        variation.should_delete_items ??
-        variation.shouldDeleteItems ??
-        resources.should_delete_items ??
-        resources.shouldDeleteItems
-      ),
-      selected: this.toBoolean(variation.selected ?? variation.is_selected ?? variation.default ?? variation.is_default),
-      active: variation.active === undefined ? true : this.toBoolean(variation.active),
-      order: Number(variation.order ?? variation.position ?? variation.sort_order ?? index)
-    };
-  }
-
-  normaliseVariationOptions(options = {}) {
-    if (Array.isArray(options)) {
-      return options.reduce((result, option, index) => {
-        if (typeof option !== "object" || option === null) return result;
-
-        const key = option.group_key || option.groupKey || option.attribute_key || option.attributeKey || option.variation_name || option.name || option.key || `group_${index}`;
-        const value = option.option_id ?? option.optionId ?? option.value_id ?? option.valueId ?? option.id ?? option.value ?? option.label ?? "";
-
-        result[String(key)] = value;
-        return result;
-      }, {});
-    }
-
-    if (!options || typeof options !== "object") return {};
-
-    return Object.entries(options).reduce((result, [key, value]) => {
-      if (value && typeof value === "object") {
-        result[key] = value.id ?? value.option_id ?? value.value_id ?? value.value ?? value.label ?? "";
-      } else {
-        result[key] = value;
-      }
-
-      return result;
-    }, {});
-  }
-
-  extractVariations(data = []) {
-    if (Array.isArray(data)) return data;
-    if (!data || typeof data !== "object") return [];
-
-    if (Array.isArray(data.variations)) return data.variations;
-    if (Array.isArray(data.variation)) return data.variation;
-    if (Array.isArray(data.product_variations)) return data.product_variations;
-    if (Array.isArray(data.productVariations)) return data.productVariations;
-    if (Array.isArray(data.combinations)) return data.combinations;
-    if (Array.isArray(data.variation_combinations)) return data.variation_combinations;
-
-    if (data.data) return this.extractVariations(data.data);
-    if (data.product) return this.extractVariations(data.product);
-
-    return [];
+    return true;
   }
 
   /* ==========================================================================
-    GROUPS AND OPTIONS
+    PRICE FINALISATION
   ========================================================================== */
 
-  getVariationGroups(variations = this.variations) {
-    const groups = new Map();
-
-    variations.forEach((variation) => {
-      Object.entries(variation.options).forEach(([groupKey, optionValue]) => {
-        if (!groups.has(groupKey)) {
-          groups.set(groupKey, {
-            key: groupKey,
-            name: this.formatGroupName(groupKey),
-            options: []
-          });
-        }
-
-        const group = groups.get(groupKey);
-        const optionData = this.findOptionData(variation, groupKey, optionValue);
-        const exists = group.options.some((option) => {
-          return String(option.id) === String(optionData.id) || String(option.value) === String(optionData.value);
-        });
-
-        if (!exists) group.options.push(optionData);
-      });
-    });
-
-    return Array.from(groups.values());
-  }
-
-  findOptionData(variation, groupKey, optionValue) {
-    const sourceOptions =
-      variation.rawOptions ||
-      variation.optionsData ||
-      variation.optionDetails ||
-      [];
-
-    if (Array.isArray(sourceOptions)) {
-      const foundOption = sourceOptions.find((option) => {
-        const key = option.group_key || option.groupKey || option.name || option.key;
-        const value = option.option_id ?? option.id ?? option.value;
-
-        return String(key) === String(groupKey) && String(value) === String(optionValue);
-      });
-
-      if (foundOption) {
-        return {
-          id: foundOption.id ?? foundOption.option_id ?? optionValue,
-          value: foundOption.value ?? foundOption.option_value ?? optionValue,
-          label: foundOption.label || foundOption.name || foundOption.option_name || String(optionValue),
-          image: foundOption.image || foundOption.image_url || "",
-          selected: this.toBoolean(foundOption.selected),
-          disabled: this.toBoolean(foundOption.disabled)
-        };
-      }
+  finishPrices() {
+    if (
+      window.prices &&
+      typeof window.prices.updateVariationPrices === "function"
+    ) {
+      window.prices.updateVariationPrices();
     }
 
-    return {
-      id: optionValue,
-      value: optionValue,
-      label: this.formatOptionLabel(optionValue),
-      image: "",
-      selected: variation.selected,
-      disabled: false
-    };
-  }
+    window.setTimeout(() => {
+      if (!window.prices) return;
 
-  getGroupByKey(groupKey) {
-    return this.getVariationGroups(this.variations).find((group) => String(group.key) === String(groupKey)) || null;
-  }
+      if (
+        typeof window.prices.selectFirstAvailablePrice === "function"
+      ) {
+        window.prices.selectFirstAvailablePrice();
+        return;
+      }
 
-  formatGroupName(value = "") {
-    return String(value)
-      .replace(/[_-]+/g, " ")
-      .replace(/([a-z])([A-Z])/g, "$1 $2")
-      .replace(/\b\w/g, (letter) => letter.toUpperCase())
-      .trim();
-  }
-
-  formatOptionLabel(value = "") {
-    return String(value)
-      .replace(/[_-]+/g, " ")
-      .replace(/\b\w/g, (letter) => letter.toUpperCase())
-      .trim();
-  }
-
-  normaliseKey(value = "") {
-    return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-  }
-
-  escapeSelector(value = "") {
-    if (window.CSS?.escape) return CSS.escape(String(value));
-
-    return String(value).replace(/["\\]/g, "\\$&");
+      if (
+        typeof window.prices.selectFirstPrice === "function"
+      ) {
+        window.prices.selectFirstPrice();
+      }
+    }, 500);
   }
 
   /* ==========================================================================
-    STATE
+    SELECTED VARIATION STATE
   ========================================================================== */
 
-  setSelectVariation(variation) {
-    this.variationSelected = variation || null;
-    return Boolean(this.variationSelected);
+  setSelectVariation(domId = "") {
+    this.variationSelected =
+      String(domId ?? "").trim() || null;
   }
 
   getSelectVariation() {
     return this.variationSelected;
   }
 
-  setVariationSelected(variation) {
-    return this.setSelectVariation(variation);
-  }
+  getSelectedVariationId() {
+    const selectedVariation = this.getSelectVariation();
 
-  getVariationSelected() {
-    return this.getSelectVariation();
-  }
+    if (!selectedVariation) return null;
 
-  setSelectedOptions(options = {}) {
-    if (!options || typeof options !== "object") return false;
+    const variationId = Number(
+      String(selectedVariation).replace(
+        /^variation_id_/,
+        ""
+      )
+    );
 
-    this.selectedOptions = { ...options };
-    this.updateOptionButtons();
-    this.updateSelectedLabels();
-    this.resolveSelectedVariation();
-
-    return true;
-  }
-
-  getSelectedOptions() {
-    return { ...this.selectedOptions };
-  }
-
-  setMaxQuantity(quantity) {
-    this.maxQuantity = this.toNullableNumber(quantity);
-    return true;
-  }
-
-  getMaxQuantity() {
-    return this.maxQuantity;
-  }
-
-  setShouldDeleteItems(value) {
-    this.shouldDeleteItems = this.toBoolean(value);
-    return true;
+    return Number.isFinite(variationId)
+      ? variationId
+      : null;
   }
 
   getShouldDeleteItems() {
     return this.shouldDeleteItems;
   }
 
-  getVariations() {
-    return this.variations;
-  }
-
-  getVariationById(variationId) {
-    return this.variations.find((variation) => String(variation.id) === String(variationId)) || null;
-  }
-
-  /* ==========================================================================
-    CLEAR AND DISPLAY
-  ========================================================================== */
-
-  clearVariationContainers() {
-    if (this.topContainer) this.topContainer.innerHTML = "";
-    if (this.bottomContainer && this.bottomContainer !== this.topContainer) this.bottomContainer.innerHTML = "";
-
-    return true;
-  }
-
-  clearVariations() {
-    this.variations = [];
-    this.selectedOptions = {};
-    this.variationSelected = null;
-    this.maxQuantity = null;
-    this.shouldDeleteItems = false;
-
-    this.clearVariationContainers();
-    this.hideVariationContainers();
-    this.clearDependentResources();
-
-    return true;
-  }
-
-  clearVariation() {
-    return this.clearVariations();
-  }
-
-  showVariationContainers() {
-    if (this.topContainer) this.topContainer.hidden = false;
-    if (this.bottomContainer) this.bottomContainer.hidden = false;
-
-    return true;
-  }
-
-  hideVariationContainers() {
-    if (this.topContainer) this.topContainer.hidden = true;
-    if (this.bottomContainer) this.bottomContainer.hidden = true;
-
-    return true;
-  }
-
   /* ==========================================================================
     HELPERS
   ========================================================================== */
 
-  toNullableNumber(value) {
-    if (value === null || value === undefined || value === "") return null;
+  parseJson(text = "") {
+    try {
+      return JSON.parse(String(text ?? ""));
+    } catch (error) {
+      console.error(
+        "Invalid JSON response:",
+        error,
+        text
+      );
 
-    const number = Number(String(value).replace(/[^0-9.-]+/g, ""));
-
-    return Number.isFinite(number) ? number : null;
+      return null;
+    }
   }
 
-  toBoolean(value) {
-    if (typeof value === "boolean") return value;
-    if (typeof value === "number") return value === 1;
+  escapeCss(value = "") {
+    const text = String(value ?? "");
 
-    return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
+    if (
+      window.CSS &&
+      typeof window.CSS.escape === "function"
+    ) {
+      return window.CSS.escape(text);
+    }
+
+    return text.replace(
+      /["\\]/g,
+      "\\$&"
+    );
+  }
+
+  escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  buildControllerAssetUrl(rawPath, fallback = "") {
+    const path = String(rawPath ?? "")
+      .trim()
+      .replace(/^\/+/, "");
+
+    if (!path) return fallback;
+
+    if (
+      path.startsWith("http://") ||
+      path.startsWith("https://") ||
+      path.startsWith("data:") ||
+      path.startsWith("blob:")
+    ) {
+      return path;
+    }
+
+    if (path.startsWith("controller/")) {
+      return `../../${path}`;
+    }
+
+    return `../../controller/${path}`;
   }
 }
-
-window.Variations = Variations;
