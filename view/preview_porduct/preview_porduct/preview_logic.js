@@ -197,7 +197,6 @@ class PreviewLogic {
         const description = productDetails?.description ?? "";
         const status = String(productDetails?.status ?? "");
         const isApprovedValue = String(productDetails?.is_approved ?? "");
-        alert("buenas");
 
         this.updatePublishButton(status, isApprovedValue);
         this.renderBreadcrumb(categoryName, groupName);
@@ -206,6 +205,7 @@ class PreviewLogic {
         this.renderBrandName(companyName);
         this.renderTagline(descriptiveTagline);
         this.renderDescription(description);
+        alert("buenas");
 
         this.variations.reset();
         this.deleteGroupsContent();
