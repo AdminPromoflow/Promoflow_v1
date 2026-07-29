@@ -94,16 +94,20 @@ class PreviewLogic {
         return response.text();
       })
       .then((text) => {
-        alert(text);
+        const responseData = JSON.parse(text);
 
-        try {
-          JSON.parse(text);
-        } catch (error) {
-          console.warn("The publish response is not valid JSON.", error);
+        if (responseData.success === true) {
+          alert(responseData.message || "The product has been approved.");
+
+          window.location.href = "view/overview/index.php";
+          return;
         }
+
+        alert(responseData.message || "Unable to approve the product.");
       })
       .catch((error) => {
-        console.error("Error publishing product:", error);
+        console.error("Error approving product:", error);
+        alert("An error occurred while approving the product.");
       });
 
     return true;
