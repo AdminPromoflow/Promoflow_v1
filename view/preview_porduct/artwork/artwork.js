@@ -4,7 +4,6 @@ class Artwork {
   constructor(previewLogic = null) {
     this.previewLogic = previewLogic;
     this.container = null;
-    this.artworks = [];
   }
 
   init() {
@@ -12,135 +11,105 @@ class Artwork {
     return Boolean(this.container);
   }
 
-  renderArtwork(data = []) {
-    return this.renderArtworks(data);
+  renderArtworks(data = [], typeVariation = {}) {
+    return this.renderArtwork(data, typeVariation);
   }
 
-  renderArtworks(data = []) {
+  renderArtwork(artworksOnlyOfType = [], typeVariation = {}) {
     if (!this.container) this.init();
     if (!this.container) return false;
 
-    this.artworks = this.normaliseArtworks(data);
-    this.container.innerHTML = "";
+    const selectedVariationId = Number(
+      String(this.previewLogic?.variations?.getSelectVariation?.() ?? "")
+        .replace(/^variation_id_/, "")
+    );
 
-    if (this.artworks.length === 0) {
-      this.hideArtworkSection();
-      return false;
-    }
+    if (!Number.isFinite(selectedVariationId)) return false;
 
-    const groups = this.groupArtworks(this.artworks, 3);
+    const typeId = String(typeVariation?.type_id ?? "").trim();
 
-    groups.forEach((group) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "wrap-artworks";
+    if (!typeId) return false;
 
-      group.forEach((artwork) => {
-        wrapper.appendChild(this.createArtworkLink(artwork));
-      });
+    this.deleteArtwork(typeId);
 
-      this.container.appendChild(wrapper);
-    });
+    const wrapper = document.createElement("div");
 
-    this.showArtworkSection();
-    return true;
-  }
+    wrapper.className = "wrap-artworks";
+    wrapper.id = `wrap-artworks-${typeId}`;
+    wrapper.dataset.typeId = typeId;
 
-  createArtworkLink(artwork) {
-    const link = document.createElement("a");
+    for (const artworkData of artworksOnlyOfType) {
+      if (Number(artworkData?.variation_id) !== selectedVariationId) continue;
 
-    link.className = "btn btn-artwork";
-    link.href = artwork.url;
-    link.textContent = artwork.name;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
+      const name = String(artworkData?.name_pdf_artwork ?? "").trim();
+      const pdfSource = this.buildPdfSource(artworkData?.pdf_artwork);
 
-    if (artwork.download) link.setAttribute("download", "");
+      if (!name && !pdfSource) continue;
 
-    return link;
-  }
+      const artworkElement = document.createElement("div");
 
-  normaliseArtworks(data = []) {
-    const artworks = this.extractArtworks(data);
+      artworkElement.className = "sp-artwork";
 
-    return artworks.map((artwork, index) => {
-      if (typeof artwork === "string") {
-        return {
-          id: index,
-          name: this.getFileName(artwork),
-          url: artwork,
-          download: true
-        };
+      if (name) {
+        const artworkName = document.createElement("strong");
+
+        artworkName.className = "sp-artwork-name";
+        artworkName.textContent = name;
+
+        artworkElement.appendChild(artworkName);
       }
 
-      const url = artwork.url || artwork.file_url || artwork.file || artwork.path || artwork.link || artwork.artwork_url || artwork.template_url || "";
-      const name = artwork.name || artwork.title || artwork.label || artwork.file_name || artwork.filename || artwork.artwork_name || artwork.template_name || this.getFileName(url) || `Artwork template ${index + 1}`;
+      if (pdfSource) {
+        const artworkLink = document.createElement("a");
 
-      return {
-        id: artwork.id || artwork.artwork_id || artwork.template_id || index,
-        name,
-        url,
-        download: artwork.download !== false
-      };
-    }).filter((artwork) => artwork.url);
-  }
+        artworkLink.className = "sp-artwork-link";
+        artworkLink.href = pdfSource;
+        artworkLink.target = "_blank";
+        artworkLink.rel = "noopener";
+        artworkLink.textContent = "Open PDF";
 
-  extractArtworks(data = []) {
-    if (Array.isArray(data)) return data;
-    if (!data || typeof data !== "object") return [];
+        artworkElement.appendChild(artworkLink);
+      }
 
-    if (Array.isArray(data.artworks)) return data.artworks;
-    if (Array.isArray(data.artwork)) return data.artwork;
-    if (Array.isArray(data.templates)) return data.templates;
-    if (Array.isArray(data.artwork_templates)) return data.artwork_templates;
-    if (Array.isArray(data.product_artworks)) return data.product_artworks;
-
-    if (data.data) return this.extractArtworks(data.data);
-    if (data.product) return this.extractArtworks(data.product);
-
-    return [];
-  }
-
-  groupArtworks(artworks = [], groupSize = 3) {
-    const groups = [];
-
-    for (let index = 0; index < artworks.length; index += groupSize) {
-      groups.push(artworks.slice(index, index + groupSize));
+      wrapper.appendChild(artworkElement);
     }
 
-    return groups;
-  }
+    if (wrapper.children.length === 0) return false;
 
-  getFileName(url = "") {
-    if (!url) return "";
-
-    try {
-      const cleanUrl = url.split("?")[0].split("#")[0];
-      const fileName = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf("/") + 1));
-      const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
-
-      return nameWithoutExtension.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-    } catch (error) {
-      console.error("Error getting artwork file name:", error);
-      return "Artwork template";
-    }
-  }
-
-  showArtworkSection() {
-    if (!this.container) return false;
-
-    const section = this.container.closest(".sp-artwork-downloads");
-
-    if (section) section.hidden = false;
+    this.container.appendChild(wrapper);
 
     return true;
   }
 
-  hideArtworkSection() {
+  buildPdfSource(pdf = "") {
+    const rawPdf = String(pdf ?? "").trim().replace(/^\/+/, "");
+
+    if (!rawPdf) return "";
+
+    if (
+      rawPdf.startsWith("http") ||
+      rawPdf.startsWith("data:") ||
+      rawPdf.startsWith("blob:")
+    ) {
+      return rawPdf;
+    }
+
+    if (rawPdf.startsWith("controller/")) {
+      return `../../${rawPdf}`;
+    }
+
+    return `../../controller/${rawPdf}`;
+  }
+
+  deleteArtwork(typeId) {
+    if (!this.container) this.init();
     if (!this.container) return false;
 
-    const section = this.container.closest(".sp-artwork-downloads");
+    const safeTypeId = String(typeId ?? "").trim();
 
-    if (section) section.hidden = true;
+    if (!safeTypeId) return false;
+
+    document.getElementById(`wrap-artworks-${safeTypeId}`)?.remove();
 
     return true;
   }
@@ -149,23 +118,13 @@ class Artwork {
     if (!this.container) this.init();
     if (!this.container) return false;
 
-    this.artworks = [];
-    this.container.innerHTML = "";
-    this.hideArtworkSection();
+    this.container.replaceChildren();
 
     return true;
   }
 
   clearArtworks() {
     return this.clearArtwork();
-  }
-
-  setArtwork(data = []) {
-    return this.renderArtworks(data);
-  }
-
-  getArtwork() {
-    return this.artworks;
   }
 }
 

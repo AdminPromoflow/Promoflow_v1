@@ -1,157 +1,97 @@
 // prices.js
 
 class Prices {
-  constructor() {
+  constructor(previewLogic = null) {
+    this.previewLogic = previewLogic;
+    this.container = null;
     this.maxQuantity = null;
-    this.selectedPrice = null;
+    this.priceSelected = null;
     this.requestVersion = 0;
   }
 
-  /* ==========================================================================
-    DELETE PRICES
-  ========================================================================== */
-
-  deletePrices(typeId) {
-    const safeTypeId = String(typeId ?? "").trim();
-
-    if (!safeTypeId) return false;
-
-    const wrapper = document.getElementById(`wrap-price-${safeTypeId}`);
-
-    if (!wrapper) return false;
-
-    wrapper.remove();
-
-    return true;
+  init() {
+    this.container = document.getElementById("wrap-prices-group");
+    return Boolean(this.container);
   }
 
-  /* ==========================================================================
-    RENDER PRICES
-  ========================================================================== */
+  renderPrice(data = [], typeVariation = {}) {
+    return this.renderPrices(data, typeVariation);
+  }
 
   renderPrices(pricesOnlyOfType = [], typeVariation = {}) {
-    const selectedVariation = window.previewLogic?.getSelectVariation?.() ?? "";
+    if (!this.container) this.init();
+    if (!this.container) return false;
+
+    window.loader?.show?.();
 
     const selectedVariationId = Number(
-      String(selectedVariation).replace(/^variation_id_/, "")
+      String(this.previewLogic?.variations?.getSelectVariation?.() ?? "")
+        .replace(/^variation_id_/, "")
     );
 
-    const parent = document.getElementById("wrap-prices-group");
-
-    if (
-      !parent ||
-      !Number.isFinite(selectedVariationId) ||
-      !Array.isArray(pricesOnlyOfType) ||
-      pricesOnlyOfType.length === 0
-    ) {
-      return false;
-    }
+    if (!Number.isFinite(selectedVariationId)) return false;
 
     const typeId = String(typeVariation?.type_id ?? "").trim();
 
     if (!typeId) return false;
-
-    const wrapId = `wrap-price-${typeId}`;
 
     this.deletePrices(typeId);
 
     const wrapper = document.createElement("div");
 
     wrapper.className = "wrap-price";
-    wrapper.id = wrapId;
+    wrapper.id = `wrap-price-${typeId}`;
     wrapper.dataset.typeId = typeId;
 
     for (const priceData of pricesOnlyOfType) {
-      const variationId = Number(priceData?.variation_id);
-
-      if (
-        !Number.isFinite(variationId) ||
-        variationId !== selectedVariationId
-      ) {
-        continue;
-      }
-
-      const priceDisplayMode = String(
-        priceData?.price_display_mode ?? ""
-      ).trim();
-
-      if (priceDisplayMode !== "prices") continue;
+      if (Number(priceData?.variation_id) !== selectedVariationId) continue;
+      if (String(priceData?.price_display_mode ?? "").trim() !== "prices") continue;
 
       const priceId = String(priceData?.price_id ?? "").trim();
       const minQuantity = String(priceData?.min_quantity ?? "").trim();
       const maxQuantity = String(priceData?.max_quantity ?? "").trim();
       const price = String(priceData?.price ?? "").trim();
 
-      if (!maxQuantity || !price) continue;
+      if (!maxQuantity) continue;
 
-      const button = this.createPriceButton({
-        priceId: priceId,
-        minQuantity: minQuantity,
-        maxQuantity: maxQuantity,
-        price: price,
-        variationId: variationId,
-        priceDisplayMode: priceDisplayMode
-      });
+      const button = document.createElement("button");
 
+      button.type = "button";
+      button.className = "var-option js-scale-in js-price-option";
+      button.value = price;
+      button.dataset.priceId = priceId;
+      button.dataset.minQuantity = minQuantity;
+      button.dataset.maxQuantity = maxQuantity;
+      button.dataset.price = price;
+      button.dataset.variationId = String(priceData?.variation_id ?? "");
+      button.dataset.priceDisplayMode = String(priceData?.price_display_mode ?? "");
+      button.setAttribute("aria-pressed", "false");
+
+      const main = document.createElement("span");
+
+      main.className = "opt-main";
+      main.textContent = minQuantity;
+
+      button.appendChild(main);
       wrapper.appendChild(button);
     }
 
-    if (wrapper.children.length === 0) {
-      return false;
-    }
+    if (wrapper.children.length === 0) return false;
 
-    parent.appendChild(wrapper);
+    this.container.appendChild(wrapper);
     this.bindPriceButtons(wrapper);
 
     return true;
   }
 
-  createPriceButton({
-    priceId = "",
-    minQuantity = "",
-    maxQuantity = "",
-    price = "",
-    variationId = "",
-    priceDisplayMode = ""
-  } = {}) {
-    const button = document.createElement("button");
-
-    button.type = "button";
-    button.className = "var-option js-scale-in js-price-option";
-    button.value = String(price);
-    button.dataset.priceId = String(priceId);
-    button.dataset.minQuantity = String(minQuantity);
-    button.dataset.maxQuantity = String(maxQuantity);
-    button.dataset.price = String(price);
-    button.dataset.variationId = String(variationId);
-    button.dataset.priceDisplayMode = String(priceDisplayMode);
-    button.setAttribute("aria-pressed", "false");
-
-    const label = document.createElement("span");
-
-    label.className = "opt-main";
-    label.textContent = String(minQuantity);
-
-    button.appendChild(label);
-
-    return button;
-  }
-
-  /* ==========================================================================
-    PRICE EVENTS
-  ========================================================================== */
-
   bindPriceButtons(scope) {
-    const container =
-      scope instanceof HTMLElement
-        ? scope
-        : document.querySelector(String(scope ?? ""));
+    const container = scope instanceof HTMLElement
+      ? scope
+      : document.querySelector(String(scope ?? ""));
 
     if (!container) return false;
 
-    const buttons = Array.from(
-      container.querySelectorAll(".js-price-option")
-    );
+    const buttons = Array.from(container.querySelectorAll(".js-price-option"));
 
     if (buttons.length === 0) return false;
 
@@ -160,279 +100,136 @@ class Prices {
 
       button.dataset.bound = "1";
 
-      button.addEventListener("click", (event) => {
-        const selectedButton = event.currentTarget;
-
-        if (!(selectedButton instanceof HTMLButtonElement)) return;
-
-        this.selectPriceButton(selectedButton, container);
+      button.addEventListener("click", () => {
+        this.selectPriceButton(button, container);
+        this.updateProductSummaryBox(button.dataset.minQuantity, button.value);
       });
     }
 
     this.selectPriceButton(buttons[0], container);
+    this.updateProductSummaryBox(buttons[0].dataset.minQuantity, buttons[0].value);
 
     return true;
   }
 
   selectFirstAvailablePrice() {
-    const selectedButton = document.querySelector(
-      "#wrap-prices-group .js-price-option.is-selected"
-    );
-
-    if (selectedButton instanceof HTMLButtonElement) {
-      return this.selectPriceButton(
-        selectedButton,
-        selectedButton.closest(".wrap-price")
-      );
-    }
-
     const firstButton = document.querySelector(
       "#wrap-prices-group .js-price-option"
     );
 
     if (!(firstButton instanceof HTMLButtonElement)) {
+      window.loader?.hide?.();
       return false;
     }
 
-    return this.selectPriceButton(
-      firstButton,
-      firstButton.closest(".wrap-price")
-    );
-  }
+    const scope = firstButton.closest(".wrap-price");
 
-  selectFirstPrice() {
-    return this.selectFirstAvailablePrice();
+    this.selectPriceButton(firstButton, scope);
+    this.updateProductSummaryBox(firstButton.dataset.minQuantity, firstButton.value);
+
+    window.loader?.hide?.();
+
+    return true;
   }
 
   selectPriceButton(button, scope = null) {
-    if (!(button instanceof HTMLButtonElement)) {
-      return false;
+    if (!(button instanceof HTMLButtonElement)) return false;
+
+    const container = scope instanceof HTMLElement
+      ? scope
+      : button.closest(".wrap-price");
+
+    if (!container) return false;
+
+    const buttons = container.querySelectorAll(".js-price-option");
+
+    for (const currentButton of buttons) {
+      const selected = currentButton === button;
+
+      currentButton.classList.toggle("is-selected", selected);
+      currentButton.setAttribute("aria-pressed", selected ? "true" : "false");
     }
 
-    const container =
-      scope instanceof HTMLElement
-        ? scope
-        : button.closest(".wrap-price");
-
-    if (!container || !container.contains(button)) {
-      return false;
-    }
-
-    const buttons = container.querySelectorAll(
-      ".js-price-option"
-    );
-
-    for (const item of buttons) {
-      const isSelected = item === button;
-
-      item.classList.toggle("is-selected", isSelected);
-      item.setAttribute(
-        "aria-pressed",
-        isSelected ? "true" : "false"
-      );
-    }
-
-    const payload = this.getPricePayload(button);
-
-    if (!payload) return false;
+    const payload = {
+      price_id: String(button.dataset.priceId ?? ""),
+      min_quantity: String(button.dataset.minQuantity ?? ""),
+      max_quantity: String(button.dataset.maxQuantity ?? ""),
+      price: String(button.dataset.price ?? ""),
+      value: String(button.value ?? "")
+    };
 
     this.setSelectedPrice(payload);
     this.setMaxQuantity(payload.max_quantity);
     this.onPriceSelected(payload, button);
-    this.updateProductSummaryBox(
-      payload.min_quantity,
-      payload.price
-    );
-
     this.updateVariationPrices();
 
     return true;
   }
 
-  getPricePayload(button) {
-    if (!(button instanceof HTMLButtonElement)) {
-      return null;
-    }
-
-    const price = String(
-      button.dataset.price ?? button.value ?? ""
-    ).trim();
-
-    const minQuantity = String(
-      button.dataset.minQuantity ?? ""
-    ).trim();
-
-    const maxQuantity = String(
-      button.dataset.maxQuantity ?? ""
-    ).trim();
-
-    if (!price || !maxQuantity) {
-      return null;
-    }
-
-    return {
-      price_id: String(button.dataset.priceId ?? ""),
-      min_quantity: minQuantity,
-      max_quantity: maxQuantity,
-      price: price,
-      variation_id: String(button.dataset.variationId ?? ""),
-      price_display_mode: String(
-        button.dataset.priceDisplayMode ?? ""
-      ),
-      value: String(button.value ?? "")
-    };
-  }
-
-  /* ==========================================================================
-    PRODUCT SUMMARY
-  ========================================================================== */
-
   updateProductSummaryBox(quantity, price) {
-    const totalExtraPrice = this.getSelectedExtraPriceTotal();
+    const selectedVariations = document.querySelectorAll(
+      "#wrap-variations-group .var-option.is-selected"
+    );
+
+    let totalExtraPrice = 0;
+
+    for (const selectedVariation of selectedVariations) {
+      const extraPriceElement = selectedVariation.querySelector(".opt-price-extra");
+
+      if (!extraPriceElement) continue;
+
+      const rawPrice =
+        extraPriceElement.dataset.extraPrice ||
+        extraPriceElement.textContent
+          .replace("+", "")
+          .replace("p/u", "")
+          .trim();
+
+      const extraPrice = this.parseNumber(rawPrice);
+
+      totalExtraPrice += extraPrice;
+    }
 
     const numericQuantity = this.parseNumber(quantity);
     const numericPrice = this.parseNumber(price);
 
-    const safeQuantity = numericQuantity > 0
-      ? numericQuantity
-      : 0;
+    const unitTotal = numericPrice * numericQuantity;
+    const extraQuantity = totalExtraPrice === 0 ? 0 : numericQuantity;
+    const extrasTotal = totalExtraPrice * numericQuantity;
+    const total = unitTotal + extrasTotal;
 
-    const safePrice = numericPrice >= 0
-      ? numericPrice
-      : 0;
+    this.setText("bb_unit", `£${this.formatPrice(numericPrice)}`);
+    this.setText("bb_unit_quantity", numericQuantity);
+    this.setText("bb_unit_total", `£${this.formatPrice(unitTotal)}`);
 
-    const unitTotal = safePrice * safeQuantity;
-    const extrasQuantity = totalExtraPrice === 0
-      ? 0
-      : safeQuantity;
+    this.setText("bb_extra_unit", `£${this.formatPrice(totalExtraPrice)}`);
+    this.setText("bb_extra_quantity", extraQuantity);
+    this.setText("bb_extra_total", `£${this.formatPrice(extrasTotal)}`);
 
-    const extrasTotal = totalExtraPrice * safeQuantity;
-    const grandTotal = unitTotal + extrasTotal;
-
-    this.setText(
-      "bb_unit",
-      `£${this.formatPrice(safePrice)}`
-    );
-
-    this.setText(
-      "bb_unit_quantity",
-      this.formatQuantity(safeQuantity)
-    );
-
-    this.setText(
-      "bb_unit_total",
-      `£${this.formatPrice(unitTotal)}`
-    );
-
-    this.setText(
-      "bb_extra_unit",
-      `£${this.formatPrice(totalExtraPrice)}`
-    );
-
-    this.setText(
-      "bb_extra_quantity",
-      this.formatQuantity(extrasQuantity)
-    );
-
-    this.setText(
-      "bb_extra_total",
-      `£${this.formatPrice(extrasTotal)}`
-    );
-
-    this.setText(
-      "bb_total",
-      `£${this.formatPrice(grandTotal)}`
-    );
-
-    this.setText(
-      "sp_price",
-      this.formatPrice(safePrice)
-    );
-
-    this.setText(
-      "var_label_quantity",
-      this.formatQuantity(safeQuantity)
-    );
-
-    this.setText(
-      "sp_unit_hint",
-      `per ${this.formatQuantity(safeQuantity)} units`
-    );
+    this.setText("bb_total", `£${this.formatPrice(total)}`);
+    this.setText("sp_price", this.formatPrice(numericPrice));
+    this.setText("var_label_quantity", numericQuantity);
+    this.setText("sp_unit_hint", `per ${numericQuantity} units`);
 
     return true;
   }
 
-  getSelectedExtraPriceTotal() {
-    const selectedVariationButtons = document.querySelectorAll(
-      "#wrap-variations-group .var-option.is-selected"
-    );
-
-    let total = 0;
-
-    for (const button of selectedVariationButtons) {
-      const extraPriceElement = button.querySelector(
-        ".opt-price-extra"
-      );
-
-      if (!extraPriceElement) continue;
-
-      const datasetPrice = String(
-        extraPriceElement.dataset.extraPrice ?? ""
-      ).trim();
-
-      const visiblePrice = String(
-        extraPriceElement.textContent ?? ""
-      )
-        .replace("+", "")
-        .replace("p/u", "")
-        .trim();
-
-      const price = this.parseNumber(
-        datasetPrice || visiblePrice
-      );
-
-      if (price >= 0) {
-        total += price;
-      }
-    }
-
-    return total;
-  }
-
-  /* ==========================================================================
-    VARIATION EXTRA PRICES
-  ========================================================================== */
-
-  async updateVariationPrices() {
+  updateVariationPrices() {
     const variationButtons = document.querySelectorAll(
       "#wrap-variations-group .var-option[id^='variation_id_']"
     );
 
     const ids = Array.from(variationButtons)
-      .map((button) => {
-        return Number(
-          String(button.id).replace(/^variation_id_/, "")
-        );
-      })
-      .filter((id) => {
-        return Number.isFinite(id) && id > 0;
-      });
+      .map((button) => Number(button.id.replace(/^variation_id_/, "")))
+      .filter((id) => Number.isFinite(id) && id > 0);
 
-    if (ids.length === 0) {
-      return false;
-    }
+    const maxQuantity = this.getMaxQuantity();
 
-    const maxQuantity = String(
-      this.getMaxQuantity() ?? ""
-    ).trim();
-
-    if (!maxQuantity) {
-      return false;
-    }
+    if (ids.length === 0 || !maxQuantity) return false;
 
     const requestVersion = ++this.requestVersion;
 
-    const url = "../../controller/order/product.php";
+    const url = "../../controller/dot63/requests_63_api.php";
 
     const data = {
       action: "get_variation_prices",
@@ -440,97 +237,60 @@ class Prices {
       max_quantity: maxQuantity
     };
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Network error: ${response.status}`);
+        }
+
+        return response.text();
+      })
+      .then((text) => {
+        if (requestVersion !== this.requestVersion) return;
+
+        const json = JSON.parse(text);
+        const prices = Array.isArray(json?.prices) ? json.prices : [];
+
+        this.drawExtraVariationPrices(prices);
+      })
+      .catch((error) => {
+        if (requestVersion === this.requestVersion) {
+          console.error("Error fetching variation prices:", error);
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`Network error: ${response.status}`);
-      }
-
-      const text = await response.text();
-      const responseData = this.parseJson(text);
-
-      if (
-        requestVersion !== this.requestVersion ||
-        !responseData ||
-        typeof responseData !== "object"
-      ) {
-        return false;
-      }
-
-      const variationPrices = Array.isArray(
-        responseData.prices
-      )
-        ? responseData.prices
-        : [];
-
-      this.drawExtraVariationPrices(variationPrices);
-
-      return true;
-    } catch (error) {
-      if (requestVersion === this.requestVersion) {
-        console.error(
-          "Error fetching variation prices:",
-          error
-        );
-      }
-
-      return false;
-    }
+    return true;
   }
 
   drawExtraVariationPrices(data = []) {
+    const existingPrices = document.querySelectorAll(
+      "#wrap-variations-group .opt-price-extra"
+    );
+
+    existingPrices.forEach((element) => element.remove());
+
     if (!Array.isArray(data)) return false;
 
-    this.clearExtraVariationPrices();
-
     for (const row of data) {
-      const variationId = String(
-        row?.variation_id ?? ""
-      ).trim();
-
-      if (!variationId) continue;
-
-      const button = document.getElementById(
-        `variation_id_${variationId}`
-      );
+      const variationId = String(row?.variation_id ?? "").trim();
+      const button = document.getElementById(`variation_id_${variationId}`);
 
       if (!button) continue;
 
-      const rawExtraPrice =
-        row?.price?.price ??
-        row?.price ??
-        null;
-
-      if (
-        rawExtraPrice === null ||
-        rawExtraPrice === undefined ||
-        String(rawExtraPrice).trim() === ""
-      ) {
-        continue;
-      }
-
-      const numericExtraPrice = this.parseNumber(
-        rawExtraPrice
-      );
-
-      if (numericExtraPrice < 0) continue;
+      const rawPrice = row?.price?.price ?? row?.price ?? "";
+      const numericPrice = this.parseNumber(rawPrice);
 
       const priceElement = document.createElement("span");
 
       priceElement.className = "opt-price-extra";
-      priceElement.dataset.extraPrice = String(
-        numericExtraPrice
-      );
-
-      priceElement.textContent =
-        `+${this.formatPrice(numericExtraPrice)} p/u`;
+      priceElement.dataset.extraPrice = String(numericPrice);
+      priceElement.textContent = `+${this.formatPrice(numericPrice)} p/u`;
 
       button.appendChild(priceElement);
     }
@@ -547,35 +307,41 @@ class Prices {
     return true;
   }
 
-  clearExtraVariationPrices() {
-    const priceElements = document.querySelectorAll(
-      "#wrap-variations-group .opt-price-extra"
-    );
+  deletePrices(typeId) {
+    if (!this.container) this.init();
+    if (!this.container) return false;
 
-    for (const element of priceElements) {
-      element.remove();
-    }
+    const safeTypeId = String(typeId ?? "").trim();
+
+    if (!safeTypeId) return false;
+
+    document.getElementById(`wrap-price-${safeTypeId}`)?.remove();
+
+    return true;
   }
 
-  /* ==========================================================================
-    STATE
-  ========================================================================== */
+  clearPrices() {
+    if (!this.container) this.init();
+    if (!this.container) return false;
+
+    this.container.replaceChildren();
+    this.priceSelected = null;
+    this.maxQuantity = null;
+    this.requestVersion++;
+
+    return true;
+  }
 
   setSelectedPrice(payload = null) {
-    this.selectedPrice =
-      payload && typeof payload === "object"
-        ? payload
-        : null;
+    this.priceSelected = payload;
   }
 
   getSelectedPrice() {
-    return this.selectedPrice;
+    return this.priceSelected;
   }
 
   setMaxQuantity(maxQuantity) {
-    const value = String(maxQuantity ?? "").trim();
-
-    this.maxQuantity = value || null;
+    this.maxQuantity = String(maxQuantity ?? "").trim() || null;
   }
 
   getMaxQuantity() {
@@ -583,57 +349,23 @@ class Prices {
   }
 
   onPriceSelected(payload, button = null) {
-    // Optional hook.
-  }
-
-  /* ==========================================================================
-    HELPERS
-  ========================================================================== */
-
-  parseJson(text = "") {
-    try {
-      return JSON.parse(String(text ?? ""));
-    } catch (error) {
-      console.error(
-        "Invalid JSON response:",
-        error,
-        text
-      );
-
-      return null;
-    }
+    window.previewGallery?.updatePrice?.(button);
   }
 
   parseNumber(value) {
-    const normalised = String(value ?? "")
-      .trim()
-      .replace(/,/g, "");
+    const number = Number(
+      String(value ?? "")
+        .trim()
+        .replace(/,/g, "")
+    );
 
-    const number = Number(normalised);
-
-    return Number.isFinite(number)
-      ? number
-      : 0;
+    return Number.isFinite(number) ? number : 0;
   }
 
   formatPrice(value) {
     const number = Number(value);
 
-    return Number.isFinite(number)
-      ? number.toFixed(2)
-      : "0.00";
-  }
-
-  formatQuantity(value) {
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-      return "0";
-    }
-
-    return Number.isInteger(number)
-      ? String(number)
-      : String(number);
+    return Number.isFinite(number) ? number.toFixed(2) : "0.00";
   }
 
   setText(elementId, value = "") {
@@ -643,17 +375,6 @@ class Prices {
       element.textContent = String(value ?? "");
     }
   }
-
-  escapeHtml(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
 }
 
-const prices = new Prices();
-
-window.prices = prices;
+window.Prices = Prices;
