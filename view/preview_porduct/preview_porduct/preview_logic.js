@@ -346,4 +346,4 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", createPreviewLogic, { once: true });
 } else {
   createPreviewLogic();
-}
+} 
