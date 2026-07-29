@@ -59,22 +59,43 @@ class SectionOverview {
 
   renderOverviewDetailsTable(data) {
     if (!this.tableOverviewDetails) return;
+
     this.tableOverviewDetails.innerHTML = "";
 
-    for (let i = 0; i < data.length; i++) {
+    const products = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.result)
+        ? data.result
+        : [];
+
+    const pendingProducts = products.filter((product) => {
+      return parseInt(product?.is_approved, 10) === 0;
+    });
+
+    if (pendingProducts.length === 0) {
+      this.tableOverviewDetails.innerHTML = `
+        <tr>
+          <td colspan="7">No pending products found.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    pendingProducts.forEach((product, i) => {
       const index = i + 1;
 
-      const dateRaw = data[i]["date_status"];
-      const date = (dateRaw === null || dateRaw === undefined || dateRaw === "") ? "-" : dateRaw;
+      const dateRaw = product?.date_status;
+      const date = dateRaw === null || dateRaw === undefined || dateRaw === ""
+        ? "-"
+        : dateRaw;
 
-      const supplier = data[i]["supplier"]?.["company_name"] ?? "-";
-      const name = data[i]["name"] ?? "";
-      const status = (parseInt(data[i]["is_approved"], 10) === 0) ? "Pending" : "Approved";
+      const supplier = product?.supplier?.company_name ?? "-";
+      const name = product?.name ?? "";
+      const status = "Pending";
 
-      const sku = data[i]["SKU"] ?? "";
-      const skuVariation = data[i]["sku_variations"] ?? "";
+      const sku = product?.SKU ?? "";
+      const skuVariation = product?.sku_variations ?? "";
 
-      // Escapar comillas dobles para atributos HTML
       const safeSku = String(sku).replace(/"/g, "&quot;");
       const safeSkuVar = String(skuVariation).replace(/"/g, "&quot;");
 
@@ -91,8 +112,9 @@ class SectionOverview {
               data-sku-variation="${safeSkuVar}">
             Review
           </td>
-        </tr>`;
-    }
+        </tr>
+      `;
+    });
   }
 
   reviewProduct(sku, skuVariation) {
