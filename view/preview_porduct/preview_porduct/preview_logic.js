@@ -163,7 +163,6 @@ class PreviewLogic {
         return response.text();
       })
       .then((text) => {
-        alert(text);
         let json;
 
         try {
@@ -198,6 +197,7 @@ class PreviewLogic {
         const description = productDetails?.description ?? "";
         const status = String(productDetails?.status ?? "");
         const isApprovedValue = String(productDetails?.is_approved ?? "");
+        alert("buenas");
 
         this.updatePublishButton(status, isApprovedValue);
         this.renderBreadcrumb(categoryName, groupName);
