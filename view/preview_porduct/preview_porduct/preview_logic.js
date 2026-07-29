@@ -206,7 +206,7 @@ class PreviewLogic {
         this.renderTagline(descriptiveTagline);
         this.renderDescription(description);
 
-        this.variations.reset();
+        variations.reset();
         this.deleteGroupsContent();
 
         if (!defaultVariationId) {
@@ -215,7 +215,7 @@ class PreviewLogic {
           return;
         }
 
-        this.fetchChildVariationsById(defaultVariationId);
+        variations.fetchChildVariationsById(defaultVariationId);
       })
       .catch((error) => {
         console.error("Error fetching preview:", error);
