@@ -1,10 +1,24 @@
 <?php
 
 /**
- * Send a JSON response without exposing internal server details.
+ * Promoflow webhook for Ullman Sails forms.
+ *
+ * Copy this file to:
+ * https://www.promoflow.net/controller/controller.php
+ *
+ * The existing send_emails.php file and its PHPMailer dependencies must remain
+ * inside the same /controller directory on Promoflow.
+ *
+ * Configure the same token used by Ullman Sails through the server environment,
+ * or uncomment the line immediately below and replace its placeholder.
  */
-function ullman_send_json_response($payload, $statusCode = 200) {
-    http_response_code($statusCode);
+
+// define('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN', 'PASTE_THE_SAME_32+_CHARACTER_TOKEN_HERE');
+require_once __DIR__ . '/send_emails.php';
+
+function ullman_webhook_send_json($payload, $statusCode = 200)
+{
+    http_response_code((int) $statusCode);
     header('Content-Type: application/json; charset=UTF-8');
 
     $json = json_encode(
@@ -12,108 +26,109 @@ function ullman_send_json_response($payload, $statusCode = 200) {
         JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
     );
 
-    if ($json === false) {
-        http_response_code(500);
-        $json = '{"success":false,"message":"Unable to create the server response."}';
-    }
-
-    echo $json;
+    echo $json !== false
+        ? $json
+        : '{"success":false,"message":"Unable to create the server response."}';
 }
 
-/**
- * Apply the CORS policy before loading any file that could produce output.
- */
-function ullman_apply_cors_policy() {
-    $allowedOrigins = array(
-        'https://aleinarossui.com',
-        'https://www.aleinarossui.com'
-    );
+function ullman_webhook_get_token()
+{
+    if (defined('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN')) {
+        return (string) constant('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN');
+    }
 
-    $origin = isset($_SERVER['HTTP_ORIGIN'])
-        ? rtrim($_SERVER['HTTP_ORIGIN'], '/')
+    $environmentToken = getenv('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN');
+
+    return is_string($environmentToken) ? $environmentToken : '';
+}
+
+function ullman_webhook_authorize_request()
+{
+    $expectedToken = ullman_webhook_get_token();
+    $receivedToken = isset($_SERVER['HTTP_X_ULLMAN_WEBHOOK_TOKEN'])
+        ? (string) $_SERVER['HTTP_X_ULLMAN_WEBHOOK_TOKEN']
         : '';
 
-    $requestMethod = isset($_SERVER['REQUEST_METHOD'])
-        ? strtoupper($_SERVER['REQUEST_METHOD'])
-        : '';
-
-    header('Vary: Origin');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-    if ($origin === '' || !in_array($origin, $allowedOrigins, true)) {
-        ullman_send_json_response(array(
+    if (
+        strlen($expectedToken) < 32
+        || $receivedToken === ''
+        || !hash_equals($expectedToken, $receivedToken)
+    ) {
+        ullman_webhook_send_json(array(
             'success' => false,
-            'message' => 'Origin not allowed.'
-        ), 403);
-        exit;
-    }
-
-    header('Access-Control-Allow-Origin: ' . $origin);
-
-    if ($requestMethod === 'OPTIONS') {
-        http_response_code(204);
+            'message' => 'Unauthorized request.'
+        ), 401);
         exit;
     }
 }
 
-$ullmanStandaloneRequest = !defined('ABSPATH');
-
-if ($ullmanStandaloneRequest) {
-    // Keep PHP warnings/notices out of API responses while still logging them.
-    ini_set('display_errors', '0');
-    ini_set('log_errors', '1');
-    error_reporting(E_ALL);
-
-    ullman_apply_cors_policy();
-}
-
-class ApiHandlerSendForms {
-
+class PromoflowUllmanFormsWebhook
+{
     private $requestData = array();
+    private $maxAttachmentBytes = 10485760; // 10 MB after base64 decoding.
 
-    public function handleRequest() {
-        header('Content-Type: application/json; charset=UTF-8');
-
+    public function handleRequest()
+    {
         $requestMethod = isset($_SERVER['REQUEST_METHOD'])
             ? strtoupper($_SERVER['REQUEST_METHOD'])
             : '';
 
         if ($requestMethod !== 'POST') {
-            ullman_send_json_response(array(
+            ullman_webhook_send_json(array(
                 'success' => false,
                 'message' => 'Method not allowed.'
             ), 405);
             return;
         }
 
-        $this->requestData = $this->getRequestData();
+        ullman_webhook_authorize_request();
 
-        $action = isset($this->requestData['action'])
-            ? $this->requestData['action']
-            : null;
+        $contentType = isset($_SERVER['CONTENT_TYPE'])
+            ? (string) $_SERVER['CONTENT_TYPE']
+            : '';
 
-        /*
-         * Compatibility with the existing WordPress JavaScript:
-         * it changes action to "ullman_send_forms" and preserves the real
-         * form action inside "form_action" before submitting the FormData.
-         */
-        if (
-            $action === 'ullman_send_forms' &&
-            isset($this->requestData['form_action']) &&
-            $this->requestData['form_action'] !== ''
-        ) {
-            $action = $this->requestData['form_action'];
-            $this->requestData['action'] = $action;
+        if (stripos($contentType, 'application/json') === false) {
+            ullman_webhook_send_json(array(
+                'success' => false,
+                'message' => 'Content-Type must be application/json.'
+            ), 415);
+            return;
         }
 
-        if ($action === null || $action === '') {
-            ullman_send_json_response(array(
+        $contentLength = isset($_SERVER['CONTENT_LENGTH'])
+            ? (int) $_SERVER['CONTENT_LENGTH']
+            : 0;
+
+        if ($contentLength > 20971520) {
+            ullman_webhook_send_json(array(
                 'success' => false,
-                'message' => 'Missing action.'
+                'message' => 'The request is too large.'
+            ), 413);
+            return;
+        }
+
+        $input = file_get_contents('php://input');
+        $this->requestData = json_decode($input, true);
+
+        if (!is_array($this->requestData)) {
+            ullman_webhook_send_json(array(
+                'success' => false,
+                'message' => 'Invalid JSON payload.'
             ), 400);
             return;
         }
+
+        if (($this->requestData['source'] ?? '') !== 'ullman_sails') {
+            ullman_webhook_send_json(array(
+                'success' => false,
+                'message' => 'Invalid request source.'
+            ), 400);
+            return;
+        }
+
+        $action = isset($this->requestData['action'])
+            ? (string) $this->requestData['action']
+            : '';
 
         switch ($action) {
             case 'send_emal_contact_us':
@@ -137,284 +152,263 @@ class ApiHandlerSendForms {
                 break;
 
             default:
-                ullman_send_json_response(array(
+                ullman_webhook_send_json(array(
                     'success' => false,
-                    'message' => 'Unknown action.'
+                    'message' => $action === '' ? 'Missing action.' : 'Unknown action.'
                 ), 400);
                 break;
         }
     }
 
-    private function getRequestData() {
-        $contentType = isset($_SERVER['CONTENT_TYPE'])
-            ? $_SERVER['CONTENT_TYPE']
-            : '';
-
-        if (stripos($contentType, 'application/json') !== false) {
-            $input = file_get_contents('php://input');
-            $jsonData = json_decode($input, true);
-
-            if (is_array($jsonData)) {
-                return $jsonData;
-            }
-
-            return array();
-        }
-
-        // Browser FormData arrives here as multipart/form-data in $_POST.
-        return $_POST;
+    private function value($key, $default = null)
+    {
+        return array_key_exists($key, $this->requestData)
+            ? $this->requestData[$key]
+            : $default;
     }
 
-    private function sendEmailResult($emailResult) {
-        /*
-         * Preserve the result produced by EmailSender when it already returns
-         * an array/object. Normalize primitive values so the frontend always
-         * receives a JSON object with success and message fields.
-         */
+    private function makeDataObject($fields)
+    {
+        $data = array('action' => $this->value('action'));
+
+        foreach ($fields as $field => $default) {
+            $data[$field] = $this->value($field, $default);
+        }
+
+        return (object) $data;
+    }
+
+    private function sendEmailResult($emailResult)
+    {
         if (is_array($emailResult) || is_object($emailResult)) {
-            ullman_send_json_response($emailResult);
+            ullman_webhook_send_json($emailResult);
             return;
         }
 
         if (is_bool($emailResult)) {
-            ullman_send_json_response(array(
+            ullman_webhook_send_json(array(
                 'success' => $emailResult,
                 'message' => $emailResult
                     ? 'Message sent successfully.'
                     : 'Unable to send your message.'
-            ));
+            ), $emailResult ? 200 : 500);
             return;
         }
 
-        ullman_send_json_response(array(
+        ullman_webhook_send_json(array(
             'success' => false,
             'message' => 'Unable to send your message.'
         ), 500);
     }
 
-    private function handleContactUs() {
-        $contactName = isset($this->requestData['contactName']) ? $this->requestData['contactName'] : null;
-        $contactNumber = isset($this->requestData['contactNumber']) ? $this->requestData['contactNumber'] : null;
-        $contactLocation = isset($this->requestData['contactLocation']) ? $this->requestData['contactLocation'] : null;
-        $contactEmail = isset($this->requestData['contactEmail']) ? $this->requestData['contactEmail'] : null;
-        $contactMessage = isset($this->requestData['contactMessage']) ? $this->requestData['contactMessage'] : null;
-
-        $file = isset($_FILES['file']) ? $_FILES['file'] : null;
-
-        $data = (object) array(
-            'action' => isset($this->requestData['action']) ? $this->requestData['action'] : null,
-            'contactName' => $contactName,
-            'contactNumber' => $contactNumber,
-            'contactLocation' => $contactLocation,
-            'contactEmail' => $contactEmail,
-            'contactMessage' => $contactMessage,
-            'file' => $file
-        );
-
-        $emailSender = new EmailSender();
-        $emailSent = $emailSender->sendEmailContactUs($data);
-
-        $this->sendEmailResult($emailSent);
-    }
-
-    private function handleNewCoverQuote() {
-        $firstName = isset($this->requestData['first_name']) ? $this->requestData['first_name'] : null;
-        $lastName = isset($this->requestData['last_name']) ? $this->requestData['last_name'] : null;
-        $email = isset($this->requestData['email']) ? $this->requestData['email'] : null;
-        $phone = isset($this->requestData['phone']) ? $this->requestData['phone'] : null;
-        $address1 = isset($this->requestData['address_1']) ? $this->requestData['address_1'] : null;
-        $address2 = isset($this->requestData['address_2']) ? $this->requestData['address_2'] : null;
-        $city = isset($this->requestData['city']) ? $this->requestData['city'] : null;
-        $postcode = isset($this->requestData['postcode']) ? $this->requestData['postcode'] : null;
-        $contactByPhone = isset($this->requestData['contact_by_phone']) ? $this->requestData['contact_by_phone'] : '0';
-        $contactByEmail = isset($this->requestData['contact_by_email']) ? $this->requestData['contact_by_email'] : '0';
-        $boatType = isset($this->requestData['boat_type']) ? $this->requestData['boat_type'] : null;
-        $sailType = isset($this->requestData['sail_type']) ? $this->requestData['sail_type'] : null;
-        $boatLocation = isset($this->requestData['boat_location']) ? $this->requestData['boat_location'] : null;
-        $additionalInfo = isset($this->requestData['additional_info']) ? $this->requestData['additional_info'] : null;
-        $newsletter = isset($this->requestData['newsletter']) ? $this->requestData['newsletter'] : '0';
-
-        $data = (object) array(
-            'action' => isset($this->requestData['action']) ? $this->requestData['action'] : null,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'phone' => $phone,
-            'address_1' => $address1,
-            'address_2' => $address2,
-            'city' => $city,
-            'postcode' => $postcode,
-            'contact_by_phone' => $contactByPhone,
-            'contact_by_email' => $contactByEmail,
-            'boat_type' => $boatType,
-            'sail_type' => $sailType,
-            'boat_location' => $boatLocation,
-            'additional_info' => $additionalInfo,
-            'newsletter' => $newsletter
-        );
-
-        $emailSender = new EmailSender();
-        $emailSent = $emailSender->sendNewCoverQuote($data);
-
-        $this->sendEmailResult($emailSent);
-    }
-
-    private function handleNewRepairQuote() {
-        $firstName = isset($this->requestData['first_name']) ? $this->requestData['first_name'] : null;
-        $lastName = isset($this->requestData['last_name']) ? $this->requestData['last_name'] : null;
-        $email = isset($this->requestData['email']) ? $this->requestData['email'] : null;
-        $phone = isset($this->requestData['phone']) ? $this->requestData['phone'] : null;
-        $address1 = isset($this->requestData['address_1']) ? $this->requestData['address_1'] : null;
-        $address2 = isset($this->requestData['address_2']) ? $this->requestData['address_2'] : null;
-        $city = isset($this->requestData['city']) ? $this->requestData['city'] : null;
-        $postcode = isset($this->requestData['postcode']) ? $this->requestData['postcode'] : null;
-        $contactByPhone = isset($this->requestData['contact_by_phone']) ? $this->requestData['contact_by_phone'] : '0';
-        $contactByEmail = isset($this->requestData['contact_by_email']) ? $this->requestData['contact_by_email'] : '0';
-        $boatType = isset($this->requestData['boat_type']) ? $this->requestData['boat_type'] : null;
-        $boatName = isset($this->requestData['boat_name']) ? $this->requestData['boat_name'] : null;
-        $sailType = isset($this->requestData['sail_type']) ? $this->requestData['sail_type'] : null;
-        $workLaundry = isset($this->requestData['work_laundry']) ? $this->requestData['work_laundry'] : '0';
-        $workService = isset($this->requestData['work_service']) ? $this->requestData['work_service'] : '0';
-        $workRepair = isset($this->requestData['work_repair']) ? $this->requestData['work_repair'] : '0';
-        $workDetails = isset($this->requestData['work_details']) ? $this->requestData['work_details'] : null;
-        $boatLocation = isset($this->requestData['boat_location']) ? $this->requestData['boat_location'] : null;
-        $collectionDelivery = isset($this->requestData['collection_delivery']) ? $this->requestData['collection_delivery'] : null;
-        $newsletter = isset($this->requestData['newsletter']) ? $this->requestData['newsletter'] : '0';
-
-        $data = (object) array(
-            'action' => isset($this->requestData['action']) ? $this->requestData['action'] : null,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'phone' => $phone,
-            'address_1' => $address1,
-            'address_2' => $address2,
-            'city' => $city,
-            'postcode' => $postcode,
-            'contact_by_phone' => $contactByPhone,
-            'contact_by_email' => $contactByEmail,
-            'boat_type' => $boatType,
-            'boat_name' => $boatName,
-            'sail_type' => $sailType,
-            'work_laundry' => $workLaundry,
-            'work_service' => $workService,
-            'work_repair' => $workRepair,
-            'work_details' => $workDetails,
-            'boat_location' => $boatLocation,
-            'collection_delivery' => $collectionDelivery,
-            'newsletter' => $newsletter
-        );
-
-        $emailSender = new EmailSender();
-        $emailSent = $emailSender->sendNewRepairQuote($data);
-
-        $this->sendEmailResult($emailSent);
-    }
-
-    private function handleNewSailQuote() {
-        $firstName = isset($this->requestData['first_name']) ? $this->requestData['first_name'] : null;
-        $lastName = isset($this->requestData['last_name']) ? $this->requestData['last_name'] : null;
-        $email = isset($this->requestData['email']) ? $this->requestData['email'] : null;
-        $phone = isset($this->requestData['phone']) ? $this->requestData['phone'] : null;
-        $address1 = isset($this->requestData['address_1']) ? $this->requestData['address_1'] : null;
-        $address2 = isset($this->requestData['address_2']) ? $this->requestData['address_2'] : null;
-        $city = isset($this->requestData['city']) ? $this->requestData['city'] : null;
-        $postcode = isset($this->requestData['postcode']) ? $this->requestData['postcode'] : null;
-        $contactByPhone = isset($this->requestData['contact_by_phone']) ? $this->requestData['contact_by_phone'] : '0';
-        $contactByEmail = isset($this->requestData['contact_by_email']) ? $this->requestData['contact_by_email'] : '0';
-        $boatType = isset($this->requestData['boat_type']) ? $this->requestData['boat_type'] : null;
-        $sailType = isset($this->requestData['sail_type']) ? $this->requestData['sail_type'] : null;
-        $sailUseRacing = isset($this->requestData['sail_use_racing']) ? $this->requestData['sail_use_racing'] : '0';
-        $sailUseCruising = isset($this->requestData['sail_use_cruising']) ? $this->requestData['sail_use_cruising'] : '0';
-        $boatLocation = isset($this->requestData['boat_location']) ? $this->requestData['boat_location'] : null;
-        $additionalInfo = isset($this->requestData['additional_info']) ? $this->requestData['additional_info'] : null;
-        $newsletter = isset($this->requestData['newsletter']) ? $this->requestData['newsletter'] : '0';
-
-        $data = (object) array(
-            'action' => isset($this->requestData['action']) ? $this->requestData['action'] : null,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'phone' => $phone,
-            'address_1' => $address1,
-            'address_2' => $address2,
-            'city' => $city,
-            'postcode' => $postcode,
-            'contact_by_phone' => $contactByPhone,
-            'contact_by_email' => $contactByEmail,
-            'boat_type' => $boatType,
-            'sail_type' => $sailType,
-            'sail_use_racing' => $sailUseRacing,
-            'sail_use_cruising' => $sailUseCruising,
-            'boat_location' => $boatLocation,
-            'additional_info' => $additionalInfo,
-            'newsletter' => $newsletter
-        );
-
-        $emailSender = new EmailSender();
-        $emailSent = $emailSender->sendNewSailQuote($data);
-
-        $this->sendEmailResult($emailSent);
-    }
-
-    private function handleCustomizeSailForm() {
-        $name = isset($this->requestData['name']) ? $this->requestData['name'] : null;
-        $email = isset($this->requestData['email']) ? $this->requestData['email'] : null;
-        $salespersonEmail = isset($this->requestData['salesperson_email']) ? $this->requestData['salesperson_email'] : null;
-        $boatName = isset($this->requestData['boat_name']) ? $this->requestData['boat_name'] : null;
-        $boatDesignLength = isset($this->requestData['boat_design_length']) ? $this->requestData['boat_design_length'] : null;
-        $sailType = isset($this->requestData['sail_type']) ? $this->requestData['sail_type'] : null;
-        $clothWeight = isset($this->requestData['cloth_weight']) ? $this->requestData['cloth_weight'] : null;
-        $pdfBase64 = isset($this->requestData['pdf_base64']) ? $this->requestData['pdf_base64'] : null;
-
-        if (
-            empty($name) ||
-            empty($email) ||
-            empty($salespersonEmail) ||
-            empty($boatName) ||
-            empty($boatDesignLength) ||
-            empty($sailType) ||
-            empty($clothWeight) ||
-            empty($pdfBase64)
-        ) {
-            ullman_send_json_response(array(
-                'success' => false,
-                'message' => 'Missing required fields.'
-            ), 400);
-            return;
+    private function createTemporaryAttachment($filePayload)
+    {
+        if (!is_array($filePayload) || empty($filePayload['content_base64'])) {
+            return null;
         }
 
-        $data = (object) array(
-            'action' => isset($this->requestData['action']) ? $this->requestData['action'] : null,
-            'name' => $name,
-            'email' => $email,
-            'salesperson_email' => $salespersonEmail,
-            'boat_name' => $boatName,
-            'boat_design_length' => $boatDesignLength,
-            'sail_type' => $sailType,
-            'cloth_weight' => $clothWeight,
-            'pdf_base64' => $pdfBase64
+        $decodedFile = base64_decode((string) $filePayload['content_base64'], true);
+
+        if (
+            $decodedFile === false
+            || strlen($decodedFile) === 0
+            || strlen($decodedFile) > $this->maxAttachmentBytes
+        ) {
+            throw new RuntimeException('The attachment is invalid or too large.');
+        }
+
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'ullman_');
+
+        if ($temporaryPath === false) {
+            throw new RuntimeException('The attachment could not be prepared.');
+        }
+
+        if (file_put_contents($temporaryPath, $decodedFile) === false) {
+            @unlink($temporaryPath);
+            throw new RuntimeException('The attachment could not be stored.');
+        }
+
+        return array(
+            'name' => !empty($filePayload['name'])
+                ? basename((string) $filePayload['name'])
+                : 'attachment',
+            'type' => !empty($filePayload['type'])
+                ? (string) $filePayload['type']
+                : 'application/octet-stream',
+            'tmp_name' => $temporaryPath,
+            'error' => UPLOAD_ERR_OK,
+            'size' => strlen($decodedFile)
         );
+    }
+
+    private function handleContactUs()
+    {
+        $temporaryFile = null;
+
+        try {
+            $temporaryFile = $this->createTemporaryAttachment($this->value('file'));
+
+            $data = $this->makeDataObject(array(
+                'contactName' => null,
+                'contactNumber' => null,
+                'contactLocation' => null,
+                'contactEmail' => null,
+                'contactMessage' => null
+            ));
+
+            $data->file = $temporaryFile;
+
+            $emailSender = new EmailSender();
+            $this->sendEmailResult($emailSender->sendEmailContactUs($data));
+        } finally {
+            if (
+                is_array($temporaryFile)
+                && !empty($temporaryFile['tmp_name'])
+                && is_file($temporaryFile['tmp_name'])
+            ) {
+                @unlink($temporaryFile['tmp_name']);
+            }
+        }
+    }
+
+    private function handleNewCoverQuote()
+    {
+        $data = $this->makeDataObject(array(
+            'first_name' => null,
+            'last_name' => null,
+            'email' => null,
+            'phone' => null,
+            'address_1' => null,
+            'address_2' => null,
+            'city' => null,
+            'postcode' => null,
+            'contact_by_phone' => '0',
+            'contact_by_email' => '0',
+            'boat_type' => null,
+            'sail_type' => null,
+            'boat_location' => null,
+            'additional_info' => null,
+            'newsletter' => '0'
+        ));
 
         $emailSender = new EmailSender();
-        $emailSent = $emailSender->sendCustomizeSailForm($data);
+        $this->sendEmailResult($emailSender->sendNewCoverQuote($data));
+    }
 
-        $this->sendEmailResult($emailSent);
+    private function handleNewRepairQuote()
+    {
+        $data = $this->makeDataObject(array(
+            'first_name' => null,
+            'last_name' => null,
+            'email' => null,
+            'phone' => null,
+            'address_1' => null,
+            'address_2' => null,
+            'city' => null,
+            'postcode' => null,
+            'contact_by_phone' => '0',
+            'contact_by_email' => '0',
+            'boat_type' => null,
+            'boat_name' => null,
+            'sail_type' => null,
+            'work_laundry' => '0',
+            'work_service' => '0',
+            'work_repair' => '0',
+            'work_details' => null,
+            'boat_location' => null,
+            'collection_delivery' => null,
+            'newsletter' => '0'
+        ));
+
+        $emailSender = new EmailSender();
+        $this->sendEmailResult($emailSender->sendNewRepairQuote($data));
+    }
+
+    private function handleNewSailQuote()
+    {
+        $data = $this->makeDataObject(array(
+            'first_name' => null,
+            'last_name' => null,
+            'email' => null,
+            'phone' => null,
+            'address_1' => null,
+            'address_2' => null,
+            'city' => null,
+            'postcode' => null,
+            'contact_by_phone' => '0',
+            'contact_by_email' => '0',
+            'boat_type' => null,
+            'sail_type' => null,
+            'sail_use_racing' => '0',
+            'sail_use_cruising' => '0',
+            'boat_location' => null,
+            'additional_info' => null,
+            'newsletter' => '0'
+        ));
+
+        $emailSender = new EmailSender();
+        $this->sendEmailResult($emailSender->sendNewSailQuote($data));
+    }
+
+    private function handleCustomizeSailForm()
+    {
+        $requiredFields = array(
+            'name',
+            'email',
+            'salesperson_email',
+            'boat_name',
+            'boat_design_length',
+            'sail_type',
+            'cloth_weight',
+            'pdf_base64'
+        );
+
+        foreach ($requiredFields as $requiredField) {
+            if ($this->value($requiredField, '') === '') {
+                ullman_webhook_send_json(array(
+                    'success' => false,
+                    'message' => 'Missing required fields.'
+                ), 400);
+                return;
+            }
+        }
+
+        $data = $this->makeDataObject(array(
+            'name' => null,
+            'email' => null,
+            'salesperson_email' => null,
+            'boat_name' => null,
+            'boat_design_length' => null,
+            'sail_type' => null,
+            'cloth_weight' => null,
+            'pdf_base64' => null
+        ));
+
+        $emailSender = new EmailSender();
+        $this->sendEmailResult($emailSender->sendCustomizeSailForm($data));
     }
 }
 
-require_once __DIR__ . '/send_emails.php';
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
 
-if ($ullmanStandaloneRequest) {
-    try {
-        $apiHandlerSendForms = new ApiHandlerSendForms();
-        $apiHandlerSendForms->handleRequest();
-    } catch (Throwable $error) {
-        error_log('Ullman forms endpoint error: ' . $error->getMessage());
+try {
+    $emailSenderFile = __DIR__ . '/send_emails.php';
 
-        ullman_send_json_response(array(
-            'success' => false,
-            'message' => 'An internal server error occurred.'
-        ), 500);
+    if (!is_file($emailSenderFile)) {
+        throw new RuntimeException('send_emails.php is missing.');
     }
+
+    require_once $emailSenderFile;
+
+    $webhook = new PromoflowUllmanFormsWebhook();
+    $webhook->handleRequest();
+} catch (Throwable $error) {
+    error_log('Promoflow Ullman webhook error: ' . $error->getMessage());
+
+    ullman_webhook_send_json(array(
+        'success' => false,
+        'message' => 'An internal server error occurred.'
+    ), 500);
 }
