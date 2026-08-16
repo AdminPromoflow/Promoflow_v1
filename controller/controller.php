@@ -14,6 +14,7 @@
  */
 
 // define('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN', 'PASTE_THE_SAME_32+_CHARACTER_TOKEN_HERE');
+require_once __DIR__ . '/includes/emails-config.php';
 require_once __DIR__ . '/send_emails.php';
 
 function ullman_webhook_send_json($payload, $statusCode = 200)
