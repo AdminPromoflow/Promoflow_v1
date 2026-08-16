@@ -331,7 +331,7 @@ Cloth Weight: $clothWeight";
           $mail->CharSet = 'UTF-8';
           $mail->Encoding = 'base64';
 
-          $mail->setFrom('admin@promoflow.net', 'Jon Pegg');
+          $mail->setFrom('admin@promoflow.net', 'Vicky Lawrence');
           $mail->addAddress('vicky@ullmansails.co.uk', 'Vicky Lawrence');
           $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
           $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
@@ -469,7 +469,7 @@ Cloth Weight: $clothWeight";
           $mail->CharSet = 'UTF-8';
           $mail->Encoding = 'base64';
 
-          $mail->setFrom('admin@promoflow.net', 'Jon Pegg');
+          $mail->setFrom('admin@promoflow.net', 'Vicky Lawrence');
           $mail->addAddress('vicky@ullmansails.co.uk', 'Vicky Lawrence');
           $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
           $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
