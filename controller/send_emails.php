@@ -37,8 +37,9 @@ class EmailSender {
           $mail->Encoding = 'base64';
 
           $mail->setFrom('admin@promoflow.net', 'Jon Pegg');
-          $mail->addReplyTo('jon@ullmansails.co.uk', 'Jon Pegg');
+          $mail->addAddress('jon@ullmansails.co.uk', 'Jon Pegg');
           $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
+          $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
 
           $mail->Subject = 'New Message from the Contact Us Form';
           $mail->isHTML(true);
@@ -159,8 +160,10 @@ public function sendCustomizeSailForm($data) {
         if (!empty($email)) {
             $mail->addReplyTo($email, $name);
         } else {
-            $mail->addReplyTo('aleinarossui@gmail.com', 'Ale Rozo');
+            $mail->addAddress('aleinarossui@gmail.com', 'Ale Rozo');
             $mail->addAddress('jon@ullmansails.co.uk', 'Aleja');
+            $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
+
         }
 
         if (!empty($salespersonEmail)) {
@@ -169,6 +172,7 @@ public function sendCustomizeSailForm($data) {
 
         $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
         $mail->addAddress('jon@ullmansails.co.uk', 'Aleja');
+        $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
 
         $mail->Subject = 'New Custom Sail Design Request';
         $mail->isHTML(true);
@@ -328,8 +332,9 @@ Cloth Weight: $clothWeight";
           $mail->Encoding = 'base64';
 
           $mail->setFrom('admin@promoflow.net', 'Jon Pegg');
-          $mail->addReplyTo('vicky@ullmansails.co.uk', 'Jon Pegg');
+          $mail->addAddress('vicky@ullmansails.co.uk', 'Jon Pegg');
           $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
+          $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
 
           $mail->Subject = 'New Cover Quote Request';
           $mail->isHTML(true);
@@ -465,8 +470,10 @@ Cloth Weight: $clothWeight";
           $mail->Encoding = 'base64';
 
           $mail->setFrom('admin@promoflow.net', 'Jon Pegg');
-          $mail->addReplyTo('vicky@ullmansails.co.uk', 'Jon Pegg');
+          $mail->addAddress('vicky@ullmansails.co.uk', 'Jon Pegg');
           $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
+          $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
+
 
           $mail->Subject = 'New Repair Quote Request';
           $mail->isHTML(true);
@@ -603,8 +610,9 @@ Cloth Weight: $clothWeight";
           $mail->Encoding = 'base64';
 
           $mail->setFrom('admin@promoflow.net', 'Jon Pegg');
-          $mail->addReplyTo('jon@ullmansails.co.uk', 'Jon Pegg');
+          $mail->addAddress('jon@ullmansails.co.uk', 'Jon Pegg');
           $mail->addAddress('aleinarossui@gmail.com', 'Aleja');
+          $mail->addAddress('alerozochiquiza@gmail.com', 'Aleja');
 
           $mail->Subject = 'New Sail Quote Request';
           $mail->isHTML(true);
