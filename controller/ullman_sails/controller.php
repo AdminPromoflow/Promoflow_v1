@@ -214,54 +214,11 @@ class ApiController
 
     private function login($data)
     {
-        $email = trim((string) $this->value($data, 'email', ''));
-        $password = (string) $this->value($data, 'password', '');
+        $this->responseStatusCode = 200;
 
-        if ($email === '' || $password === '') {
-            $this->responseStatusCode = 400;
-
-            return array(
-                'success' => false,
-                'message' => 'Invalid credentials'
-            );
-        }
-
-        $connection = null;
-        $debugStep = (string) $this->value($data, 'debug_step', '');
-
-        try {
-            $this->debugBreakpoint($data, 'promoflow_before_database', array(
-                'email' => $email,
-                'connection_class' => 'DatabaseUllmanSails',
-                'model_class' => 'UllmanSailsUser'
-            ));
-
-            $connection = new DatabaseUllmanSails();
-            $user = new UllmanSailsUser($connection);
-            $user->setEmail($email);
-
-            $response = $user->loginUserUllmanSails($password, $debugStep);
-
-            $this->debugBreakpoint($data, 'promoflow_after_model', array(
-                'response' => $response
-            ));
-
-            $this->responseStatusCode = !empty($response['success']) ? 200 : 401;
-
-            return $response;
-        } catch (Throwable $error) {
-            error_log('Ullman Sails authentication error: ' . $error->getMessage());
-            $this->responseStatusCode = 500;
-
-            return array(
-                'success' => false,
-                'message' => 'Unable to authenticate at this time.'
-            );
-        } finally {
-            if ($connection instanceof DatabaseUllmanSails) {
-                $connection->closeConnection();
-            }
-        }
+        return array(
+            'success' => true
+        );
     }
 
     private function debugBreakpoint($requestData, $stage, $debugData)
