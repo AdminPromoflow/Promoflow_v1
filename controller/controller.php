@@ -14,7 +14,7 @@
  */
 
 // define('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN', 'PASTE_THE_SAME_32+_CHARACTER_TOKEN_HERE');
-require_once __DIR__ . '/includes/emails-config.php';
+require_once __DIR__ . '/includes/token.php';
 require_once __DIR__ . '/send_emails.php';
 require_once __DIR__ . '/config/config_ullman_sails.php';
 require_once dirname(__DIR__) . '/model/ullman_sails/user.php';
