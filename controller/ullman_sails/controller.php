@@ -27,7 +27,6 @@ require_once dirname(__DIR__, 2) . '/model/ullman_sails/user.php';
 class ApiController
 {
     private $maxAttachmentBytes = 10485760; // 10 MB after base64 decoding.
-    private $responseStatusCode = 200;
 
     public function handleRequest()
     {
@@ -118,8 +117,7 @@ class ApiController
                     'action' => $action,
                     'login_function' => 'login'
                 ));
-                $response = $this->login($data);
-                $this->sendJson($response, $this->responseStatusCode);
+                $this->login($data);
                 break;
 
             case 'send_emal_contact_us':
@@ -214,11 +212,32 @@ class ApiController
 
     private function login($data)
     {
-        $this->responseStatusCode = 200;
+        header('Content-Type: application/json; charset=utf-8');
 
-        return array(
-            'success' => true
+        $email = isset($data['email'])
+            ? trim((string) $data['email'])
+            : '';
+        $password = isset($data['password'])
+            ? (string) $data['password']
+            : '';
+        $debugStep = isset($data['debug_step'])
+            ? (string) $data['debug_step']
+            : '';
+
+        $connection = new DatabaseUllmanSails();
+        $user = new UllmanSailsUser($connection);
+
+        $user->setEmail($email);
+
+        $resultUser = $user->loginUserUllmanSails($password, $debugStep);
+
+        $connection->closeConnection();
+
+        echo json_encode(
+            $resultUser,
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
         );
+        exit;
     }
 
     private function debugBreakpoint($requestData, $stage, $debugData)
