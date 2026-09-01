@@ -1,8 +1,8 @@
 <?php
 // Include PHPMailer and its dependencies
-require __DIR__ . '/assets/lib/send-email/PHPMailer/src/Exception.php';
-require __DIR__ . '/assets/lib/send-email/PHPMailer/src/PHPMailer.php';
-require __DIR__ . '/assets/lib/send-email/PHPMailer/src/SMTP.php';
+require dirname(__DIR__) . '/assets/lib/send-email/PHPMailer/src/Exception.php';
+require dirname(__DIR__) . '/assets/lib/send-email/PHPMailer/src/PHPMailer.php';
+require dirname(__DIR__) . '/assets/lib/send-email/PHPMailer/src/SMTP.php';
 
 // Import PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;

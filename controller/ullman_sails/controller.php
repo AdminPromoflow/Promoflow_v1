@@ -4,20 +4,25 @@
  * Promoflow webhook for Ullman Sails forms.
  *
  * Copy this file to:
- * https://www.promoflow.net/controller/controller.php
+ * https://www.promoflow.net/controller/ullman_sails/controller.php
  *
  * The existing send_emails.php file and its PHPMailer dependencies must remain
- * inside the same /controller directory on Promoflow.
+ * inside the same /controller/ullman_sails directory on Promoflow.
  *
  * Configure the same token used by Ullman Sails through the server environment,
  * or uncomment the line immediately below and replace its placeholder.
  */
 
 // define('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN', 'PASTE_THE_SAME_32+_CHARACTER_TOKEN_HERE');
-require_once __DIR__ . '/includes/token.php';
+$tokenFile = dirname(__DIR__) . '/includes/token.php';
+
+if (is_file($tokenFile)) {
+    require_once $tokenFile;
+}
+
 require_once __DIR__ . '/send_emails.php';
-require_once __DIR__ . '/config/config_ullman_sails.php';
-require_once dirname(__DIR__) . '/model/ullman_sails/user.php';
+require_once dirname(__DIR__) . '/config/config_ullman_sails.php';
+require_once dirname(__DIR__, 2) . '/model/ullman_sails/user.php';
 
 function ullman_webhook_send_json($payload, $statusCode = 200)
 {
