@@ -134,8 +134,23 @@ class PromoflowUllmanFormsWebhook
             ? (string) $this->requestData['action']
             : '';
 
+        $this->debugBreakpoint('promoflow_received', array(
+            'action' => $action,
+            'source' => isset($this->requestData['source'])
+                ? (string) $this->requestData['source']
+                : '',
+            'email' => isset($this->requestData['email'])
+                ? (string) $this->requestData['email']
+                : '',
+            'password_present' => !empty($this->requestData['password'])
+        ));
+
         switch ($action) {
             case 'login':
+                $this->debugBreakpoint('promoflow_before_login', array(
+                    'action' => $action,
+                    'login_function' => 'login'
+                ));
                 $response = $this->login();
                 ullman_webhook_send_json($response, $this->responseStatusCode);
                 break;
@@ -184,13 +199,25 @@ class PromoflowUllmanFormsWebhook
         }
 
         $connection = null;
+        $debugStep = (string) $this->value('debug_step', '');
 
         try {
+            $this->debugBreakpoint('promoflow_before_database', array(
+                'email' => $email,
+                'connection_class' => 'DatabaseUllmanSails',
+                'model_class' => 'UllmanSailsUser'
+            ));
+
             $connection = new DatabaseUllmanSails();
             $user = new UllmanSailsUser($connection);
             $user->setEmail($email);
 
-            $response = $user->loginUserUllmanSails($password);
+            $response = $user->loginUserUllmanSails($password, $debugStep);
+
+            $this->debugBreakpoint('promoflow_after_model', array(
+                'response' => $response
+            ));
+
             $this->responseStatusCode = !empty($response['success']) ? 200 : 401;
 
             return $response;
@@ -207,6 +234,33 @@ class PromoflowUllmanFormsWebhook
                 $connection->closeConnection();
             }
         }
+    }
+
+    private function debugBreakpoint($stage, $data)
+    {
+        if (
+            !defined('ULLMAN_LOGIN_DEBUG')
+            || constant('ULLMAN_LOGIN_DEBUG') !== true
+        ) {
+            return;
+        }
+
+        $requestedStage = isset($this->requestData['debug_step'])
+            ? (string) $this->requestData['debug_step']
+            : '';
+
+        if ($requestedStage !== $stage) {
+            return;
+        }
+
+        ullman_webhook_send_json(array(
+            'success' => false,
+            'debug' => true,
+            'stage' => $stage,
+            'message' => 'Login breakpoint reached.',
+            'data' => $data
+        ));
+        exit;
     }
 
     private function value($key, $default = null)

@@ -42,13 +42,18 @@ class UllmanSailsUser
     public function getCreatedAt(): ?string { return $this->createdAt; }
     public function getUpdatedAt(): ?string { return $this->updatedAt; }
 
-    public function loginUserUllmanSails(string $password): array
+    public function loginUserUllmanSails(string $password, string $debugStep = ''): array
     {
         if ($this->email === '' || $password === '') {
             return $this->invalidCredentials();
         }
 
         try {
+            $this->debugBreakpoint($debugStep, 'model_before_query', array(
+                'email' => $this->email,
+                'table' => 'users'
+            ));
+
             $statement = $this->db->prepare("
                 SELECT
                     id,
@@ -69,6 +74,19 @@ class UllmanSailsUser
 
             $user = $statement->fetch(PDO::FETCH_ASSOC);
 
+            $this->debugBreakpoint($debugStep, 'model_after_query', array(
+                'user_found' => is_array($user),
+                'user' => is_array($user)
+                    ? array(
+                        'id' => (int) $user['id'],
+                        'name' => (string) $user['name'],
+                        'email' => (string) $user['email'],
+                        'role' => (string) $user['role'],
+                        'status' => (string) $user['status']
+                    )
+                    : null
+            ));
+
             if (!is_array($user)) {
                 return $this->invalidCredentials();
             }
@@ -82,7 +100,15 @@ class UllmanSailsUser
             $this->setCreatedAt(isset($user['created_at']) ? (string) $user['created_at'] : null);
             $this->setUpdatedAt(isset($user['updated_at']) ? (string) $user['updated_at'] : null);
 
-            if (!password_verify($password, $this->passwordHash)) {
+            $passwordIsValid = password_verify($password, $this->passwordHash);
+
+            $this->debugBreakpoint($debugStep, 'model_after_password', array(
+                'password_valid' => $passwordIsValid,
+                'role' => $this->role,
+                'status' => $this->status
+            ));
+
+            if (!$passwordIsValid) {
                 return $this->invalidCredentials();
             }
 
@@ -94,7 +120,7 @@ class UllmanSailsUser
                 return $this->invalidCredentials();
             }
 
-            return array(
+            $response = array(
                 'success' => true,
                 'user' => array(
                     'id' => $this->id,
@@ -104,11 +130,39 @@ class UllmanSailsUser
                     'status' => $this->status
                 )
             );
+
+            $this->debugBreakpoint($debugStep, 'model_success', array(
+                'response' => $response
+            ));
+
+            return $response;
         } catch (PDOException $error) {
             error_log('Ullman Sails user lookup failed: ' . $error->getMessage());
 
             return $this->invalidCredentials();
         }
+    }
+
+    private function debugBreakpoint(string $requestedStage, string $stage, array $data): void
+    {
+        if (
+            !defined('ULLMAN_LOGIN_DEBUG')
+            || constant('ULLMAN_LOGIN_DEBUG') !== true
+            || $requestedStage !== $stage
+        ) {
+            return;
+        }
+
+        http_response_code(200);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(array(
+            'success' => false,
+            'debug' => true,
+            'stage' => $stage,
+            'message' => 'Login breakpoint reached.',
+            'data' => $data
+        ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     private function invalidCredentials(): array
