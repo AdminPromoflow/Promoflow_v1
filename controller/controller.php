@@ -16,6 +16,8 @@
 // define('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN', 'PASTE_THE_SAME_32+_CHARACTER_TOKEN_HERE');
 require_once __DIR__ . '/includes/emails-config.php';
 require_once __DIR__ . '/send_emails.php';
+require_once __DIR__ . '/config/config_ullman_sails.php';
+require_once dirname(__DIR__) . '/model/ullman_sails/user.php';
 
 function ullman_webhook_send_json($payload, $statusCode = 200)
 {
@@ -67,6 +69,7 @@ class PromoflowUllmanFormsWebhook
 {
     private $requestData = array();
     private $maxAttachmentBytes = 10485760; // 10 MB after base64 decoding.
+    private $responseStatusCode = 200;
 
     public function handleRequest()
     {
@@ -132,6 +135,11 @@ class PromoflowUllmanFormsWebhook
             : '';
 
         switch ($action) {
+            case 'login':
+                $response = $this->login();
+                ullman_webhook_send_json($response, $this->responseStatusCode);
+                break;
+
             case 'send_emal_contact_us':
                 $this->handleContactUs();
                 break;
@@ -158,6 +166,46 @@ class PromoflowUllmanFormsWebhook
                     'message' => $action === '' ? 'Missing action.' : 'Unknown action.'
                 ), 400);
                 break;
+        }
+    }
+
+    private function login()
+    {
+        $email = trim((string) $this->value('email', ''));
+        $password = (string) $this->value('password', '');
+
+        if ($email === '' || $password === '') {
+            $this->responseStatusCode = 400;
+
+            return array(
+                'success' => false,
+                'message' => 'Invalid credentials'
+            );
+        }
+
+        $connection = null;
+
+        try {
+            $connection = new DatabaseUllmanSails();
+            $user = new UllmanSailsUser($connection);
+            $user->setEmail($email);
+
+            $response = $user->loginUserUllmanSails($password);
+            $this->responseStatusCode = !empty($response['success']) ? 200 : 401;
+
+            return $response;
+        } catch (Throwable $error) {
+            error_log('Ullman Sails authentication error: ' . $error->getMessage());
+            $this->responseStatusCode = 500;
+
+            return array(
+                'success' => false,
+                'message' => 'Unable to authenticate at this time.'
+            );
+        } finally {
+            if ($connection instanceof DatabaseUllmanSails) {
+                $connection->closeConnection();
+            }
         }
     }
 
