@@ -24,80 +24,37 @@ require_once __DIR__ . '/send_emails.php';
 require_once dirname(__DIR__) . '/config/config_ullman_sails.php';
 require_once dirname(__DIR__, 2) . '/model/ullman_sails/user.php';
 
-function ullman_webhook_send_json($payload, $statusCode = 200)
+class ApiController
 {
-    http_response_code((int) $statusCode);
-    header('Content-Type: application/json; charset=UTF-8');
-
-    $json = json_encode(
-        $payload,
-        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-    );
-
-    echo $json !== false
-        ? $json
-        : '{"success":false,"message":"Unable to create the server response."}';
-}
-
-function ullman_webhook_get_token()
-{
-    if (defined('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN')) {
-        return (string) constant('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN');
-    }
-
-    $environmentToken = getenv('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN');
-
-    return is_string($environmentToken) ? $environmentToken : '';
-}
-
-function ullman_webhook_authorize_request()
-{
-    $expectedToken = ullman_webhook_get_token();
-    $receivedToken = isset($_SERVER['HTTP_X_ULLMAN_WEBHOOK_TOKEN'])
-        ? (string) $_SERVER['HTTP_X_ULLMAN_WEBHOOK_TOKEN']
-        : '';
-
-    if (
-        strlen($expectedToken) < 32
-        || $receivedToken === ''
-        || !hash_equals($expectedToken, $receivedToken)
-    ) {
-        ullman_webhook_send_json(array(
-            'success' => false,
-            'message' => 'Unauthorized request.'
-        ), 401);
-        exit;
-    }
-}
-
-class PromoflowUllmanFormsWebhook
-{
-    private $requestData = array();
     private $maxAttachmentBytes = 10485760; // 10 MB after base64 decoding.
     private $responseStatusCode = 200;
 
     public function handleRequest()
     {
+        header('Content-Type: application/json; charset=UTF-8');
+
         $requestMethod = isset($_SERVER['REQUEST_METHOD'])
             ? strtoupper($_SERVER['REQUEST_METHOD'])
             : '';
 
         if ($requestMethod !== 'POST') {
-            ullman_webhook_send_json(array(
+            $this->sendJson(array(
                 'success' => false,
                 'message' => 'Method not allowed.'
             ), 405);
             return;
         }
 
-        ullman_webhook_authorize_request();
+        if (!$this->authorizeRequest()) {
+            return;
+        }
 
         $contentType = isset($_SERVER['CONTENT_TYPE'])
             ? (string) $_SERVER['CONTENT_TYPE']
             : '';
 
         if (stripos($contentType, 'application/json') === false) {
-            ullman_webhook_send_json(array(
+            $this->sendJson(array(
                 'success' => false,
                 'message' => 'Content-Type must be application/json.'
             ), 415);
@@ -109,90 +66,156 @@ class PromoflowUllmanFormsWebhook
             : 0;
 
         if ($contentLength > 20971520) {
-            ullman_webhook_send_json(array(
+            $this->sendJson(array(
                 'success' => false,
                 'message' => 'The request is too large.'
             ), 413);
             return;
         }
 
-        $input = file_get_contents('php://input');
-        $this->requestData = json_decode($input, true);
+        $data = $this->getRequestData();
 
-        if (!is_array($this->requestData)) {
-            ullman_webhook_send_json(array(
+        if (!is_array($data)) {
+            $this->sendJson(array(
                 'success' => false,
                 'message' => 'Invalid JSON payload.'
             ), 400);
             return;
         }
 
-        if (($this->requestData['source'] ?? '') !== 'ullman_sails') {
-            ullman_webhook_send_json(array(
+        if (($data['source'] ?? '') !== 'ullman_sails') {
+            $this->sendJson(array(
                 'success' => false,
                 'message' => 'Invalid request source.'
             ), 400);
             return;
         }
 
-        $action = isset($this->requestData['action'])
-            ? (string) $this->requestData['action']
-            : '';
+        if (!isset($data['action']) || (string) $data['action'] === '') {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'Missing action.'
+            ), 400);
+            return;
+        }
 
-        $this->debugBreakpoint('promoflow_received', array(
+        $action = (string) $data['action'];
+
+        $this->debugBreakpoint($data, 'promoflow_received', array(
             'action' => $action,
-            'source' => isset($this->requestData['source'])
-                ? (string) $this->requestData['source']
+            'source' => isset($data['source'])
+                ? (string) $data['source']
                 : '',
-            'email' => isset($this->requestData['email'])
-                ? (string) $this->requestData['email']
+            'email' => isset($data['email'])
+                ? (string) $data['email']
                 : '',
-            'password_present' => !empty($this->requestData['password'])
+            'password_present' => !empty($data['password'])
         ));
 
         switch ($action) {
             case 'login':
-                $this->debugBreakpoint('promoflow_before_login', array(
+                $this->debugBreakpoint($data, 'promoflow_before_login', array(
                     'action' => $action,
                     'login_function' => 'login'
                 ));
-                $response = $this->login();
-                ullman_webhook_send_json($response, $this->responseStatusCode);
+                $response = $this->login($data);
+                $this->sendJson($response, $this->responseStatusCode);
                 break;
 
             case 'send_emal_contact_us':
-                $this->handleContactUs();
+                $this->sendEmailContactUs($data);
                 break;
 
             case 'send_new_sail_quote':
-                $this->handleNewSailQuote();
+                $this->sendNewSailQuote($data);
                 break;
 
             case 'send_new_cover_quote':
-                $this->handleNewCoverQuote();
+                $this->sendNewCoverQuote($data);
                 break;
 
             case 'send_new_repair_quote':
-                $this->handleNewRepairQuote();
+                $this->sendNewRepairQuote($data);
                 break;
 
             case 'submit_customize_form':
-                $this->handleCustomizeSailForm();
+                $this->submitCustomizeForm($data);
                 break;
 
             default:
-                ullman_webhook_send_json(array(
+                $this->sendJson(array(
                     'success' => false,
-                    'message' => $action === '' ? 'Missing action.' : 'Unknown action.'
+                    'message' => 'Unknown action.'
                 ), 400);
                 break;
         }
     }
 
-    private function login()
+    private function getRequestData()
     {
-        $email = trim((string) $this->value('email', ''));
-        $password = (string) $this->value('password', '');
+        $input = file_get_contents('php://input');
+
+        if ($input === false) {
+            return null;
+        }
+
+        $data = json_decode($input, true);
+
+        return is_array($data) ? $data : null;
+    }
+
+    private function authorizeRequest()
+    {
+        $expectedToken = $this->getWebhookToken();
+        $providedToken = isset($_SERVER['HTTP_X_ULLMAN_WEBHOOK_TOKEN'])
+            ? (string) $_SERVER['HTTP_X_ULLMAN_WEBHOOK_TOKEN']
+            : '';
+
+        if (
+            strlen($expectedToken) < 32
+            || $providedToken === ''
+            || !hash_equals($expectedToken, $providedToken)
+        ) {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'Unauthorized request.'
+            ), 401);
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getWebhookToken()
+    {
+        if (defined('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN')) {
+            return (string) constant('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN');
+        }
+
+        $environmentToken = getenv('ULLMAN_PROMOFLOW_WEBHOOK_TOKEN');
+
+        return is_string($environmentToken) ? $environmentToken : '';
+    }
+
+    private function sendJson($payload, $statusCode = 200)
+    {
+        http_response_code((int) $statusCode);
+        header('Content-Type: application/json; charset=UTF-8');
+
+        $json = json_encode(
+            $payload,
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        );
+
+        echo $json !== false
+            ? $json
+            : '{"success":false,"message":"Unable to create the server response."}';
+    }
+
+    private function login($data)
+    {
+        $email = trim((string) $this->value($data, 'email', ''));
+        $password = (string) $this->value($data, 'password', '');
 
         if ($email === '' || $password === '') {
             $this->responseStatusCode = 400;
@@ -204,10 +227,10 @@ class PromoflowUllmanFormsWebhook
         }
 
         $connection = null;
-        $debugStep = (string) $this->value('debug_step', '');
+        $debugStep = (string) $this->value($data, 'debug_step', '');
 
         try {
-            $this->debugBreakpoint('promoflow_before_database', array(
+            $this->debugBreakpoint($data, 'promoflow_before_database', array(
                 'email' => $email,
                 'connection_class' => 'DatabaseUllmanSails',
                 'model_class' => 'UllmanSailsUser'
@@ -219,7 +242,7 @@ class PromoflowUllmanFormsWebhook
 
             $response = $user->loginUserUllmanSails($password, $debugStep);
 
-            $this->debugBreakpoint('promoflow_after_model', array(
+            $this->debugBreakpoint($data, 'promoflow_after_model', array(
                 'response' => $response
             ));
 
@@ -241,7 +264,7 @@ class PromoflowUllmanFormsWebhook
         }
     }
 
-    private function debugBreakpoint($stage, $data)
+    private function debugBreakpoint($requestData, $stage, $debugData)
     {
         if (
             !defined('ULLMAN_LOGIN_DEBUG')
@@ -250,37 +273,37 @@ class PromoflowUllmanFormsWebhook
             return;
         }
 
-        $requestedStage = isset($this->requestData['debug_step'])
-            ? (string) $this->requestData['debug_step']
+        $requestedStage = isset($requestData['debug_step'])
+            ? (string) $requestData['debug_step']
             : '';
 
         if ($requestedStage !== $stage) {
             return;
         }
 
-        ullman_webhook_send_json(array(
+        $this->sendJson(array(
             'success' => false,
             'debug' => true,
             'stage' => $stage,
             'message' => 'Login breakpoint reached.',
-            'data' => $data
+            'data' => $debugData
         ));
         exit;
     }
 
-    private function value($key, $default = null)
+    private function value($data, $key, $default = null)
     {
-        return array_key_exists($key, $this->requestData)
-            ? $this->requestData[$key]
+        return array_key_exists($key, $data)
+            ? $data[$key]
             : $default;
     }
 
-    private function makeDataObject($fields)
+    private function makeDataObject($requestData, $fields)
     {
-        $data = array('action' => $this->value('action'));
+        $data = array('action' => $this->value($requestData, 'action'));
 
         foreach ($fields as $field => $default) {
-            $data[$field] = $this->value($field, $default);
+            $data[$field] = $this->value($requestData, $field, $default);
         }
 
         return (object) $data;
@@ -289,12 +312,12 @@ class PromoflowUllmanFormsWebhook
     private function sendEmailResult($emailResult)
     {
         if (is_array($emailResult) || is_object($emailResult)) {
-            ullman_webhook_send_json($emailResult);
+            $this->sendJson($emailResult);
             return;
         }
 
         if (is_bool($emailResult)) {
-            ullman_webhook_send_json(array(
+            $this->sendJson(array(
                 'success' => $emailResult,
                 'message' => $emailResult
                     ? 'Message sent successfully.'
@@ -303,7 +326,7 @@ class PromoflowUllmanFormsWebhook
             return;
         }
 
-        ullman_webhook_send_json(array(
+        $this->sendJson(array(
             'success' => false,
             'message' => 'Unable to send your message.'
         ), 500);
@@ -349,14 +372,16 @@ class PromoflowUllmanFormsWebhook
         );
     }
 
-    private function handleContactUs()
+    private function sendEmailContactUs($requestData)
     {
         $temporaryFile = null;
 
         try {
-            $temporaryFile = $this->createTemporaryAttachment($this->value('file'));
+            $temporaryFile = $this->createTemporaryAttachment(
+                $this->value($requestData, 'file')
+            );
 
-            $data = $this->makeDataObject(array(
+            $data = $this->makeDataObject($requestData, array(
                 'contactName' => null,
                 'contactNumber' => null,
                 'contactLocation' => null,
@@ -379,9 +404,9 @@ class PromoflowUllmanFormsWebhook
         }
     }
 
-    private function handleNewCoverQuote()
+    private function sendNewCoverQuote($requestData)
     {
-        $data = $this->makeDataObject(array(
+        $data = $this->makeDataObject($requestData, array(
             'first_name' => null,
             'last_name' => null,
             'email' => null,
@@ -403,9 +428,9 @@ class PromoflowUllmanFormsWebhook
         $this->sendEmailResult($emailSender->sendNewCoverQuote($data));
     }
 
-    private function handleNewRepairQuote()
+    private function sendNewRepairQuote($requestData)
     {
-        $data = $this->makeDataObject(array(
+        $data = $this->makeDataObject($requestData, array(
             'first_name' => null,
             'last_name' => null,
             'email' => null,
@@ -432,9 +457,9 @@ class PromoflowUllmanFormsWebhook
         $this->sendEmailResult($emailSender->sendNewRepairQuote($data));
     }
 
-    private function handleNewSailQuote()
+    private function sendNewSailQuote($requestData)
     {
-        $data = $this->makeDataObject(array(
+        $data = $this->makeDataObject($requestData, array(
             'first_name' => null,
             'last_name' => null,
             'email' => null,
@@ -458,7 +483,7 @@ class PromoflowUllmanFormsWebhook
         $this->sendEmailResult($emailSender->sendNewSailQuote($data));
     }
 
-    private function handleCustomizeSailForm()
+    private function submitCustomizeForm($requestData)
     {
         $requiredFields = array(
             'name',
@@ -472,8 +497,8 @@ class PromoflowUllmanFormsWebhook
         );
 
         foreach ($requiredFields as $requiredField) {
-            if ($this->value($requiredField, '') === '') {
-                ullman_webhook_send_json(array(
+            if ($this->value($requestData, $requiredField, '') === '') {
+                $this->sendJson(array(
                     'success' => false,
                     'message' => 'Missing required fields.'
                 ), 400);
@@ -481,7 +506,7 @@ class PromoflowUllmanFormsWebhook
             }
         }
 
-        $data = $this->makeDataObject(array(
+        $data = $this->makeDataObject($requestData, array(
             'name' => null,
             'email' => null,
             'salesperson_email' => null,
@@ -502,21 +527,15 @@ ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
 try {
-    $emailSenderFile = __DIR__ . '/send_emails.php';
-
-    if (!is_file($emailSenderFile)) {
-        throw new RuntimeException('send_emails.php is missing.');
-    }
-
-    require_once $emailSenderFile;
-
-    $webhook = new PromoflowUllmanFormsWebhook();
-    $webhook->handleRequest();
+    $apiController = new ApiController();
+    $apiController->handleRequest();
 } catch (Throwable $error) {
     error_log('Promoflow Ullman webhook error: ' . $error->getMessage());
 
-    ullman_webhook_send_json(array(
+    http_response_code(500);
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(array(
         'success' => false,
         'message' => 'An internal server error occurred.'
-    ), 500);
+    ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 }
