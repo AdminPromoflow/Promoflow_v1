@@ -143,6 +143,179 @@ class UllmanSailsUser
         }
     }
 
+    public function getUsers(): array
+    {
+        $statement = $this->db->query("
+            SELECT
+                id,
+                name,
+                email,
+                role,
+                status,
+                created_at,
+                updated_at
+            FROM `users`
+            ORDER BY created_at DESC, id DESC
+        ");
+
+        $users = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        return is_array($users) ? array_map(array($this, 'sanitizeUser'), $users) : array();
+    }
+
+    public function getUserById(int $id): ?array
+    {
+        $statement = $this->db->prepare("
+            SELECT
+                id,
+                name,
+                email,
+                role,
+                status,
+                created_at,
+                updated_at
+            FROM `users`
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+        $statement->execute();
+
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return is_array($user) ? $this->sanitizeUser($user) : null;
+    }
+
+    public function emailExists(string $email, int $excludeId = 0): bool
+    {
+        $query = 'SELECT 1 FROM `users` WHERE LOWER(email) = LOWER(:email)';
+
+        if ($excludeId > 0) {
+            $query .= ' AND id <> :exclude_id';
+        }
+
+        $query .= ' LIMIT 1';
+        $statement = $this->db->prepare($query);
+        $statement->bindValue(':email', $email, PDO::PARAM_STR);
+
+        if ($excludeId > 0) {
+            $statement->bindValue(':exclude_id', $excludeId, PDO::PARAM_INT);
+        }
+
+        $statement->execute();
+
+        return (bool) $statement->fetchColumn();
+    }
+
+    public function createUser(string $password): ?array
+    {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        if (!is_string($passwordHash) || $passwordHash === '') {
+            throw new RuntimeException('The password could not be secured.');
+        }
+
+        $statement = $this->db->prepare("
+            INSERT INTO `users` (
+                name,
+                email,
+                password_hash,
+                role,
+                status,
+                created_at,
+                updated_at
+            ) VALUES (
+                :name,
+                :email,
+                :password_hash,
+                :role,
+                :status,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            )
+        ");
+        $statement->execute(array(
+            ':name' => $this->name,
+            ':email' => $this->email,
+            ':password_hash' => $passwordHash,
+            ':role' => $this->role,
+            ':status' => $this->status
+        ));
+
+        $this->setId((int) $this->db->lastInsertId());
+
+        return $this->getUserById($this->id);
+    }
+
+    public function updateUser(?string $password = null): ?array
+    {
+        $fields = array(
+            'name = :name',
+            'email = :email',
+            'role = :role',
+            'status = :status',
+            'updated_at = CURRENT_TIMESTAMP'
+        );
+        $parameters = array(
+            ':id' => $this->id,
+            ':name' => $this->name,
+            ':email' => $this->email,
+            ':role' => $this->role,
+            ':status' => $this->status
+        );
+
+        if (is_string($password) && $password !== '') {
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+            if (!is_string($passwordHash) || $passwordHash === '') {
+                throw new RuntimeException('The password could not be secured.');
+            }
+
+            $fields[] = 'password_hash = :password_hash';
+            $parameters[':password_hash'] = $passwordHash;
+        }
+
+        $statement = $this->db->prepare(
+            'UPDATE `users` SET ' . implode(', ', $fields) . ' WHERE id = :id'
+        );
+        $statement->execute($parameters);
+
+        return $this->getUserById($this->id);
+    }
+
+    public function hasPageActivity(int $id): bool
+    {
+        $statement = $this->db->prepare(
+            'SELECT 1 FROM `page_activity` WHERE user_id = :id LIMIT 1'
+        );
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+        $statement->execute();
+
+        return (bool) $statement->fetchColumn();
+    }
+
+    public function deleteUser(): bool
+    {
+        $statement = $this->db->prepare('DELETE FROM `users` WHERE id = :id');
+        $statement->bindValue(':id', $this->id, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->rowCount() > 0;
+    }
+
+    private function sanitizeUser(array $user): array
+    {
+        return array(
+            'id' => (int) $user['id'],
+            'name' => (string) $user['name'],
+            'email' => (string) $user['email'],
+            'role' => (string) $user['role'],
+            'status' => (string) $user['status'],
+            'created_at' => isset($user['created_at']) ? (string) $user['created_at'] : null,
+            'updated_at' => isset($user['updated_at']) ? (string) $user['updated_at'] : null
+        );
+    }
+
     private function debugBreakpoint(string $requestedStage, string $stage, array $data): void
     {
         if (

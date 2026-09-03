@@ -1,472 +1,331 @@
-/* =========================
-   USER MANAGER — UI
-========================= */
-
 class UserManagerUI {
   constructor(root, store) {
     this.root = root;
     this.store = store;
-
     this.users = [];
     this.selectedId = null;
     this.editingId = null;
-
-    this.els = this._cacheEls();
-    if (!this.els.grid || !this.els.form) return;
+    this.noticeTimer = null;
+    this.els = this._cacheElements();
   }
 
   init() {
+    if (!this.els.grid || !this.els.form) return;
     this._bindStoreEvents();
     this._bindUIEvents();
-
     this._setEditMode(false);
     this._syncAdminCheckbox();
-    this._updateFileName();
-
+    this._clearDetails();
     this.store.init();
   }
 
-  _safeStr(v) { return (v == null) ? "" : String(v); }
-
-  _normalizeRoles(r) {
-    if (Array.isArray(r)) return r.map(x => this._safeStr(x)).filter(Boolean);
-    if (typeof r === "string" && r.trim()) return [r.trim()];
-    return [];
-  }
-
-  statusLabel(s) {
-    if (s === "active") return "Active";
-    if (s === "invited") return "Invited";
-    if (s === "disabled") return "Disabled";
-    return "—";
-  }
-
-  rolesPretty(rolesArr) {
-    const roles = this._normalizeRoles(rolesArr);
-    if (!roles.length) return "—";
-    if (roles.includes("Admin")) return "Admin (all access)";
-    return roles.join(", ");
-  }
-
-  rolesCompact(rolesArr) {
-    const roles = this._normalizeRoles(rolesArr);
-    if (!roles.length) return "—";
-    if (roles.includes("Admin")) return "Admin";
-    if (roles.length <= 2) return roles.join(", ");
-    return `${roles[0]}, ${roles[1]} +${roles.length - 2}`;
-  }
-
-  _cacheEls() {
-    const q = (sel) => this.root.querySelector(sel);
+  _cacheElements() {
+    const query = (selector) => this.root.querySelector(selector);
     return {
-      grid: q('[data-um="grid"]'),
-      search: q('[data-um="search"]'),
-
-      detailsContainer: q('[data-um="details"]'),
-      fullName: q('[data-um="detail-name"]'),
-      email: q('[data-um="detail-email"]'),
-      emailSmall: q('[data-um="detail-email-small"]'),
-      avatar: q('[data-um="detail-avatar"]'),
-      statusBadge: q('[data-um="badge-status"]'),
-      accessBadge: q('[data-um="badge-access"]'),
-      rolesText: q('[data-um="detail-roles"]'),
-
-      btnEdit: q('[data-um="btn-edit"]'),
-      btnToggle: q('[data-um="btn-toggle"]'),
-      btnDelete: q('[data-um="btn-delete"]'),
-
-      sectionAdd: q('[data-um="add-section"]'),
-      titleEl: q('[data-um="add-title"]'),
-      descEl: q('[data-um="add-desc"]'),
-      btnSubmit: q('[data-um="btn-submit"]'),
-
-      form: q('[data-um="form"]'),
-      hidId: q('[data-um="field-id"]'),
-      inName: q('[data-um="field-name"]'),
-      inEmail: q('[data-um="field-email"]'),
-      inPassword: q('[data-um="field-password"]'),
-      selStatus: q('[data-um="field-status"]'),
-      fileInput: q('[data-um="field-avatar"]'),
-
-      rolesHint: q('[data-um="roles-hint"]'),
-      fileNameOut: q('[data-um="file-name"]'),
+      grid: query('[data-um="grid"]'),
+      search: query('[data-um="search"]'),
+      count: query('[data-um="count"]'),
+      notice: query('[data-um="notice"]'),
+      details: query('[data-um="details"]'),
+      detailName: query('[data-um="detail-name"]'),
+      detailEmail: query('[data-um="detail-email"]'),
+      detailEmailSmall: query('[data-um="detail-email-small"]'),
+      detailId: query('[data-um="detail-id"]'),
+      detailAvatar: query('[data-um="detail-avatar"]'),
+      detailRoles: query('[data-um="detail-roles"]'),
+      accessBadge: query('[data-um="badge-access"]'),
+      btnEdit: query('[data-um="btn-edit"]'),
+      btnDelete: query('[data-um="btn-delete"]'),
+      sectionAdd: query('[data-um="add-section"]'),
+      title: query('[data-um="add-title"]'),
+      description: query('[data-um="add-desc"]'),
+      form: query('[data-um="form"]'),
+      fieldId: query('[data-um="field-id"]'),
+      fieldName: query('[data-um="field-name"]'),
+      fieldEmail: query('[data-um="field-email"]'),
+      fieldPassword: query('[data-um="field-password"]'),
+      passwordHint: query('[data-um="password-hint"]'),
+      rolesHint: query('[data-um="roles-hint"]'),
+      btnSubmit: query('[data-um="btn-submit"]'),
     };
   }
 
   _bindStoreEvents() {
-    const EVT = this.store.constructor.EVENTS || window.EVT;
+    const events = this.store.constructor.EVENTS;
 
-    window.addEventListener(EVT.READ, (e) => {
-      this.users = Array.isArray(e.detail?.users) ? e.detail.users : [];
-      this._render(this._getFilteredUsers());
-
-      const keep = this._findById(this.selectedId);
-      if (keep) this._showUserDetails(keep);
-      else if (this.users[0]) this._showUserDetails(this.users[0]);
-      else this._clearDetails();
-    });
-
-    window.addEventListener(EVT.CREATE, (e) => {
-      if (Array.isArray(e.detail?.users)) this.users = e.detail.users;
-      this._render(this._getFilteredUsers());
-
-      const created = e.detail?.user || null;
-      if (created) this._showUserDetails(created);
-
+    window.addEventListener(events.READ, (event) => this._replaceUsers(event.detail?.users));
+    window.addEventListener(events.CREATE, (event) => {
+      this._replaceUsers(event.detail?.users, event.detail?.user?.id);
       this.els.form.reset();
       this._setEditMode(false);
     });
-
-    window.addEventListener(EVT.UPDATE, (e) => {
-      if (Array.isArray(e.detail?.users)) this.users = e.detail.users;
-      this._render(this._getFilteredUsers());
-
-      const updated = e.detail?.user || null;
-      if (updated) this._showUserDetails(updated);
-
+    window.addEventListener(events.UPDATE, (event) => {
+      this._replaceUsers(event.detail?.users, event.detail?.user?.id);
       this.els.form.reset();
       this._setEditMode(false);
     });
-
-    window.addEventListener(EVT.DELETE, (e) => {
-      if (Array.isArray(e.detail?.users)) this.users = e.detail.users;
-
-      const deletedId = Number(e.detail?.deletedId);
-      if (Number(this.selectedId) === deletedId) this.selectedId = null;
-
-      this._render(this._getFilteredUsers());
-
-      const keep = this._findById(this.selectedId);
-      if (keep) this._showUserDetails(keep);
-      else if (this.users[0]) this._showUserDetails(this.users[0]);
-      else this._clearDetails();
-
-      if (this.editingId && Number(this.editingId) === deletedId) {
-        this.els.form.reset();
-        this._setEditMode(false);
-      }
+    window.addEventListener(events.DELETE, (event) => {
+      if (Number(this.selectedId) === Number(event.detail?.deletedId)) this.selectedId = null;
+      this._replaceUsers(event.detail?.users);
+      this.els.form.reset();
+      this._setEditMode(false);
+    });
+    window.addEventListener(events.BUSY, (event) => this._setBusy(Boolean(event.detail?.isBusy)));
+    window.addEventListener(events.NOTICE, (event) => {
+      this._showNotice(event.detail?.message || "", event.detail?.type || "info");
     });
   }
 
   _bindUIEvents() {
-    const { grid, search, btnEdit, form } = this.els;
+    this.els.grid.addEventListener("click", (event) => {
+      const row = event.target.closest(".um-row[data-id]");
+      if (row) this._selectUser(Number(row.dataset.id));
+    });
 
-    grid.addEventListener("click", (e) => {
-      const row = e.target.closest(".um-row");
+    this.els.grid.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const row = event.target.closest(".um-row[data-id]");
       if (!row) return;
-      const id = Number(row.dataset.id);
-      const u = this._findById(id);
-      if (u) this._showUserDetails(u);
+      event.preventDefault();
+      this._selectUser(Number(row.dataset.id));
     });
 
-    if (search) {
-      search.addEventListener("input", () => this._render(this._getFilteredUsers()));
-    }
-
-    btnEdit && btnEdit.addEventListener("click", () => {
-      const u = this._getSelectedUser();
-      if (!u) return;
-      this._fillFormFromUser(u);
+    this.els.search?.addEventListener("input", () => this._renderUsers());
+    this.els.btnEdit?.addEventListener("click", () => {
+      const user = this._findById(this.selectedId);
+      if (user) this._fillForm(user);
     });
 
-    form.addEventListener("change", (e) => {
-      const t = e.target;
-      if (t && t.matches('input[type="checkbox"][name="roles[]"]')) this._syncAdminCheckbox();
-      if (t && t.matches('input[type="file"][name="avatar"]')) this._updateFileName();
+    this.els.form.addEventListener("change", (event) => {
+      if (event.target.matches('input[name="roles[]"]')) this._syncAdminCheckbox();
     });
 
-    form.addEventListener("reset", () => {
-      setTimeout(() => {
-        this._resetRolesUI();
-        this._updateFileName();
+    this.els.form.addEventListener("reset", () => {
+      window.setTimeout(() => {
         this._setEditMode(false);
-        if (this.els.inPassword) this.els.inPassword.value = "";
+        this._syncAdminCheckbox();
       }, 0);
     });
   }
 
-  _render(list) {
-    const { grid } = this.els;
-    grid.innerHTML = "";
+  _replaceUsers(users, preferredId = null) {
+    this.users = Array.isArray(users) ? users : [];
+    const desired = this._findById(preferredId || this.selectedId) || this.users[0] || null;
+    if (desired) this._showDetails(desired);
+    else this._clearDetails();
+    this._renderUsers();
+  }
+
+  _renderUsers() {
+    const list = this._filteredUsers();
+    this.els.grid.replaceChildren();
+
+    if (this.els.count) {
+      this.els.count.textContent = list.length === this.users.length
+        ? `${this.users.length} ${this.users.length === 1 ? "user" : "users"}`
+        : `${list.length} of ${this.users.length}`;
+    }
 
     if (!list.length) {
       const empty = document.createElement("div");
       empty.className = "um-row";
-      empty.style.cursor = "default";
-
       const cell = document.createElement("div");
       cell.className = "um-cell";
       cell.style.gridColumn = "1 / -1";
-      cell.style.opacity = ".85";
-      cell.textContent = "No users found.";
-
+      cell.textContent = this.users.length ? "No users match your search." : "No users have been created yet.";
       empty.appendChild(cell);
-      grid.appendChild(empty);
+      this.els.grid.appendChild(empty);
       return;
     }
 
-    const frag = document.createDocumentFragment();
-
-    list.forEach((u) => {
-      const row = document.createElement("div");
-      row.className = "um-row";
-      row.dataset.id = String(u.id);
-      if (Number(u.id) === Number(this.selectedId)) row.classList.add("is-selected");
-
-      const c1 = document.createElement("div");
-      c1.className = "um-cell";
-      c1.dataset.col = "name";
-
-      const wrap = document.createElement("div");
-      wrap.className = "um-user";
-
-      const av = document.createElement("div");
-      av.className = "um-user__avatar";
-      if (u.img) {
-        av.style.backgroundImage = `url('${u.img}')`;
-        av.textContent = "";
-      } else {
-        av.style.backgroundImage = "";
-        av.textContent = (u.name?.trim()?.slice(0, 1).toUpperCase() || "U");
-      }
-
-      const meta = document.createElement("div");
-      meta.className = "um-user__meta";
-
-      const strong = document.createElement("strong");
-      strong.textContent = u.name || "—";
-
-      const small = document.createElement("small");
-      small.textContent = this.statusLabel(u.status);
-
-      meta.appendChild(strong);
-      meta.appendChild(small);
-
-      wrap.appendChild(av);
-      wrap.appendChild(meta);
-      c1.appendChild(wrap);
-
-      const c2 = document.createElement("div");
-      c2.className = "um-cell";
-      c2.dataset.col = "access";
-      c2.textContent = this.rolesCompact(u.roles);
-
-      const c3 = document.createElement("div");
-      c3.className = "um-cell";
-      c3.dataset.col = "email";
-      c3.textContent = u.email || "—";
-
-      row.appendChild(c1);
-      row.appendChild(c2);
-      row.appendChild(c3);
-
-      frag.appendChild(row);
-    });
-
-    grid.appendChild(frag);
+    const fragment = document.createDocumentFragment();
+    list.forEach((user) => fragment.appendChild(this._createUserRow(user)));
+    this.els.grid.appendChild(fragment);
   }
 
-  _setDetailsEnabled(enabled) {
-    const { btnEdit, btnToggle, btnDelete } = this.els;
-    btnEdit && (btnEdit.disabled = !enabled);
-    btnToggle && (btnToggle.disabled = !enabled);
-    btnDelete && (btnDelete.disabled = !enabled);
+  _createUserRow(user) {
+    const row = document.createElement("div");
+    row.className = "um-row";
+    row.dataset.id = String(user.id);
+    row.tabIndex = 0;
+    row.setAttribute("role", "button");
+    row.setAttribute("aria-label", `View ${user.name}`);
+    if (Number(user.id) === Number(this.selectedId)) row.classList.add("is-selected");
+
+    const nameCell = document.createElement("div");
+    nameCell.className = "um-cell";
+    nameCell.dataset.col = "name";
+    const userWrap = document.createElement("div");
+    userWrap.className = "um-user";
+    const avatar = document.createElement("div");
+    avatar.className = "um-user__avatar";
+    avatar.textContent = this._initials(user.name);
+    const meta = document.createElement("div");
+    meta.className = "um-user__meta";
+    const name = document.createElement("strong");
+    name.textContent = user.name || "—";
+    const id = document.createElement("small");
+    id.textContent = `User #${user.id}`;
+    meta.append(name, id);
+    userWrap.append(avatar, meta);
+    nameCell.appendChild(userWrap);
+
+    const accessCell = document.createElement("div");
+    accessCell.className = "um-cell";
+    accessCell.dataset.col = "access";
+    accessCell.textContent = this._rolesCompact(user.roles);
+
+    const emailCell = document.createElement("div");
+    emailCell.className = "um-cell";
+    emailCell.dataset.col = "email";
+    emailCell.textContent = user.email || "—";
+
+    row.append(nameCell, accessCell, emailCell);
+    return row;
   }
 
-  _showUserDetails(u) {
-    const {
-      detailsContainer, statusBadge, accessBadge,
-      fullName, email, emailSmall, rolesText,
-      avatar, btnToggle
-    } = this.els;
+  _selectUser(idUser) {
+    const user = this._findById(idUser);
+    if (!user) return;
+    this._showDetails(user);
+    this._renderUsers();
+  }
 
-    this.selectedId = u.id;
-    this.root.dataset.selectedId = String(u.id);
-
-    detailsContainer && detailsContainer.classList.remove("is-empty");
-    statusBadge && (statusBadge.textContent = this.statusLabel(u.status));
-    accessBadge && (accessBadge.textContent = this.rolesCompact(u.roles));
-    fullName && (fullName.textContent = u.name || "—");
-    email && (email.textContent = u.email || "—");
-    emailSmall && (emailSmall.textContent = u.email || "—");
-    rolesText && (rolesText.textContent = this.rolesPretty(u.roles));
-
-    if (avatar) {
-      avatar.style.backgroundImage = u.img ? `url('${u.img}')` : "";
-      avatar.textContent = "";
-      avatar.style.display = "";
-      avatar.style.placeItems = "";
-      avatar.style.fontWeight = "";
-      avatar.style.color = "";
-
-      if (!u.img) {
-        const initials = (u.name?.trim()?.slice(0, 1).toUpperCase() || "U");
-        avatar.style.display = "grid";
-        avatar.style.placeItems = "center";
-        avatar.style.fontWeight = "880";
-        avatar.style.color = "rgba(255,255,255,.92)";
-        avatar.textContent = initials;
-      }
-    }
-
-    this._setDetailsEnabled(true);
-    btnToggle && (btnToggle.textContent = (String(u.status).toLowerCase() === "disabled") ? "Enable" : "Disable");
-    this._render(this._getFilteredUsers());
+  _showDetails(user) {
+    this.selectedId = Number(user.id);
+    this.root.dataset.selectedId = String(user.id);
+    this.els.details?.classList.remove("is-empty");
+    this.els.detailName.textContent = user.name || "—";
+    this.els.detailEmail.textContent = user.email || "—";
+    this.els.detailEmailSmall.textContent = user.email || "—";
+    this.els.detailId.textContent = String(user.id);
+    this.els.detailRoles.textContent = this._rolesPretty(user.roles);
+    this.els.accessBadge.textContent = this._rolesCompact(user.roles);
+    this.els.detailAvatar.textContent = this._initials(user.name);
+    this.els.btnEdit.disabled = false;
+    this.els.btnDelete.disabled = false;
   }
 
   _clearDetails() {
-    const {
-      detailsContainer, statusBadge, accessBadge,
-      fullName, email, emailSmall, rolesText, avatar
-    } = this.els;
-
     this.selectedId = null;
     delete this.root.dataset.selectedId;
+    this.els.details?.classList.add("is-empty");
+    this.els.detailName.textContent = "Select a user";
+    this.els.detailEmail.textContent = "—";
+    this.els.detailEmailSmall.textContent = "Click on a row to load details.";
+    this.els.detailId.textContent = "—";
+    this.els.detailRoles.textContent = "—";
+    this.els.accessBadge.textContent = "—";
+    this.els.detailAvatar.textContent = "";
+    this.els.btnEdit.disabled = true;
+    this.els.btnDelete.disabled = true;
+  }
 
-    detailsContainer && detailsContainer.classList.add("is-empty");
-    statusBadge && (statusBadge.textContent = "—");
-    accessBadge && (accessBadge.textContent = "—");
-    fullName && (fullName.textContent = "Select a user");
-    email && (email.textContent = "—");
-    emailSmall && (emailSmall.textContent = "Click on a row to load details.");
-    rolesText && (rolesText.textContent = "—");
+  _fillForm(user) {
+    this.els.fieldName.value = user.name;
+    this.els.fieldEmail.value = user.email;
+    this.els.fieldPassword.value = "";
+    this._setRoleCheckboxes(user.roles);
+    this._setEditMode(true, user);
+    this.els.sectionAdd.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => this.els.fieldName.focus(), 300);
+  }
 
-    if (avatar) {
-      avatar.style.backgroundImage = "";
-      avatar.textContent = "";
+  _setEditMode(isEditing, user = null) {
+    this.editingId = isEditing && user ? Number(user.id) : null;
+    this.els.fieldId.value = this.editingId ? String(this.editingId) : "";
+    this.els.title.textContent = this.editingId ? "Edit user" : "Add user";
+    this.els.description.textContent = this.editingId
+      ? "Update profile details or platform access."
+      : "Create a new user and assign platform access.";
+    this.els.btnSubmit.textContent = this.editingId ? "Save changes" : "Create user";
+    this.els.btnSubmit.classList.add("um-btn--primary");
+    if (this.els.passwordHint) {
+      this.els.passwordHint.textContent = this.editingId
+        ? "Leave blank to keep the current password."
+        : "Use at least 6 characters.";
     }
-
-    this._setDetailsEnabled(false);
   }
 
-  _setEditMode(on, user = null) {
-    const { hidId, titleEl, descEl, btnSubmit, sectionAdd } = this.els;
-
-    this.editingId = (on && user) ? Number(user.id) : null;
-    hidId && (hidId.value = this.editingId ? String(this.editingId) : "");
-
-    titleEl && (titleEl.textContent = this.editingId ? "Update user" : "Add user");
-    descEl && (descEl.textContent = this.editingId
-      ? "Update an existing user and assign platform access."
-      : "Create a new user and assign platform access."
-    );
-    btnSubmit && (btnSubmit.textContent = this.editingId ? "Update user" : "Create user");
-    sectionAdd && sectionAdd.classList.toggle("is-editing", !!this.editingId);
-  }
-
-  _scrollToAddSection() {
-    const { sectionAdd, inName } = this.els;
-    if (!sectionAdd) return;
-    sectionAdd.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => { inName && inName.focus(); }, 350);
-  }
-
-  _fillFormFromUser(u) {
-    const { inName, inEmail, selStatus, fileInput, inPassword } = this.els;
-
-    inName && (inName.value = u.name || "");
-    inEmail && (inEmail.value = u.email || "");
-    selStatus && (selStatus.value = u.status || "invited");
-
-    this._setRolesCheckboxes(u.roles);
-
-    if (fileInput) fileInput.value = "";
-    this._updateFileName();
-
-    if (inPassword) inPassword.value = "";
-
-    this._setEditMode(true, u);
-    this._scrollToAddSection();
-  }
-
-  _getFilteredUsers() {
-    const q = (this.els.search?.value || "").trim().toLowerCase();
-    if (!q) return [...this.users];
-
-    return this.users.filter(u => {
-      const hay = `${u.name || ""} ${u.email || ""} ${u.status || ""} ${this.rolesPretty(u.roles)}`.toLowerCase();
-      return hay.includes(q);
+  _setRoleCheckboxes(roles) {
+    const values = Array.isArray(roles) ? roles : [];
+    this._roleCheckboxes().forEach((checkbox) => {
+      checkbox.disabled = false;
+      checkbox.checked = values.includes(checkbox.value);
     });
-  }
-
-  _findById(id) { return this.users.find(u => Number(u.id) === Number(id)) || null; }
-  _getSelectedUser() { return this._findById(this.selectedId); }
-
-  _getRoleCheckboxes() {
-    return Array.from(this.els.form?.querySelectorAll('input[type="checkbox"][name="roles[]"]') || []);
-  }
-
-  _setRolesCheckboxes(rolesArr) {
-    const roles = this._normalizeRoles(rolesArr);
-    const cbs = this._getRoleCheckboxes();
-
-    cbs.forEach(cb => { cb.checked = false; cb.disabled = false; });
-
-    const adminCb = cbs.find(cb => cb.value === "Admin");
-    if (roles.includes("Admin") && adminCb) {
-      adminCb.checked = true;
-    } else {
-      roles.forEach(r => {
-        const cb = cbs.find(x => x.value === r);
-        if (cb) cb.checked = true;
-      });
-    }
     this._syncAdminCheckbox();
   }
 
   _syncAdminCheckbox() {
-    const { rolesHint } = this.els;
-
-    const cbs = this._getRoleCheckboxes();
-    const admin = cbs.find(cb => cb.value === "Admin");
-    const others = cbs.filter(cb => cb.value !== "Admin");
+    const checkboxes = this._roleCheckboxes();
+    const admin = checkboxes.find((checkbox) => checkbox.value === "Admin");
     if (!admin) return;
+    const others = checkboxes.filter((checkbox) => checkbox !== admin);
 
-    if (admin.checked) {
-      others.forEach(cb => { cb.checked = true; cb.disabled = true; });
-      if (rolesHint) {
-        rolesHint.textContent = "Admin selected: full access enabled.";
-        rolesHint.classList.add("is-ok");
-      }
-    } else {
-      others.forEach(cb => { cb.disabled = false; });
-      if (rolesHint) {
-        rolesHint.textContent = "";
-        rolesHint.classList.remove("is-ok");
-      }
+    others.forEach((checkbox) => {
+      checkbox.disabled = admin.checked;
+      if (admin.checked) checkbox.checked = true;
+    });
+
+    if (this.els.rolesHint) {
+      this.els.rolesHint.textContent = admin.checked ? "Admin selected: all platform access is enabled." : "";
+      this.els.rolesHint.classList.toggle("is-ok", admin.checked);
     }
   }
 
-  _resetRolesUI() {
-    const { rolesHint, fileInput } = this.els;
-    this._getRoleCheckboxes().forEach(cb => { cb.disabled = false; cb.checked = false; });
-    if (rolesHint) {
-      rolesHint.textContent = "";
-      rolesHint.classList.remove("is-ok");
-    }
-    if (fileInput) fileInput.value = "";
+  _setBusy(isBusy) {
+    this.root.classList.toggle("is-busy", isBusy);
+    this.els.btnSubmit.disabled = isBusy;
+    if (isBusy) this.els.btnSubmit.setAttribute("aria-busy", "true");
+    else this.els.btnSubmit.removeAttribute("aria-busy");
   }
 
-  _updateFileName() {
-    const { fileInput, fileNameOut } = this.els;
-    if (!fileInput || !fileNameOut) return;
-    const file = fileInput.files && fileInput.files[0];
-    fileNameOut.textContent = file ? file.name : "No file chosen";
+  _showNotice(message, type) {
+    if (!this.els.notice || !message) return;
+    window.clearTimeout(this.noticeTimer);
+    this.els.notice.textContent = message;
+    this.els.notice.className = `um-notice is-${type}`;
+    this.els.notice.hidden = false;
+    this.noticeTimer = window.setTimeout(() => {
+      this.els.notice.hidden = true;
+    }, type === "error" ? 7000 : 4000);
+  }
+
+  _filteredUsers() {
+    const query = String(this.els.search?.value || "").trim().toLowerCase();
+    if (!query) return [...this.users];
+    return this.users.filter((user) => {
+      return `${user.name} ${user.email} ${this._rolesPretty(user.roles)}`.toLowerCase().includes(query);
+    });
+  }
+
+  _roleCheckboxes() {
+    return Array.from(this.els.form.querySelectorAll('input[name="roles[]"]'));
+  }
+
+  _findById(idUser) {
+    return this.users.find((user) => Number(user.id) === Number(idUser)) || null;
+  }
+
+  _rolesPretty(roles) {
+    if (!Array.isArray(roles) || !roles.length) return "No access";
+    return roles.includes("Admin") ? "Admin (all access)" : roles.join(", ");
+  }
+
+  _rolesCompact(roles) {
+    if (!Array.isArray(roles) || !roles.length) return "No access";
+    if (roles.includes("Admin")) return "Admin";
+    return roles.length > 2 ? `${roles[0]}, ${roles[1]} +${roles.length - 2}` : roles.join(", ");
+  }
+
+  _initials(name) {
+    const parts = String(name || "User").trim().split(/\s+/).filter(Boolean);
+    return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("") || "U";
   }
 
   static boot() {
     const root = document.querySelector("[data-um-root]");
-    if (!root) return null;
-
-    if (!window.UMStore && window.UMStoreClass) {
-      window.UMStore = new window.UMStoreClass(window.UM_USERS || []);
-    }
-
-    if (!window.UMStore) {
-      console.error("UMStore not found. Load user_manager_logic.js before user_manager.js");
-      return null;
-    }
-
+    if (!root || !window.UMStore) return null;
     const ui = new UserManagerUI(root, window.UMStore);
     ui.init();
     window.UserManagerUI = ui;
@@ -474,6 +333,4 @@ class UserManagerUI {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  UserManagerUI.boot();
-});
+document.addEventListener("DOMContentLoaded", () => UserManagerUI.boot());

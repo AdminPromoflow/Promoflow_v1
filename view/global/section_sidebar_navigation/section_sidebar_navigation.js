@@ -1,44 +1,35 @@
 class SideNavigation {
-
   constructor() {
+    this.sidebar = document.getElementById("dashboard-sidebar");
+    this.btnOpen = document.getElementById("sidebar-open");
+    this.btnClose = document.getElementById("sidebar-close");
 
-    const open_user_manager = document.getElementById("open_user_manager");
+    if (!this.sidebar || !this.btnOpen || !this.btnClose) return;
 
-    open_user_manager.addEventListener("click", function(){
-      window.open("../../view/user_manager/index.php", "_self");
-    })
+    this.btnOpen.addEventListener("click", () => this.open());
+    this.btnClose.addEventListener("click", () => this.close());
 
-    const open_messages = document.getElementById("open_messages");
-
-    open_messages.addEventListener("click", function(){
-      window.open("../../view/messages/index.php", "_self");
-    })
-
-
-
-    sidebar.classList.add("side-open");
-    sidebar.classList.remove("side-close");
-    btnOpen.classList.add("is-hidden"); // opcional
-
-    btnOpen.addEventListener("click", (e) => {
-      e.stopPropagation();
-      sidebar.classList.add("side-open");
-      sidebar.classList.remove("side-close");
-      btnOpen.classList.add("is-hidden"); // opcional
+    document.querySelectorAll("[data-sidebar-placeholder]").forEach((item) => {
+      item.addEventListener("click", () => {
+        const label = item.dataset.sidebarPlaceholder || "This section";
+        window.alert(`${label} is not available yet.`);
+      });
     });
-
-    btnClose.addEventListener("click", (e) => {
-      e.stopPropagation();
-      sidebar.classList.add("side-close");
-      sidebar.classList.remove("side-open");
-      btnOpen.classList.remove("is-hidden"); // opcional
-    });
-
   }
 
+  open() {
+    this.sidebar.classList.add("side-open");
+    this.sidebar.classList.remove("side-close");
+    this.btnOpen.classList.add("is-hidden");
+    this.btnOpen.setAttribute("aria-expanded", "true");
+  }
+
+  close() {
+    this.sidebar.classList.add("side-close");
+    this.sidebar.classList.remove("side-open");
+    this.btnOpen.classList.remove("is-hidden");
+    this.btnOpen.setAttribute("aria-expanded", "false");
+  }
 }
 
-const sidebar = document.querySelector(".section-sidebar-navigation");
-const btnOpen = document.getElementById("sidebar-open");
-const btnClose = document.getElementById("sidebar-close");
-const sideNavigation = new SideNavigation();
+document.addEventListener("DOMContentLoaded", () => new SideNavigation());

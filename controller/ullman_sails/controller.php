@@ -120,6 +120,22 @@ class ApiController
                 $this->login($data);
                 break;
 
+            case 'read_users':
+                $this->readUsers();
+                break;
+
+            case 'create_user':
+                $this->createUser($data);
+                break;
+
+            case 'update_user':
+                $this->updateUser($data);
+                break;
+
+            case 'delete_user':
+                $this->deleteUser($data);
+                break;
+
             case 'send_emal_contact_us':
                 $this->sendEmailContactUs($data);
                 break;
@@ -238,6 +254,280 @@ class ApiController
             JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
         );
         exit;
+    }
+
+    private function readUsers()
+    {
+        $connection = new DatabaseUllmanSails();
+        $user = new UllmanSailsUser($connection);
+        $users = $user->getUsers();
+        $connection->closeConnection();
+
+        $this->sendJson(array(
+            'success' => true,
+            'users' => $users
+        ));
+    }
+
+    private function createUser($data)
+    {
+        $validated = $this->validateUserData($data, true);
+
+        if (!$validated['success']) {
+            $this->sendJson($validated, 422);
+            return;
+        }
+
+        $connection = new DatabaseUllmanSails();
+        $user = new UllmanSailsUser($connection);
+
+        if ($user->emailExists($validated['email'])) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'That email address is already in use.'
+            ), 409);
+            return;
+        }
+
+        $user->setName($validated['name']);
+        $user->setEmail($validated['email']);
+        $user->setRole($validated['role']);
+        $user->setStatus($validated['status']);
+
+        $createdUser = $user->createUser($validated['password']);
+        $connection->closeConnection();
+
+        if (!is_array($createdUser)) {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'The user could not be created.'
+            ), 500);
+            return;
+        }
+
+        $this->sendJson(array(
+            'success' => true,
+            'message' => 'User created successfully.',
+            'user' => $createdUser
+        ), 201);
+    }
+
+    private function updateUser($data)
+    {
+        $id = filter_var(isset($data['id']) ? $data['id'] : null, FILTER_VALIDATE_INT);
+
+        if (!$id || $id < 1) {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'Invalid user ID.'
+            ), 422);
+            return;
+        }
+
+        $validated = $this->validateUserData($data, false);
+
+        if (!$validated['success']) {
+            $this->sendJson($validated, 422);
+            return;
+        }
+
+        $connection = new DatabaseUllmanSails();
+        $user = new UllmanSailsUser($connection);
+        $existingUser = $user->getUserById((int) $id);
+
+        if (!is_array($existingUser)) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'User not found.'
+            ), 404);
+            return;
+        }
+
+        $requesterEmail = isset($data['requester_email'])
+            ? strtolower(trim((string) $data['requester_email']))
+            : '';
+        $isCurrentUser = $requesterEmail !== ''
+            && strtolower((string) $existingUser['email']) === $requesterEmail;
+
+        if (
+            $isCurrentUser
+            && (
+                $validated['email'] !== $requesterEmail
+                || $validated['status'] !== 'active'
+                || $validated['role'] !== 'admin'
+            )
+        ) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'You cannot change the email, role or active status of your own account.'
+            ), 409);
+            return;
+        }
+
+        if ($user->emailExists($validated['email'], (int) $id)) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'That email address is already in use.'
+            ), 409);
+            return;
+        }
+
+        $user->setId((int) $id);
+        $user->setName($validated['name']);
+        $user->setEmail($validated['email']);
+        $user->setRole($validated['role']);
+        $user->setStatus($validated['status']);
+
+        $updatedUser = $user->updateUser(
+            $validated['password'] !== '' ? $validated['password'] : null
+        );
+        $connection->closeConnection();
+
+        if (!is_array($updatedUser)) {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'The user could not be updated.'
+            ), 500);
+            return;
+        }
+
+        $this->sendJson(array(
+            'success' => true,
+            'message' => 'User updated successfully.',
+            'user' => $updatedUser
+        ));
+    }
+
+    private function deleteUser($data)
+    {
+        $id = filter_var(isset($data['id']) ? $data['id'] : null, FILTER_VALIDATE_INT);
+
+        if (!$id || $id < 1) {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'Invalid user ID.'
+            ), 422);
+            return;
+        }
+
+        $connection = new DatabaseUllmanSails();
+        $user = new UllmanSailsUser($connection);
+        $existingUser = $user->getUserById((int) $id);
+
+        if (!is_array($existingUser)) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'User not found.'
+            ), 404);
+            return;
+        }
+
+        $requesterEmail = isset($data['requester_email'])
+            ? strtolower(trim((string) $data['requester_email']))
+            : '';
+
+        if ($requesterEmail !== '' && strtolower((string) $existingUser['email']) === $requesterEmail) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'You cannot delete the account you are currently using.'
+            ), 409);
+            return;
+        }
+
+        if ($user->hasPageActivity((int) $id)) {
+            $connection->closeConnection();
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'This user has page activity and cannot be deleted. Set the account to inactive instead.'
+            ), 409);
+            return;
+        }
+
+        $user->setId((int) $id);
+        $deleted = $user->deleteUser();
+        $connection->closeConnection();
+
+        if (!$deleted) {
+            $this->sendJson(array(
+                'success' => false,
+                'message' => 'The user could not be deleted.'
+            ), 500);
+            return;
+        }
+
+        $this->sendJson(array(
+            'success' => true,
+            'message' => 'User deleted successfully.'
+        ));
+    }
+
+    private function validateUserData($data, $requiresPassword)
+    {
+        $name = isset($data['name']) ? trim((string) $data['name']) : '';
+        $email = isset($data['email']) ? strtolower(trim((string) $data['email'])) : '';
+        $password = isset($data['password']) ? (string) $data['password'] : '';
+        $role = isset($data['role']) ? strtolower(trim((string) $data['role'])) : 'admin';
+        $status = isset($data['status']) ? strtolower(trim((string) $data['status'])) : 'active';
+        $nameLength = function_exists('mb_strlen') ? mb_strlen($name) : strlen($name);
+
+        if ($nameLength < 2 || $nameLength > 150) {
+            return array(
+                'success' => false,
+                'message' => 'Full name must contain between 2 and 150 characters.'
+            );
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
+            return array(
+                'success' => false,
+                'message' => 'Enter a valid email address.'
+            );
+        }
+
+        if ($role !== 'admin') {
+            return array(
+                'success' => false,
+                'message' => 'Ullman dashboard users must have the admin role.'
+            );
+        }
+
+        if (!in_array($status, array('active', 'inactive'), true)) {
+            return array(
+                'success' => false,
+                'message' => 'Select a valid account status.'
+            );
+        }
+
+        $passwordLength = strlen($password);
+
+        if (($requiresPassword && $passwordLength < 8) || (!$requiresPassword && $password !== '' && $passwordLength < 8)) {
+            return array(
+                'success' => false,
+                'message' => 'Password must contain at least 8 characters.'
+            );
+        }
+
+        if ($passwordLength > 72) {
+            return array(
+                'success' => false,
+                'message' => 'Password cannot exceed 72 characters.'
+            );
+        }
+
+        return array(
+            'success' => true,
+            'name' => $name,
+            'email' => $email,
+            'password' => $password,
+            'role' => $role,
+            'status' => $status
+        );
     }
 
     private function debugBreakpoint($requestData, $stage, $debugData)

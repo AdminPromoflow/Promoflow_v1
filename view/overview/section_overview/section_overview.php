@@ -17,7 +17,7 @@
     <div class="approvals-details-container">
 
       <div class="details-header">
-        <h2>Approbals</h2>
+        <h2>Approvals</h2>
 
         <div class="details-tabs">
           <div class="details-tab-item pending_to_construction">

@@ -1,37 +1,70 @@
-* {
-     margin: 0;
-     padding: 0;
-     box-sizing: border-box;
-     scroll-behavior: smooth;
-     font-size: 16px; /* base */
-     overflow-x: hidden;
-   }
-   .body_directory{
-     font-family: 'Poppins', sans-serif;
-     width: 100vw;
-     max-height: 100vh;
-     overflow-x: hidden;
-     padding: 1rem;
-   }
-   p {
-     font-size: clamp(1rem, 1.2vw, 1.4rem);
-   }
-
-   h3 {
-     font-size: clamp(1.2rem, 1.5vw, 1.6rem);
-   }
-
-   h2 {
-     font-size: clamp(1.5rem, 2vw, 2.2rem);
-   }
-
-   h1 {
-     font-size: clamp(1.8rem, 3vw, 2.8rem);
-   }
-label input button{
-  font-size: clamp(.8rem, 1vw, 1.3rem);
+:root{
+  color-scheme: dark;
+  font-family: "Poppins", sans-serif;
+  background: #22364f;
 }
-a{
-  all: unset;
- cursor: pointer;
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+html{ min-width: 320px; background: #22364f; }
+
+body.body-user-manager{
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  padding: 16px;
+  overflow-x: hidden;
+  background: linear-gradient(145deg, #243a55 0%, #1c2e45 100%);
+  color: rgba(255,255,255,.92);
+}
+
+button, input{ font: inherit; }
+
+.user-manager-shell{
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+  width: 100%;
+}
+
+.user-manager-content{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.user-manager-page-header{
+  margin-bottom: 14px;
+  padding: 20px 22px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  background: rgba(0,0,0,.12);
+  box-shadow: 0 16px 40px rgba(0,0,0,.18);
+}
+
+.user-manager-page-header h1{
+  margin: 2px 0 0;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  line-height: 1.2;
+}
+
+.user-manager-page-header p{
+  margin: 8px 0 0;
+  color: rgba(255,255,255,.68);
+}
+
+.user-manager-eyebrow{
+  color: #b8c9dc;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px){
+  .user-manager-shell{ display: block; }
+}
+
+@media (max-width: 600px){
+  body.body-user-manager{ padding: 10px; }
+  .user-manager-page-header{ padding: 18px; }
 }

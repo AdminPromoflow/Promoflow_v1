@@ -1,71 +1,57 @@
-<link rel="stylesheet" href="../../view/global/section_sidebar_navigation/section_sidebar_navigation.css?v=<?= file_exists('../../view/global/section_sidebar_navigation/section_sidebar_navigation.css') ? filemtime('../../view/global/section_sidebar_navigation/section_sidebar_navigation.css') : time() ?>">
-<div id="sidebar-open" class="sidebar-open">
-  <img
-    src="../../view/global/section_sidebar_navigation/img/menu.png?v=<?= file_exists('../../view/global/section_sidebar_navigation/img/menu.png') ? filemtime('../../view/global/section_sidebar_navigation/img/menu.png') : time() ?>"
-    alt="Close">
-</div>
-<!-- Sidebar (estructura base) -->
-<section class="section-sidebar-navigation">
-  <!-- Close (arriba derecha) -->
-  <div id="sidebar-close" class="sidebar-close">
-    <img
-      src="../../view/global/section_sidebar_navigation/img/close_icon.png?v=<?= file_exists('../../view/global/section_sidebar_navigation/img/close_icon.png') ? filemtime('../../view/global/section_sidebar_navigation/img/close_icon.png') : time() ?>"
-      alt="Close">
-  </div>
+<?php
+$sidebarCssFile = __DIR__ . '/section_sidebar_navigation.css';
+$sidebarJsFile = __DIR__ . '/section_sidebar_navigation.js';
+$sidebarCurrentPage = basename(dirname($_SERVER['SCRIPT_FILENAME'] ?? ''));
+$sidebarClass = static function (string $page) use ($sidebarCurrentPage): string {
+    return 'sidebar-left-menu-item' . ($sidebarCurrentPage === $page ? ' is-active' : '');
+};
+?>
 
-  <!-- Brand -->
-  <div class="sidebar-header">
-    <img class="sidebar-brand-icon"  src="../../view/global/section_sidebar_navigation/img/logo_promoflow.png?v=<?= file_exists('../../view/global/section_sidebar_navigation/img/logo_promoflow.png') ? filemtime('../../view/global/section_sidebar_navigation/img/logo_promoflow.png') : time() ?>"alt="Promoflow logo">
+<link rel="stylesheet" href="../../view/global/section_sidebar_navigation/section_sidebar_navigation.css?v=<?= file_exists($sidebarCssFile) ? filemtime($sidebarCssFile) : time() ?>">
 
-    <div class="sidebar-title">
-      <h3>Promoflow</h3>
-      <h4>Operations</h4>
-    </div>
-  </div>
+<button id="sidebar-open" class="sidebar-open is-hidden" type="button" aria-label="Open navigation" aria-controls="dashboard-sidebar" aria-expanded="true">
+  <img src="../../view/global/section_sidebar_navigation/img/menu.png" alt="">
+</button>
 
-  <!-- Menu -->
-  <div class="sidebar-left-menu">
+<aside id="dashboard-sidebar" class="section-sidebar-navigation side-open" aria-label="Dashboard navigation">
+  <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close navigation">
+    <img src="../../view/global/section_sidebar_navigation/img/close_icon.png" alt="">
+  </button>
 
+  <a class="sidebar-header" href="../../view/overview/index.php" aria-label="Promoflow Operations dashboard">
+    <img class="sidebar-brand-icon" src="../../view/global/section_sidebar_navigation/img/logo_promoflow.png" alt="Promoflow logo">
+    <span class="sidebar-title">
+      <strong>Promoflow</strong>
+      <small>Operations</small>
+    </span>
+  </a>
 
-    <div class="sidebar-left-menu-item has-sub is-open" id="open_messages">
-      <h3>Messages</h3>
+  <nav class="sidebar-left-menu">
+    <a class="<?= $sidebarClass('overview') ?>" href="../../view/overview/index.php" <?= $sidebarCurrentPage === 'overview' ? 'aria-current="page"' : '' ?>>
+      <span class="sidebar-item-icon" aria-hidden="true">⌂</span>
+      <span>Overview</span>
+    </a>
 
-      <!-- <div class="sidebar-right">
-        <span class="sidebar-count">2</span>
-        <span class="sidebar-chev">▾</span>
-      </div> -->
-    </div>
+    <a class="<?= $sidebarClass('messages') ?>" href="../../view/messages/index.php" <?= $sidebarCurrentPage === 'messages' ? 'aria-current="page"' : '' ?>>
+      <span class="sidebar-item-icon" aria-hidden="true">✉</span>
+      <span>Messages</span>
+    </a>
 
-    <div class="sidebar-left-menu-item has-sub">
-      <h3>Approbals</h3>
+    <button class="sidebar-left-menu-item" type="button" data-sidebar-placeholder="Approvals">
+      <span class="sidebar-item-icon" aria-hidden="true">✓</span>
+      <span>Approvals</span>
+    </button>
 
-      <!-- <div class="sidebar-right">
-        <span class="sidebar-count">7</span>
-        <span class="sidebar-chev">▾</span>
-      </div> -->
-    </div>
+    <button class="sidebar-left-menu-item" type="button" data-sidebar-placeholder="Orders">
+      <span class="sidebar-item-icon" aria-hidden="true">▣</span>
+      <span>Orders</span>
+    </button>
 
-    <div class="sidebar-left-menu-item has-sub is-open">
-      <h3>Orders</h3>
+    <a class="<?= $sidebarClass('user_manager') ?>" id="open_user_manager" href="../../view/user_manager/index.php" <?= $sidebarCurrentPage === 'user_manager' ? 'aria-current="page"' : '' ?>>
+      <span class="sidebar-item-icon" aria-hidden="true">♙</span>
+      <span>User Manager</span>
+    </a>
+  </nav>
+</aside>
 
-      <!-- <div class="sidebar-right">
-        <span class="sidebar-count">5</span>
-        <span class="sidebar-chev">▴</span>
-      </div> -->
-    </div>
-    <div class="sidebar-left-menu-item is-active" id="open_user_manager">
-      <h3>User Manager</h3>
-    </div>
-
-    <!-- Subcontainer ejemplo (para Orders) -->
-    <!-- <div class="sidebar-left-subcontainer is-open">
-      <div class="subitem"><h4>Overview</h4></div>
-      <div class="subitem"><h4>.63</h4></div>
-      <div class="subitem"><h4>W3P</h4></div>
-      <div class="subitem"><h4>Amazon</h4></div>
-      <div class="subitem"><h4>eBay</h4></div>
-    </div> -->
-  </div>
-</section>
-
-<script src="../../view/global/section_sidebar_navigation/section_sidebar_navigation.js?v=<?= file_exists('../../view/global/section_sidebar_navigation/section_sidebar_navigation.js') ? filemtime('../../view/global/section_sidebar_navigation/section_sidebar_navigation.js') : time() ?>" defer></script>
+<script src="../../view/global/section_sidebar_navigation/section_sidebar_navigation.js?v=<?= file_exists($sidebarJsFile) ? filemtime($sidebarJsFile) : time() ?>" defer></script>

@@ -1,16 +1,16 @@
 <?php
+
 class Users
 {
-
     private PDO $db;
-
     private string $name = '';
     private string $email = '';
     private string $password = '';
     private string $role = '';
-    private ?string $avatar = null; // base64 DataURL
+    private ?string $avatar = null;
 
-    public function __construct(Database $connection){
+    public function __construct(Database $connection)
+    {
         $this->db = $connection->getConnection();
     }
 
@@ -20,30 +20,16 @@ class Users
     public function setRole(string $role): void { $this->role = $role; }
     public function setAvatar(?string $avatar): void { $this->avatar = $avatar; }
 
-
     public function getIdUserByEmail(): int
     {
-        if (empty($this->email)) {
-            return 0;
-        }
+        if ($this->email === '') return 0;
 
         try {
-            $stmt = $this->db->prepare("
-                SELECT `idUser`
-                FROM `Users`
-                WHERE `email` = :email
-                LIMIT 1
-            ");
-
-            $stmt->bindValue(':email', $this->email, PDO::PARAM_STR);
-            $stmt->execute();
-
-            $idUser = $stmt->fetchColumn();
-
-            return $idUser ? (int)$idUser : 0;
-
-        } catch (PDOException $e) {
-            echo "Error getting user ID by email: " . $e->getMessage();
+            $statement = $this->db->prepare('SELECT idUser FROM Users WHERE email = :email LIMIT 1');
+            $statement->execute([':email' => $this->email]);
+            return (int) ($statement->fetchColumn() ?: 0);
+        } catch (PDOException $exception) {
+            error_log('Error getting user ID: ' . $exception->getMessage());
             return 0;
         }
     }
@@ -51,20 +37,17 @@ class Users
     public function loginUser(): bool
     {
         try {
-            $stmt = $this->db->prepare("
-                SELECT 1
-                FROM Users
-                WHERE email = :email AND password = :password
-                LIMIT 1
-            ");
-            $stmt->bindValue(':email', $this->email, PDO::PARAM_STR);
-            $stmt->bindValue(':password', $this->password, PDO::PARAM_STR);
-            $stmt->execute();
+            $statement = $this->db->prepare('SELECT password FROM Users WHERE email = :email LIMIT 1');
+            $statement->execute([':email' => $this->email]);
+            $storedPassword = $statement->fetchColumn();
 
-            return (bool)$stmt->fetchColumn();
+            if (!is_string($storedPassword) || $storedPassword === '') return false;
 
-        } catch (PDOException $e) {
-            echo "Error login user: " . $e->getMessage();
+            // New passwords are hashed. The fallback keeps existing legacy accounts working.
+            return password_verify($this->password, $storedPassword)
+                || hash_equals($storedPassword, $this->password);
+        } catch (PDOException $exception) {
+            error_log('Error logging in user: ' . $exception->getMessage());
             return false;
         }
     }
@@ -72,20 +55,18 @@ class Users
     public function createUser(): bool
     {
         try {
-            $sql = $this->db->prepare("
-                INSERT INTO Users (name, email, password, role)
-                VALUES (:name, :email, :password, :role)
-            ");
+            $statement = $this->db->prepare(
+                'INSERT INTO Users (name, email, password, role) VALUES (:name, :email, :password, :role)'
+            );
 
-            $sql->bindParam(':name', $this->name, PDO::PARAM_STR);
-            $sql->bindParam(':email', $this->email, PDO::PARAM_STR);
-            $sql->bindParam(':password', $this->password, PDO::PARAM_STR);
-            $sql->bindParam(':role', $this->role, PDO::PARAM_STR);
-
-            return (bool)$sql->execute();
-
-        } catch (PDOException $e) {
-            echo "Error creating user: " . $e->getMessage();
+            return $statement->execute([
+                ':name' => $this->name,
+                ':email' => $this->email,
+                ':password' => password_hash($this->password, PASSWORD_DEFAULT),
+                ':role' => $this->role,
+            ]);
+        } catch (PDOException $exception) {
+            error_log('Error creating user: ' . $exception->getMessage());
             return false;
         }
     }
@@ -93,61 +74,120 @@ class Users
     public function getUsers(): array
     {
         try {
-            $sql = $this->db->prepare("
-                SELECT idUser, name, email, password, role
-                FROM Users
-                ORDER BY idUser DESC
-            ");
-            $sql->execute();
-
-            $users = $sql->fetchAll(PDO::FETCH_ASSOC);
-            return $users ?: [];
-
-        } catch (PDOException $e) {
-            echo "Error getting users: " . $e->getMessage();
+            $statement = $this->db->query(
+                'SELECT idUser, name, email, role, imageURL FROM Users ORDER BY idUser DESC'
+            );
+            return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $exception) {
+            error_log('Error getting users: ' . $exception->getMessage());
             return [];
         }
     }
 
+    public function getUserById(int $idUser): ?array
+    {
+        try {
+            $statement = $this->db->prepare(
+                'SELECT idUser, name, email, role, imageURL FROM Users WHERE idUser = :idUser LIMIT 1'
+            );
+            $statement->execute([':idUser' => $idUser]);
+            $user = $statement->fetch(PDO::FETCH_ASSOC);
+            return $user ?: null;
+        } catch (PDOException $exception) {
+            error_log('Error getting user: ' . $exception->getMessage());
+            return null;
+        }
+    }
+
+    public function emailExists(string $email, ?int $excludeId = null): bool
+    {
+        $query = 'SELECT 1 FROM Users WHERE LOWER(email) = LOWER(:email)';
+        $params = [':email' => $email];
+
+        if ($excludeId !== null) {
+            $query .= ' AND idUser <> :excludeId';
+            $params[':excludeId'] = $excludeId;
+        }
+
+        $query .= ' LIMIT 1';
+        $statement = $this->db->prepare($query);
+        $statement->execute($params);
+        return (bool) $statement->fetchColumn();
+    }
+
+    public function updateUser(
+        int $idUser,
+        string $name,
+        string $email,
+        string $role,
+        ?string $password = null
+    ): bool {
+        $fields = ['name = :name', 'email = :email', 'role = :role'];
+        $params = [
+            ':idUser' => $idUser,
+            ':name' => $name,
+            ':email' => $email,
+            ':role' => $role,
+        ];
+
+        if ($password !== null && $password !== '') {
+            $fields[] = 'password = :password';
+            $params[':password'] = password_hash($password, PASSWORD_DEFAULT);
+        }
+
+        $statement = $this->db->prepare(
+            'UPDATE Users SET ' . implode(', ', $fields) . ' WHERE idUser = :idUser'
+        );
+        return $statement->execute($params);
+    }
+
     private function updateField(int $idUser, string $field, string $value): bool
     {
-        $allowed = ['name', 'email', 'role', 'password', 'avatar'];
+        $allowed = ['name', 'email', 'role', 'password', 'imageURL'];
         if (!in_array($field, $allowed, true)) return false;
 
         try {
-            $stmt = $this->db->prepare("UPDATE Users SET {$field} = :val WHERE idUser = :idUser");
-            $stmt->bindValue(':val', $value, PDO::PARAM_STR);
-            $stmt->bindValue(':idUser', $idUser, PDO::PARAM_INT);
-
-            return (bool)$stmt->execute();
-
-        } catch (PDOException $e) {
-            echo "Error updating {$field}: " . $e->getMessage();
+            $statement = $this->db->prepare("UPDATE Users SET {$field} = :value WHERE idUser = :idUser");
+            return $statement->execute([':value' => $value, ':idUser' => $idUser]);
+        } catch (PDOException $exception) {
+            error_log("Error updating {$field}: " . $exception->getMessage());
             return false;
         }
     }
 
-    public function updateName(int $idUser, string $name): bool { return $this->updateField($idUser, 'name', $name); }
+    public function updateName(int $idUser, string $name): bool
+    {
+        return $this->updateField($idUser, 'name', $name);
+    }
 
-    public function updateEmail(int $idUser, string $email): bool { return $this->updateField($idUser, 'email', $email); }
+    public function updateEmail(int $idUser, string $email): bool
+    {
+        return $this->updateField($idUser, 'email', $email);
+    }
 
-    public function updateRole(int $idUser, string $role): bool { return $this->updateField($idUser, 'role', $role); }
+    public function updateRole(int $idUser, string $role): bool
+    {
+        return $this->updateField($idUser, 'role', $role);
+    }
 
-    public function updatePassword(int $idUser, string $password): bool { return $this->updateField($idUser, 'password', $password); }
+    public function updatePassword(int $idUser, string $password): bool
+    {
+        return $this->updateField($idUser, 'password', password_hash($password, PASSWORD_DEFAULT));
+    }
 
-    public function updateAvatar(int $idUser, string $avatarDataUrl): bool { return $this->updateField($idUser, 'avatar', $avatarDataUrl); }
+    public function updateAvatar(int $idUser, string $avatarDataUrl): bool
+    {
+        return $this->updateField($idUser, 'imageURL', $avatarDataUrl);
+    }
 
     public function deleteUser(int $idUser): bool
-
     {
         try {
-            $stmt = $this->db->prepare("DELETE FROM Users WHERE idUser = :idUser");
-            $stmt->bindValue(':idUser', $idUser, PDO::PARAM_INT);
-
-            return (bool)$stmt->execute();
-
-        } catch (PDOException $e) {
-            echo "Error deleting user: " . $e->getMessage();
+            $statement = $this->db->prepare('DELETE FROM Users WHERE idUser = :idUser');
+            $statement->execute([':idUser' => $idUser]);
+            return $statement->rowCount() > 0;
+        } catch (PDOException $exception) {
+            error_log('Error deleting user: ' . $exception->getMessage());
             return false;
         }
     }

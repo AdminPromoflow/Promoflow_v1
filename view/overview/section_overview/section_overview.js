@@ -28,7 +28,7 @@ class SectionOverview {
     // ✅ Botones del card "User manager"
     document.querySelectorAll('[data-go="user-manager"]').forEach((btn) => {
       btn.addEventListener("click", () => {
-        window.location.href = "../../view/user_manager/user_manager/index.php";
+        window.location.href = "../../view/user_manager/index.php";
       });
     });
 
