@@ -23,6 +23,7 @@ if (is_file($tokenFile)) {
 require_once __DIR__ . '/send_emails.php';
 require_once dirname(__DIR__) . '/config/config_ullman_sails.php';
 require_once dirname(__DIR__, 2) . '/model/ullman_sails/user.php';
+require_once dirname(__DIR__, 2) . '/model/ullman_sails/news.php';
 
 class ApiController
 {
@@ -112,6 +113,10 @@ class ApiController
         ));
 
         switch ($action) {
+            case 'read_news':
+                $this->readNews();
+                break;
+
             case 'login':
                 $this->debugBreakpoint($data, 'promoflow_before_login', array(
                     'action' => $action,
@@ -254,6 +259,23 @@ class ApiController
             JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
         );
         exit;
+    }
+
+    private function readNews()
+    {
+        $connection = new DatabaseUllmanSails();
+
+        try {
+            $newsRepository = new UllmanSailsNews($connection);
+            $news = $newsRepository->getPublishedNews();
+        } finally {
+            $connection->closeConnection();
+        }
+
+        $this->sendJson(array(
+            'success' => true,
+            'news' => $news
+        ));
     }
 
     private function readUsers()
