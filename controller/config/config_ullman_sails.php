@@ -10,11 +10,6 @@ class DatabaseUllmanSails
 
     public function __construct()
     {
-        $this->servername = $this->environmentValue('ULLMAN_DB_HOST', $this->servername);
-        $this->dbname = $this->environmentValue('ULLMAN_DB_NAME', $this->dbname);
-        $this->username = $this->environmentValue('ULLMAN_DB_USER', $this->username);
-        $this->password = $this->environmentValue('ULLMAN_DB_PASSWORD', $this->password);
-
         try {
             $dsn = 'mysql:host=' . $this->servername
                 . ';dbname=' . $this->dbname
@@ -44,12 +39,5 @@ class DatabaseUllmanSails
     public function closeConnection()
     {
         $this->connection = null;
-    }
-
-    private function environmentValue($name, $default)
-    {
-        $value = getenv($name);
-
-        return is_string($value) && $value !== '' ? $value : $default;
     }
 }
