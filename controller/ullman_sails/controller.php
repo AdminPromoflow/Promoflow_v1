@@ -113,8 +113,14 @@ class ApiController
         ));
 
         switch ($action) {
+            case 'create_news':
+            case 'update_news':
+            case 'delete_news':
+                $this->writeNews($data, $action);
+                break;
+
             case 'read_news':
-                $this->readNews();
+                $this->readNews($data);
                 break;
 
             case 'login':
@@ -261,13 +267,38 @@ class ApiController
         exit;
     }
 
-    private function readNews()
+    private function writeNews($data, $action)
     {
+        $connection = new DatabaseUllmanSails();
+        try {
+            $repository = new UllmanSailsNews($connection);
+            $requester = (string) ($data['requester_email'] ?? '');
+            if ($action === 'delete_news') {
+                $repository->deleteNews($data['id'] ?? null, $requester);
+                $this->sendJson(array('success' => true, 'message' => 'Story deleted.'));
+            } else {
+                if (!isset($data['article']) || !is_array($data['article'])) throw new InvalidArgumentException('Invalid story.');
+                $article = $repository->saveNews($data['article'], $requester, $action === 'create_news');
+                $this->sendJson(array('success' => true, 'article' => $article, 'message' => 'Story saved.'));
+            }
+        } catch (InvalidArgumentException $error) {
+            $this->sendJson(array('success' => false, 'message' => $error->getMessage()), 422);
+        } catch (RuntimeException $error) {
+            if (!in_array($error->getCode(), array(403, 404), true)) throw $error;
+            $this->sendJson(array('success' => false, 'message' => $error->getMessage()), $error->getCode());
+        } finally {
+            $connection->closeConnection();
+        }
+    }
+
+    private function readNews($data)
+    {
+        $includeUnpublished = !empty($data['include_unpublished']);
         $connection = new DatabaseUllmanSails();
 
         try {
             $newsRepository = new UllmanSailsNews($connection);
-            $news = $newsRepository->getPublishedNews();
+            $news = $newsRepository->getNews($includeUnpublished);
         } finally {
             $connection->closeConnection();
         }
