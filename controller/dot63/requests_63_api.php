@@ -4,6 +4,20 @@ class Resques63API
 {
     private $dot63WebhookUrl = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
 
+    private $approvalSessionCookie = '';
+
+    public function __construct()
+    {
+        $configured = trim((string)getenv('DOT63_WEBHOOK_URL'));
+        if ($configured !== '') {
+            $this->dot63WebhookUrl = $configured;
+        } elseif (in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1'], true)) {
+            $port = (int)($_SERVER['SERVER_PORT'] ?? 80);
+            $this->dot63WebhookUrl = 'http://127.0.0.1' . ($port === 80 ? '' : ':' . $port)
+                . '/Dot63_v1/controller/promoflow/promoflow_webhook.php';
+        }
+    }
+
     public function handleResques63API()
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -19,7 +33,31 @@ class Resques63API
             exit;
         }
 
+        if (in_array($data['action'] ?? '', ['approve_product', 'publish_product', 'get_review_preview', 'get_review_variation_children', 'get_review_variation_prices'], true)) {
+            if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) {
+                http_response_code(415);
+                echo json_encode(['success' => false, 'message' => 'A JSON POST request is required.']);
+                exit;
+            }
+            if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+            if (($_SESSION['is_logged'] ?? false) !== true || empty($_SESSION['user_email'])) {
+                session_write_close();
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Sign in to Promoflow to review or approve changes.']);
+                exit;
+            }
+            // Both applications share the PHP session on the same host. Release its lock before forwarding.
+            $this->approvalSessionCookie = session_name() . '=' . rawurlencode(session_id());
+            session_write_close();
+        }
+
         switch ($data["action"] ?? null) {
+            case 'get_review_preview':
+            case 'get_review_variation_children':
+            case 'get_review_variation_prices':
+                $this->sendToDot63(array_intersect_key($data, array_flip(['action', 'sku', 'variation_id', 'ids', 'quantity'])));
+                break;
+
             case 'get_API_overview_data':
                 $this->getAPIOverviewData();
                 break;
@@ -69,6 +107,7 @@ class Resques63API
             CURLOPT_TIMEOUT => 20,
         ]);
 
+        if ($this->approvalSessionCookie !== '') curl_setopt($ch, CURLOPT_COOKIE, $this->approvalSessionCookie);
         $response = curl_exec($ch);
         $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -76,6 +115,7 @@ class Resques63API
         curl_close($ch);
 
         if ($response === false || !empty($curlError)) {
+            http_response_code(502);
             echo json_encode([
                 'success' => false,
                 'error' => 'Could not connect to DOT63 API.',
@@ -85,12 +125,9 @@ class Resques63API
         }
 
         if ($httpCode < 200 || $httpCode >= 300) {
-            echo json_encode([
-                'success' => false,
-                'error' => 'DOT63 API returned an invalid HTTP response.',
-                'http_code' => $httpCode,
-                'response' => $response
-            ]);
+            http_response_code($httpCode >= 400 && $httpCode <= 599 ? $httpCode : 502);
+            $error = json_decode((string)$response, true);
+            echo json_encode(['success' => false, 'message' => $error['message'] ?? $error['error'] ?? 'DOT63 API could not process the request.']);
             exit;
         }
 
@@ -119,7 +156,9 @@ class Resques63API
 
         $payload = [
             "action" => "approve_product",
-            "sku" => $data["sku"]
+            "sku" => $data["sku"],
+            "status_request_version" => $data["status_request_version"] ?? null,
+            "requested_status" => $data["requested_status"] ?? null
         ];
 
         $this->sendToDot63($payload);
@@ -137,7 +176,9 @@ class Resques63API
 
         $payload = [
             "action" => "publish_product",
-            "sku" => $data["sku"]
+            "sku" => $data["sku"],
+            "status_request_version" => $data["status_request_version"] ?? null,
+            "requested_status" => $data["requested_status"] ?? null
         ];
 
         $this->sendToDot63($payload);

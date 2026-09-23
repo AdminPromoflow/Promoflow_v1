@@ -69,7 +69,7 @@ class SectionOverview {
         : [];
 
     const pendingProducts = products.filter((product) => {
-      return parseInt(product?.is_approved, 10) === 0;
+      return product?.pending_status !== null && product?.pending_status !== undefined;
     });
 
     if (pendingProducts.length === 0) {
@@ -84,29 +84,31 @@ class SectionOverview {
     pendingProducts.forEach((product, i) => {
       const index = i + 1;
 
-      const dateRaw = product?.date_status;
+      const dateRaw = product?.status_requested_at ?? product?.date_status;
       const date = dateRaw === null || dateRaw === undefined || dateRaw === ""
         ? "-"
         : dateRaw;
 
       const supplier = product?.supplier?.company_name ?? "-";
       const name = product?.name ?? "";
-      const status = "Pending";
+      const status = `${product?.status_label || "Draft"} → ${product?.pending_status_label || "Requested status"}`;
+      const approvalType = Number(product?.is_approved) === 1 ? "Status change" : "Product approval";
 
       const sku = product?.SKU ?? "";
       const skuVariation = product?.sku_variations ?? "";
 
-      const safeSku = String(sku).replace(/"/g, "&quot;");
-      const safeSkuVar = String(skuVariation).replace(/"/g, "&quot;");
+      const escape = value => String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
+      const safeSku = escape(sku);
+      const safeSkuVar = escape(skuVariation);
 
       this.tableOverviewDetails.innerHTML += `
         <tr>
           <td>${index}</td>
-          <td>${date}</td>
-          <td>Product Launch</td>
-          <td>${supplier}</td>
-          <td>${name}</td>
-          <td>${status}</td>
+          <td>${escape(date)}</td>
+          <td>${approvalType}</td>
+          <td>${escape(supplier)}</td>
+          <td>${escape(name)}</td>
+          <td>${escape(status)}</td>
           <td class="link_review"
               data-sku="${safeSku}"
               data-sku-variation="${safeSkuVar}">
