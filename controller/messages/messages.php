@@ -4,13 +4,35 @@ class Messages {
   private $dot63WebhookUrl = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
 
   public function handleMessages(){
-
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+    if (($_SESSION['is_logged'] ?? false) !== true || empty($_SESSION['user_email'])) {
+      http_response_code(401);
+      echo json_encode(['response'=>false, 'message'=>'Please sign in to view messages.']); exit;
+    }
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+      http_response_code(405); echo json_encode(['response'=>false, 'message'=>'POST required.']); exit;
+    }
 
     $input = file_get_contents('php://input');
     $data  = json_decode($input, true);
 
 
     switch ($data["action"] ?? null) {
+      case 'delete_message':
+        if (empty($_SESSION['messages_csrf']) || !is_string($data['csrf'] ?? null)
+            || !hash_equals($_SESSION['messages_csrf'], $data['csrf'])) {
+          http_response_code(419); echo json_encode(['response'=>false, 'message'=>'Refresh the page and try again.']); exit;
+        }
+        $id = filter_var($data['messageId'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $case = filter_var($data['caseId'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if (!$id || !$case) {
+          http_response_code(422); echo json_encode(['response'=>false, 'message'=>'Select a valid message.']); exit;
+        }
+        $result = (new Message(new Database()))->deleteOwnMessage($id, $case, $_SESSION['user_email']);
+        if (!$result['response']) http_response_code(403);
+        echo json_encode($result); exit;
 
       case 'get_data_messages':
         $this->getDataMessages($data);
@@ -91,6 +113,13 @@ class Messages {
     $message->setIdCase($data["caseId"]);
 
     $resultMessages = $message->getCasesAndMessages();
+    $user = new Users($connection);
+    $user->setEmail($_SESSION['user_email']);
+    $currentUser = $user->getIdUserByEmail();
+    foreach ($resultMessages['messages'] ?? [] as $index => $item) {
+      $resultMessages['messages'][$index]['can_delete'] = $currentUser > 0
+        && $item['sender_type'] === 'admin' && (int)$item['sender_id'] === $currentUser;
+    }
 
     echo json_encode($resultMessages);
     exit;
@@ -166,11 +195,14 @@ class Messages {
 
   public function sendToDot63($payload)
   {
+      $cookie = session_name() . '=' . rawurlencode(session_id());
+      session_write_close();
       $ch = curl_init($this->dot63WebhookUrl);
 
       curl_setopt_array($ch, [
           CURLOPT_POST => true,
           CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_COOKIE => $cookie,
           CURLOPT_HTTPHEADER => [
               'Content-Type: application/json; charset=utf-8',
           ],

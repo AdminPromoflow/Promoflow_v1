@@ -7,6 +7,7 @@ class MessagesSection {
     this.caseTitle = document.getElementById("selected-case-title");
     this.caseSubtitle = document.getElementById("selected-case-subtitle");
 
+    this.busy = false;
     this.init();
   }
 
@@ -51,6 +52,7 @@ class MessagesSection {
   }
 
   enableMessageForm() {
+    if (this.busy) return;
     if (this.form) {
       this.form.classList.remove("is-disabled");
     }
@@ -90,6 +92,7 @@ class MessagesSection {
   }
 
   async sendMessage() {
+    if (this.busy) return;
     const message = this.input.value.trim();
     if (!message) return;
 
@@ -109,15 +112,18 @@ class MessagesSection {
     };
 
     const url = "../../controller/messages/messages.php";
+    this.busy = true;
+    this.sendButton.disabled = true;
     const response = await this.makeRequest(url, data);
-
-    if (!response) return;
-
-    // alert(JSON.stringify(response));
-
-
-    this.addMessageToView(message, "mine");
+    this.busy = false;
+    this.sendButton.disabled = false;
+    if (!response || response.response !== true) {
+      this.feedback(response?.message || 'Message could not be sent. Your text has been kept.');
+      return;
+    }
+    this.addMessageToView(message, "mine", {...response, can_delete: true});
     this.input.value = "";
+    this.feedback('Message sent.');
   }
 
   async makeRequest(url, data) {
@@ -127,22 +133,45 @@ class MessagesSection {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(data)
+        credentials: "same-origin",
+        body: JSON.stringify({...data, csrf: document.querySelector('meta[name="messages-csrf"]')?.content})
       });
 
-      if (!response.ok) {
-        throw new Error("Network error.");
-      }
-
-      return await response.json();
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Request failed. Please try again.');
+      return result;
 
     } catch (error) {
-      console.error("Error:", error);
+      (this.messagesSection || this).feedback(error.message || "Unable to connect. Please try again.");
       return null;
     }
   }
 
-  addMessageToView(message, type = "mine") {
+  feedback(message) {
+    const status = document.getElementById('msg-feedback');
+    status.hidden = false;
+    status.textContent = message;
+  }
+
+  async deleteMessage(item, button) {
+    if (this.busy || !window.confirm('Delete this message for everyone? This cannot be undone.')) return;
+    this.busy = true;
+    button.disabled = true;
+    const result = await this.makeRequest('../../controller/messages/messages.php', {
+      action: 'delete_message', messageId: item.id_message,
+      caseId: new URLSearchParams(location.search).get('case')
+    });
+    this.busy = false;
+    button.disabled = false;
+    if (result?.response) {
+      button.closest('.msg-row').remove();
+      this.messagesSignature = null;
+      this.feedback('Message deleted.');
+      if (!this.previewBody.querySelector('.msg-row')) this.drawMessages([]);
+    } else if (result) this.feedback(result.message || 'Unable to delete this message.');
+  }
+
+  addMessageToView(message, type = "mine", item = {}) {
     if (!this.previewBody) return;
 
     this.previewBody.classList.remove("msg-preview-body-empty");
@@ -163,7 +192,22 @@ class MessagesSection {
 
     text.textContent = message;
 
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    const author = document.createElement('span');
+    author.textContent = `${item.can_delete ? 'You' : type === 'mine' ? 'Team' : 'Supplier'}${item.created_at ? ' · ' + item.created_at : ''}`;
+    meta.appendChild(author);
+    if (item.can_delete && item.id_message) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'msg-delete';
+      remove.textContent = 'Delete';
+      remove.setAttribute('aria-label', 'Delete your message');
+      remove.addEventListener('click', () => this.deleteMessage(item, remove));
+      meta.appendChild(remove);
+    }
     bubble.appendChild(text);
+    bubble.appendChild(meta);
     row.appendChild(bubble);
 
     this.previewBody.appendChild(row);
@@ -171,7 +215,12 @@ class MessagesSection {
   }
 
   drawMessages(messages) {
-    if (!this.previewBody) return;
+    if (!this.previewBody || this.busy) return;
+    const signature = JSON.stringify(messages);
+    if (signature === this.messagesSignature) return;
+    const previousScroll = this.previewBody.scrollTop;
+    const follow = !this.messagesSignature || this.previewBody.scrollHeight - previousScroll - this.previewBody.clientHeight < 80;
+    this.messagesSignature = signature;
 
     this.previewBody.classList.remove("msg-preview-body-empty");
     this.previewBody.innerHTML = "";
@@ -184,10 +233,11 @@ class MessagesSection {
 
     messages.forEach((messageItem) => {
       const type = messageItem.sender_type === "admin" ? "mine" : "other";
-      this.addMessageToView(messageItem.message, type);
+      this.addMessageToView(messageItem.message, type, messageItem);
     });
 
-    this.scrollToBottom();
+    if (follow) this.scrollToBottom();
+    else this.previewBody.scrollTop = previousScroll;
   }
 
   scrollToBottom() {
@@ -210,6 +260,8 @@ class CreateCaseModal {
     this.supplierSelect = document.getElementById("case-supplier");
     this.groupCases = document.getElementById("group_cases");
 
+    document.getElementById('msg-search')?.addEventListener('input', () => this.drawCases(this.cases || []));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') this.closeModal(); });
     this.init();
 
     const params = new URLSearchParams(window.location.search);
@@ -253,6 +305,7 @@ class CreateCaseModal {
   }
 
   async readCasesAndMessages() {
+    if (this.messagesSection.busy || document.hidden) return;
     const params = new URLSearchParams(window.location.search);
     const caseId = params.get("case");
 
@@ -282,7 +335,7 @@ class CreateCaseModal {
       return;
     }
 
-    alert(response.message || "Unable to load case.");
+    this.messagesSection.feedback(response.message || "Unable to load case.");
     this.messagesSection.showNoCaseSelected();
   }
 
@@ -331,6 +384,9 @@ class CreateCaseModal {
 
   drawCases(result) {
     if (!this.groupCases) return;
+    this.cases = result;
+    const search = document.getElementById('msg-search')?.value.trim().toLowerCase() || '';
+    result = Array.isArray(result) ? result.filter(item => (item.name || '').toLowerCase().includes(search)) : [];
 
     this.groupCases.innerHTML = "";
 
@@ -451,6 +507,7 @@ class CreateCaseModal {
     if (!this.modal) return;
 
     this.modal.hidden = true;
+    this.openButton?.focus();
   }
 
   async createCase() {
@@ -503,17 +560,16 @@ class CreateCaseModal {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(data)
+        credentials: "same-origin",
+        body: JSON.stringify({...data, csrf: document.querySelector('meta[name="messages-csrf"]')?.content})
       });
 
-      if (!response.ok) {
-        throw new Error("Network error.");
-      }
-
-      return await response.json();
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Request failed. Please try again.');
+      return result;
 
     } catch (error) {
-      console.error("Error:", error);
+      (this.messagesSection || this).feedback(error.message || "Unable to connect. Please try again.");
       return null;
     }
   }

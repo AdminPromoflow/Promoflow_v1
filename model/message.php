@@ -24,6 +24,22 @@ class Message {
     $this->connection = $connection;
   }
 
+  public function deleteOwnMessage(int $id, int $caseId, string $email): array {
+    try {
+      $statement = $this->connection->getConnection()->prepare(
+        "DELETE FROM Messages WHERE id_message = ? AND id_case = ? AND sender_type = 'admin'
+         AND sender_id IN (SELECT idUser FROM Users WHERE email = ?)"
+      );
+      $statement->execute([$id, $caseId, $email]);
+      return $statement->rowCount() === 1
+        ? ['response'=>true, 'message'=>'Message deleted.']
+        : ['response'=>false, 'message'=>'This message is unavailable or belongs to another user.'];
+    } catch (Throwable $error) {
+      error_log('Message deletion failed: ' . get_class($error));
+      return ['response'=>false, 'message'=>'Unable to delete the message. Please try again.'];
+    }
+  }
+
   // Setters para Cases
 
   public function setIdCase($id_case) {

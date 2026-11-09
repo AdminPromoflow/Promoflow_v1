@@ -15,14 +15,15 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
   <aside class="msg-sidebar" aria-label="Message conversation">
 
     <div class="msg-brand">
-      <h2>Messaging</h2>
-      <p>Live conversation</p>
+      <h2>Messages</h2>
+      <p>A space to keep work moving.</p>
     </div>
 
     <button id="open-create-case" class="msg-btn msg-btn-primary" type="button">
       + Create Case
     </button>
 
+    <label class="msg-search">Search conversations<input id="msg-search" type="search" placeholder="Search by case name…"></label>
     <nav id="group_cases" class="msg-folders" aria-label="Conversations">
       <p class="msg-empty">Loading cases...</p>
     </nav>
@@ -32,7 +33,8 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
   <main class="msg-main">
 
     <header class="msg-topbar">
-      <h1 class="msg-title">Inbox</h1>
+      <div><span class="msg-eyebrow">WORKSPACE / CONVERSATIONS</span><h1 class="msg-title">Inbox</h1></div>
+      <a class="msg-back" href="../overview/index.php">← Overview</a>
     </header>
 
     <section class="msg-reader" aria-label="Selected message">
@@ -50,11 +52,13 @@ $jsVLogic  = is_file($jsPathLogic)  ? filemtime($jsPathLogic)  : time();
         </div>
       </article>
 
+      <p id="msg-feedback" role="status" aria-live="polite" hidden></p>
       <form class="msg-inputbar is-disabled" id="msg-form-promoflow" autocomplete="off">
         <input
           id="msg-input-promoflow"
           class="msg-input"
           type="text"
+          aria-label="Message"
           placeholder="Select a case before writing a message…"
           disabled
         >
