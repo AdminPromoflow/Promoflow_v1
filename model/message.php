@@ -40,6 +40,28 @@ class Message {
     }
   }
 
+  public function supplierOwnsCase(int $caseId, int $supplierId): bool {
+    $query = $this->connection->getConnection()->prepare('SELECT id_case FROM Cases WHERE id_case = ? AND id_supplier = ?');
+    $query->execute([$caseId, $supplierId]);
+    return (bool)$query->fetchColumn();
+  }
+
+  public function supplierCases(int $supplierId): array {
+    $query = $this->connection->getConnection()->prepare('SELECT * FROM Cases WHERE id_supplier = ? ORDER BY updated_at DESC');
+    $query->execute([$supplierId]);
+    return $query->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  public function deleteSupplierMessage(int $id, int $caseId, int $supplierId): array {
+    $query = $this->connection->getConnection()->prepare(
+      "DELETE FROM Messages WHERE id_message = ? AND id_case = ? AND sender_type = 'supplier'
+       AND sender_id = ? AND id_case IN (SELECT id_case FROM Cases WHERE id_supplier = ?)"
+    );
+    $query->execute([$id, $caseId, $supplierId, $supplierId]);
+    return ['response' => $query->rowCount() === 1,
+      'message' => $query->rowCount() === 1 ? 'Message deleted.' : 'This message is unavailable or belongs to another user.'];
+  }
+
   // Setters para Cases
 
   public function setIdCase($id_case) {

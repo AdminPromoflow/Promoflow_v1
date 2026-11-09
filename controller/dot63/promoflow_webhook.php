@@ -1,159 +1,67 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../../model/message.php';
 
-class PromoflowWebhook
-{
-  public function handleResques()
-  {
-    header('Content-Type: application/json; charset=utf-8');
-
-    $input = file_get_contents('php://input');
-    $data  = json_decode($input, true);
-
-    if (!is_array($data)) {
-      echo json_encode([
-        'success' => false,
-        'error' => 'Invalid JSON payload.'
-      ]);
-      exit;
-    }
-
-    switch ($data["action"] ?? null) {
-      case 'get_cases_and_messages':
-        $this->getCasesAndMessages($data);
-        break;
-
-      case 'get_cases':
-        $this->getCases($data);
-        break;
-
-      case 'create_case':
-        $this->createCase($data);
-        break;
-
-      case 'send_message':
-        $this->sendMessage($data);
-        break;
-
-      case 'get_suppliers':
-        $this->getSuppliers($data);
-        break;
-
-      default:
-        echo json_encode([
-          'success' => false,
-          'error' => 'Unsupported action.'
-        ]);
-        break;
-    }
-
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+function messagesReply(int $status, array $data): void {
+    http_response_code($status);
+    echo json_encode($data);
     exit;
-  }
-
-  private function getCasesAndMessages($data)
-  {
-    header('Content-Type: application/json; charset=utf-8');
-
-    $connection = new Database();
-    $message = new Message($connection);
-
-    $message->setIdCase($data["caseId"]);
-
-    $resultMessages = $message->getCasesAndMessages();
-
-    echo json_encode($resultMessages);
-    exit;
-  }
-
-  private function getCases($data)
-  {
-    header('Content-Type: application/json; charset=utf-8');
-
-    $connection = new Database();
-    $message = new Message($connection);
-
-
-    $result = $message->getCases();
-
-    echo json_encode($result);
-    exit;
-  }
-
-  private function createCase($data)
-  {
-    echo json_encode([
-      "response" => true,
-      "message" => "hola Create Case",
-      "data_received" => $data
-    ]);
-    exit;
-  }
-
-  private function sendMessage($data)
-  {
-    header('Content-Type: application/json; charset=utf-8');
-
-
-    $idUser = $data["user_id"];
-
-    date_default_timezone_set("Europe/London");
-    $created_at = date("Y-m-d H:i:s");
-
-
-    $connection = new Database();
-    $message = new Message($connection);
-
-
-    $message->setIdCase($data["caseId"]);
-    $message->setSenderType("supplier");
-    $message->setSenderId($idUser);
-    $message->setMessage($data["message"]);
-    $message->setMessageCreatedAt($created_at);
-
-    echo json_encode([
-        "response" => true,
-        "debug" => true,
-        "caseId" => $data["caseId"] ?? null,
-        "sender_type" => "supplier",
-        "sender_id" => $idUser ?? null,
-        "message" => $data["message"] ?? null,
-        "message_created_at" => $created_at ?? null,
-        "all_data_received" => $data
-    ]);
-    $resultMessages = $message->sendMessage();
-
-    echo json_encode($resultMessages);
-    exit;
-  }
-
-  private function getSuppliers($data)
-  {
-    echo json_encode([
-      "response" => true,
-      "message" => "hola Get Suppliers",
-      "data_received" => $data
-    ]);
-    exit;
-  }
 }
-
-include "../../controller/config/database.php";
-include "../../model/message.php";
-include "../../model/promoflow/user.php";
-
-$payload = json_decode(file_get_contents("php://input"), true);
-
-if (is_array($payload)) {
-  $apiHandler = new PromoflowWebhook();
-  $apiHandler->handleResques();
-} else {
-  header('Content-Type: application/json; charset=utf-8');
-
-  echo json_encode([
-    'success' => false,
-    'error' => 'No valid payload received.'
-  ]);
-
-  exit;
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    header('Allow: POST');
+    messagesReply(405, ['response' => false, 'message' => 'Use POST.']);
 }
-
-?>
+$tokenFile = __DIR__ . '/../config/messages_bridge.php';
+$expected = is_file($tokenFile) ? require $tokenFile : '';
+$provided = $_SERVER['HTTP_X_MESSAGES_TOKEN'] ?? '';
+if (!is_string($expected) || strlen($expected) < 32 || !hash_equals($expected, $provided)) {
+    messagesReply(401, ['response' => false, 'message' => 'Messaging connection is not authorized.']);
+}
+$data = json_decode(file_get_contents('php://input'), true);
+if (!is_array($data)) messagesReply(400, ['response' => false, 'message' => 'Invalid payload.']);
+$supplierId = filter_var($data['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+if (!$supplierId) messagesReply(403, ['response' => false, 'message' => 'Supplier not found.']);
+try {
+    $message = new Message(new Database());
+    $action = $data['action'] ?? '';
+    if ($action === 'get_cases') {
+        messagesReply(200, ['response' => true, 'result' => $message->supplierCases($supplierId)]);
+    }
+    if (!in_array($action, ['get_cases_and_messages', 'send_message', 'delete_message'], true)) {
+        messagesReply(400, ['response' => false, 'message' => 'Unsupported action.']);
+    }
+    $caseId = filter_var($data['caseId'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if (!$caseId || !$message->supplierOwnsCase($caseId, $supplierId)) {
+        messagesReply(403, ['response' => false, 'message' => 'Case is unavailable.']);
+    }
+    $message->setIdCase($caseId);
+    if ($action === 'get_cases_and_messages') {
+        $result = $message->getMessagesByCase();
+        if (!$result['response']) messagesReply(500, ['response' => false, 'message' => 'Unable to load messages.']);
+        $messages = $result['result'];
+        foreach ($messages as &$item) {
+            $item['can_delete'] = $item['sender_type'] === 'supplier' && (int)$item['sender_id'] === $supplierId;
+        }
+        unset($item);
+        messagesReply(200, ['response' => true, 'cases' => $message->supplierCases($supplierId), 'messages' => $messages]);
+    }
+    if ($action === 'delete_message') {
+        $id = filter_var($data['messageId'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if (!$id) messagesReply(400, ['response' => false, 'message' => 'Invalid message.']);
+        $result = $message->deleteSupplierMessage($id, $caseId, $supplierId);
+        messagesReply($result['response'] ? 200 : 403, $result);
+    }
+    $text = $data['message'] ?? null;
+    if (!is_string($text) || trim($text) === '') messagesReply(400, ['response' => false, 'message' => 'Write a message first.']);
+    $message->setSenderType('supplier');
+    $message->setSenderId($supplierId);
+    $message->setMessage(trim($text));
+    $result = $message->sendMessage();
+    unset($result['error']);
+    messagesReply($result['response'] ? 200 : 500, $result);
+} catch (Throwable $error) {
+    error_log('Supplier messaging failed: ' . get_class($error));
+    messagesReply(500, ['response' => false, 'message' => 'Unable to complete the request. Please try again.']);
+}
