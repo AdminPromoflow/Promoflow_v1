@@ -25,9 +25,9 @@
             <div class="details-tab-count"><p>3</p></div>
           </div>
 
-          <div class="details-tab-item pending_to_construction is-active">
+          <div class="details-tab-item is-active">
             <h4>.63</h4>
-            <div class="details-tab-count"><p>0</p></div>
+            <div class="details-tab-count"><p id="dot63-approval-count">—</p></div>
           </div>
 
           <div class="details-tab-item pending_to_construction">

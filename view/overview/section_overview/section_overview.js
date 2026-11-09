@@ -36,17 +36,21 @@ class SectionOverview {
   }
 
   getOverviewData() {
+    this.showOverviewMessage('Loading pending approvals…');
     const url = "../../controller/dot63/requests_63_api.php";
     const payload = { action: "get_API_overview_data" };
 
-    fetch(url, {
+    return fetch(url, {
       method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-      .then((result) => {
-        if (!result.ok) throw new Error("Network error.");
-        return result.json();
+      .then(async (result) => {
+        const data = await result.json();
+        if (!result.ok || !data.success) throw new Error(data.message || data.error || 'Could not load pending approvals. Please try again.');
+        return data;
       })
       .then((data) => {
          // alert(JSON.stringify(data));
@@ -54,7 +58,17 @@ class SectionOverview {
           this.renderOverviewDetailsTable(data["result"]);
         }
       })
-      .catch((err) => console.log("Error:", err));
+      .catch((err) => {
+        const count = document.getElementById('dot63-approval-count');
+        if (count) count.textContent = '—';
+        this.showOverviewMessage(err.message || 'Could not load pending approvals. Please reload this page.');
+      });
+  }
+
+  showOverviewMessage(message) {
+    if (!this.tableOverviewDetails) return;
+    this.tableOverviewDetails.innerHTML = '<tr><td colspan="7" role="status"></td></tr>';
+    this.tableOverviewDetails.querySelector('td').textContent = message;
   }
 
   renderOverviewDetailsTable(data) {
@@ -71,6 +85,8 @@ class SectionOverview {
     const pendingProducts = products.filter((product) => {
       return product?.pending_status !== null && product?.pending_status !== undefined;
     });
+    const count = document.getElementById('dot63-approval-count');
+    if (count) count.textContent = String(pendingProducts.length);
 
     if (pendingProducts.length === 0) {
       this.tableOverviewDetails.innerHTML = `

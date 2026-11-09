@@ -5,6 +5,7 @@ class Resques63API
     private $dot63WebhookUrl = "https://promoflow.net/dot63/controller/promoflow/promoflow_webhook.php";
 
     private $approvalSessionCookie = '';
+    private $approvalCsrfToken = '';
 
     public function __construct()
     {
@@ -33,23 +34,34 @@ class Resques63API
             exit;
         }
 
-        if (in_array($data['action'] ?? '', ['approve_product', 'publish_product', 'get_review_preview', 'get_review_variation_children', 'get_review_variation_prices'], true)) {
-            if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) {
-                http_response_code(415);
-                echo json_encode(['success' => false, 'message' => 'A JSON POST request is required.']);
-                exit;
-            }
-            if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-            if (($_SESSION['is_logged'] ?? false) !== true || empty($_SESSION['user_email'])) {
-                session_write_close();
-                http_response_code(401);
-                echo json_encode(['success' => false, 'message' => 'Sign in to Promoflow to review or approve changes.']);
-                exit;
-            }
-            // Both applications share the PHP session on the same host. Release its lock before forwarding.
-            $this->approvalSessionCookie = session_name() . '=' . rawurlencode(session_id());
-            session_write_close();
+        // This is an internal API: every forwarded action requires a Promoflow session.
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST'
+            || stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) {
+            http_response_code(415);
+            echo json_encode(['success' => false, 'message' => 'A JSON POST request is required.']);
+            exit;
         }
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            $origin = parse_url($_SERVER['HTTP_ORIGIN']);
+            $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+            $expected = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? '');
+            if (rtrim($_SERVER['HTTP_ORIGIN'], '/') !== $expected) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Cross-origin requests are not allowed.']);
+                exit;
+            }
+        }
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        if (($_SESSION['is_logged'] ?? false) !== true || empty($_SESSION['user_email'])) {
+            session_write_close();
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Sign in to Promoflow to use this API.']);
+            exit;
+        }
+        if (empty($_SESSION['dot63_csrf_token'])) $_SESSION['dot63_csrf_token'] = bin2hex(random_bytes(32));
+        $this->approvalCsrfToken = $_SESSION['dot63_csrf_token'];
+        $this->approvalSessionCookie = session_name() . '=' . rawurlencode(session_id());
+        session_write_close();
 
         switch ($data["action"] ?? null) {
             case 'get_review_preview':
@@ -102,6 +114,7 @@ class Resques63API
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json; charset=utf-8',
+                'X-Dot63-CSRF-Token: ' . $this->approvalCsrfToken,
             ],
             CURLOPT_POSTFIELDS => json_encode($payload),
             CURLOPT_TIMEOUT => 20,
