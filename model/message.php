@@ -62,6 +62,45 @@ class Message {
       'message' => $query->rowCount() === 1 ? 'Message deleted.' : 'This message is unavailable or belongs to another user.'];
   }
 
+  public function manageCase(int $caseId, string $action, string $role, $identity, $name = null): array {
+    if (!in_array($action, ['rename_case', 'delete_case'], true) || !in_array($role, ['admin', 'supplier'], true)) {
+      return ['response' => false, 'message' => 'Invalid case action.'];
+    }
+    if ($action === 'rename_case') {
+      if (!is_string($name) || trim($name) === '' || !preg_match('/\A.{1,100}\z/us', trim($name))) {
+        return ['response' => false, 'message' => 'Enter a case name of 1–100 characters.'];
+      }
+      $name = trim($name);
+    }
+    $pdo = $this->connection->getConnection();
+    try {
+      $pdo->beginTransaction();
+      $owner = $role === 'supplier' ? 'id_supplier = ?' : 'id_admin IN (SELECT idUser FROM Users WHERE email = ?)';
+      $lock = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+      $query = $pdo->prepare('SELECT id_case FROM Cases WHERE id_case = ? AND ' . $owner . $lock);
+      $query->execute([$caseId, $identity]);
+      if (!$query->fetchColumn()) {
+        $pdo->rollBack();
+        return ['response' => false, 'message' => 'This case is unavailable or you do not have permission to change it.'];
+      }
+      if ($action === 'rename_case') {
+        $query = $pdo->prepare('UPDATE Cases SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id_case = ?');
+        $query->execute([$name, $caseId]);
+      } else {
+        $query = $pdo->prepare('DELETE FROM Messages WHERE id_case = ?');
+        $query->execute([$caseId]);
+        $query = $pdo->prepare('DELETE FROM Cases WHERE id_case = ?');
+        $query->execute([$caseId]);
+      }
+      $pdo->commit();
+      return ['response' => true, 'name' => $name, 'message' => $action === 'rename_case' ? 'Case renamed.' : 'Case deleted.'];
+    } catch (Throwable $error) {
+      if ($pdo->inTransaction()) $pdo->rollBack();
+      error_log('Case update failed: ' . get_class($error));
+      return ['response' => false, 'message' => 'Unable to update this case. Please try again.'];
+    }
+  }
+
   // Setters para Cases
 
   public function setIdCase($id_case) {

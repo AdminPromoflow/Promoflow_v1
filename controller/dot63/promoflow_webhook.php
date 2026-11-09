@@ -27,12 +27,16 @@ try {
     if ($action === 'get_cases') {
         messagesReply(200, ['response' => true, 'result' => $message->supplierCases($supplierId)]);
     }
-    if (!in_array($action, ['get_cases_and_messages', 'send_message', 'delete_message'], true)) {
+    if (!in_array($action, ['get_cases_and_messages', 'send_message', 'delete_message', 'rename_case', 'delete_case'], true)) {
         messagesReply(400, ['response' => false, 'message' => 'Unsupported action.']);
     }
     $caseId = filter_var($data['caseId'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     if (!$caseId || !$message->supplierOwnsCase($caseId, $supplierId)) {
         messagesReply(403, ['response' => false, 'message' => 'Case is unavailable.']);
+    }
+    if (in_array($action, ['rename_case', 'delete_case'], true)) {
+        $result = $message->manageCase($caseId, $action, 'supplier', $supplierId, $data['name'] ?? null);
+        messagesReply($result['response'] ? 200 : 422, $result);
     }
     $message->setIdCase($caseId);
     if ($action === 'get_cases_and_messages') {

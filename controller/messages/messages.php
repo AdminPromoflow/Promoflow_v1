@@ -20,6 +20,20 @@ class Messages {
 
 
     switch ($data["action"] ?? null) {
+      case 'rename_case':
+      case 'delete_case':
+        if (empty($_SESSION['messages_csrf']) || !is_string($data['csrf'] ?? null)
+            || !hash_equals($_SESSION['messages_csrf'], $data['csrf'])) {
+          http_response_code(419); echo json_encode(['response'=>false, 'message'=>'Refresh the page and try again.']); exit;
+        }
+        $case = filter_var($data['caseId'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if (!$case) {
+          http_response_code(422); echo json_encode(['response'=>false, 'message'=>'Select a valid case.']); exit;
+        }
+        $result = (new Message(new Database()))->manageCase($case, $data['action'], 'admin', $_SESSION['user_email'], $data['name'] ?? null);
+        if (!$result['response']) http_response_code(422);
+        echo json_encode($result); exit;
+
       case 'delete_message':
         if (empty($_SESSION['messages_csrf']) || !is_string($data['csrf'] ?? null)
             || !hash_equals($_SESSION['messages_csrf'], $data['csrf'])) {
@@ -121,6 +135,9 @@ class Messages {
         && $item['sender_type'] === 'admin' && (int)$item['sender_id'] === $currentUser;
     }
 
+    foreach ($resultMessages['cases'] ?? [] as $index => $item) {
+      $resultMessages['cases'][$index]['can_manage'] = (int)$item['id_admin'] === (int)$currentUser;
+    }
     echo json_encode($resultMessages);
     exit;
   }
@@ -133,6 +150,12 @@ class Messages {
 
 
     $result = $message->getCases();
+    $user = new Users($connection);
+    $user->setEmail($_SESSION['user_email']);
+    $currentUser = $user->getIdUserByEmail();
+    foreach ($result['result'] ?? [] as $index => $item) {
+      $result['result'][$index]['can_manage'] = (int)$item['id_admin'] === (int)$currentUser;
+    }
 
     echo json_encode($result);
     exit;
