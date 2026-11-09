@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../../model/message.php';
+require_once __DIR__ . '/message_session.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -13,16 +14,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     header('Allow: POST');
     messagesReply(405, ['response' => false, 'message' => 'Use POST.']);
 }
-$tokenFile = __DIR__ . '/../config/messages_bridge.php';
-$expected = is_file($tokenFile) ? require $tokenFile : '';
-$provided = $_SERVER['HTTP_X_MESSAGES_TOKEN'] ?? '';
-if (!is_string($expected) || strlen($expected) < 32 || !hash_equals($expected, $provided)) {
-    messagesReply(401, ['response' => false, 'message' => 'Messaging connection is not authorized.']);
+try {
+    $supplierId = messageSupplierSession($_SERVER);
+} catch (RuntimeException $error) {
+    messagesReply($error->getCode(), ['response' => false, 'message' => $error->getMessage()]);
 }
 $data = json_decode(file_get_contents('php://input'), true);
 if (!is_array($data)) messagesReply(400, ['response' => false, 'message' => 'Invalid payload.']);
-$supplierId = filter_var($data['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-if (!$supplierId) messagesReply(403, ['response' => false, 'message' => 'Supplier not found.']);
 try {
     $message = new Message(new Database());
     $action = $data['action'] ?? '';
